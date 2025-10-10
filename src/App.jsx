@@ -11,8 +11,9 @@ import OrdersPage from "./Pages/OrdersPage";
 import TrackingPage from "./Pages/TrackingPage";
 import AboutPage from "./Pages/AboutPage";
 import ContactPage from "./Pages/ContactPage";
-import TermsPage from "./Pages/TermsPage";
+import TermsOfServicePage from "./Pages/TermsOfServicePage";
 import PrivacyPage from "./Pages/PrivacyPage";
+import AccessibilityPage from "./Pages/AccessibilityPage";
 import CareersPage from "./Pages/CareersPage";
 import PressPage from "./Pages/PressPage";
 import BlogPage from "./Pages/BlogPage";
@@ -77,8 +78,9 @@ const App = () => {
       <Route path="tracking" element={<TrackingPage cart={cart} />} />
       <Route path="about" element={<AboutPage cart={cart} wishlist={wishlist} />} />
       <Route path="contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
-      <Route path="terms" element={<TermsPage cart={cart} wishlist={wishlist} />} />
+      <Route path="terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={wishlist} />} />
       <Route path="privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
+      <Route path="accessibility" element={<AccessibilityPage cart={cart} />} />
       <Route path="careers" element={<CareersPage cart={cart} />} />
       <Route path="press" element={<PressPage cart={cart} />} />
       <Route path="blog" element={<BlogPage cart={cart} />} />
