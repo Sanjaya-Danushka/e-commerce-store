@@ -11,28 +11,30 @@ const HomePage = ({ cart }) => {
   const [addedToCart, setAddedToCart] = useState({});
 
   useEffect(() => {
-    axios.get("http://localhost:3000/api/products").then((response) => {
+    const fetchProducts = async () => {
+      const response = await axios.get("/api/products");
       setProducts(response.data);
       // Initialize quantities to 1 for each product
       const initialQuantities = {};
-      response.data.forEach(product => {
+      response.data.forEach((product) => {
         initialQuantities[product.id] = 1;
       });
       setQuantities(initialQuantities);
-    });
+    };
+    fetchProducts();
   }, []);
 
   const handleQuantityChange = (productId, quantity) => {
     setQuantities({
       ...quantities,
-      [productId]: parseInt(quantity)
+      [productId]: parseInt(quantity),
     });
   };
 
   const handleAddToCart = (productId) => {
     const quantity = quantities[productId] || 1;
     axios
-      .post("http://localhost:3000/api/cart-items", {
+      .post("/api/cart-items", {
         productId: productId,
         quantity: quantity,
       })
@@ -80,13 +82,16 @@ const HomePage = ({ cart }) => {
                   </div>
                 </div>
 
-                <div className="product-price">{formatMoney(product.priceCents)}</div>
+                <div className="product-price">
+                  {formatMoney(product.priceCents)}
+                </div>
 
                 <div className="product-quantity-container">
-                  <select 
+                  <select
                     value={quantities[product.id] || 1}
-                    onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                  >
+                    onChange={(e) =>
+                      handleQuantityChange(product.id, e.target.value)
+                    }>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -102,15 +107,16 @@ const HomePage = ({ cart }) => {
 
                 <div className="product-spacer"></div>
 
-                <div className="added-to-cart" style={{ opacity: addedToCart[product.id] ? 1 : 0 }}>
+                <div
+                  className="added-to-cart"
+                  style={{ opacity: addedToCart[product.id] ? 1 : 0 }}>
                   <img src="/images/icons/checkmark.png" />
                   Added
                 </div>
 
-                <button 
+                <button
                   className="add-to-cart-button button-primary"
-                  onClick={() => handleAddToCart(product.id)}
-                >
+                  onClick={() => handleAddToCart(product.id)}>
                   Add to Cart
                 </button>
               </div>

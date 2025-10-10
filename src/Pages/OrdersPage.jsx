@@ -6,10 +6,10 @@ import OrderContainer from "../components/OrderContainer";
 
 const OrdersPage = ({ cart }) => {
   const [orders, setOrders] = useState([]);
-  
+
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/orders?expand=products")
+      .get("/api/orders?expand=products")
       .then((response) => {
         setOrders(response.data);
       })
@@ -20,7 +20,7 @@ const OrdersPage = ({ cart }) => {
 
   const handleAddToCart = (productId) => {
     axios
-      .post("http://localhost:3000/api/cart-items", {
+      .post("/api/cart-items", {
         productId: productId,
         quantity: 1,
       })

@@ -12,24 +12,26 @@ const CheckutPage = () => {
 
   useEffect(() => {
     // Fetch cart items directly
-    axios
-      .get("http://localhost:3000/api/cart-items?expand=product")
-      .then((response) => {
+    const fetchCartItems = async () => {
+      try {
+        const response = await axios.get("/api/cart-items?expand=product");
         setCartItems(response.data);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching cart items:", error);
-      });
+      }
+    };
+    fetchCartItems();
 
     // Fetch delivery options
-    axios
-      .get("http://localhost:3000/api/delivery-options")
-      .then((response) => {
+    const fetchDeliveryOptions = async () => {
+      try {
+        const response = await axios.get("/api/delivery-options");
         setDeliveryOptions(response.data);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching delivery options:", error);
-      });
+      }
+    };
+    fetchDeliveryOptions();
   }, []);
 
   const calculateDeliveryDate = (deliveryDays) => {
@@ -41,7 +43,7 @@ const CheckutPage = () => {
     const newQuantity = prompt("Enter new quantity:");
     if (newQuantity && !isNaN(newQuantity) && newQuantity > 0) {
       axios
-        .put(`http://localhost:3000/api/cart-items/${productId}`, {
+        .put(`/api/cart-items/${productId}`, {
           quantity: parseInt(newQuantity),
         })
         .then(() => {
@@ -62,7 +64,7 @@ const CheckutPage = () => {
   const handleDeleteItem = (productId) => {
     if (confirm("Are you sure you want to delete this item?")) {
       axios
-        .delete(`http://localhost:3000/api/cart-items/${productId}`)
+        .delete(`/api/cart-items/${productId}`)
         .then(() => {
           setCartItems(
             cartItems.filter((item) => item.productId !== productId)
@@ -76,7 +78,7 @@ const CheckutPage = () => {
 
   const handleDeliveryOptionChange = (productId, deliveryOptionId) => {
     axios
-      .put(`http://localhost:3000/api/cart-items/${productId}`, {
+      .put(`/api/cart-items/${productId}`, {
         deliveryOptionId: deliveryOptionId,
       })
       .then(() => {
@@ -93,7 +95,7 @@ const CheckutPage = () => {
 
   const handlePlaceOrder = () => {
     axios
-      .post("http://localhost:3000/api/orders", {})
+      .post("/api/orders", {})
       .then(() => {
         alert("Order placed successfully!");
         setCartItems([]);
