@@ -13,6 +13,11 @@ import AboutPage from "./Pages/AboutPage";
 import ContactPage from "./Pages/ContactPage";
 import TermsPage from "./Pages/TermsPage";
 import PrivacyPage from "./Pages/PrivacyPage";
+import CareersPage from "./Pages/CareersPage";
+import PressPage from "./Pages/PressPage";
+import BlogPage from "./Pages/BlogPage";
+import AffiliateProgramPage from "./Pages/AffiliateProgramPage";
+import WholesalePage from "./Pages/WholesalePage";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 
@@ -69,6 +74,11 @@ const App = () => {
       <Route path="contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
       <Route path="terms" element={<TermsPage cart={cart} wishlist={wishlist} />} />
       <Route path="privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
+      <Route path="careers" element={<CareersPage cart={cart} />} />
+      <Route path="press" element={<PressPage cart={cart} />} />
+      <Route path="blog" element={<BlogPage cart={cart} />} />
+      <Route path="affiliate-program" element={<AffiliateProgramPage cart={cart} />} />
+      <Route path="wholesale" element={<WholesalePage cart={cart} />} />
     </Routes>
   );
 };

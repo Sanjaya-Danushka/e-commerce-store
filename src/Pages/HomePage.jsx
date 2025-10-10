@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import CustomDropdown from "../components/CustomDropdown";
 import Header from "../components/Header";
 import { formatMoney } from "../utils/money";
+import { Link } from "react-router-dom";
 
 const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [products, setProducts] = useState([]);
@@ -786,7 +787,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-white mb-4">Customer Service</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Shipping Info</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Returns & Exchanges</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Size Guide</a></li>
@@ -799,12 +800,12 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-white mb-4">Quick Links</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Press</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Affiliate Program</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Wholesale</a></li>
+                <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/careers" className="text-gray-400 hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/press" className="text-gray-400 hover:text-white transition-colors">Press</Link></li>
+                <li><Link to="/blog" className="text-gray-400 hover:text-white transition-colors">Blog</Link></li>
+                <li><Link to="/affiliate-program" className="text-gray-400 hover:text-white transition-colors">Affiliate Program</Link></li>
+                <li><Link to="/wholesale" className="text-gray-400 hover:text-white transition-colors">Wholesale</Link></li>
               </ul>
             </div>
 
@@ -849,8 +850,8 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
               <div className="text-center md:text-right">
                 <p className="text-gray-400 text-sm">
                   © 2024 ShopEase. All rights reserved. |
-                  <a href="#" className="text-gray-300 hover:text-white ml-1 transition-colors">Privacy Policy</a> |
-                  <a href="#" className="text-gray-300 hover:text-white ml-1 transition-colors">Terms of Service</a> |
+                  <Link to="/privacy" className="text-gray-300 hover:text-white ml-1 transition-colors">Privacy Policy</Link> |
+                  <Link to="/terms" className="text-gray-300 hover:text-white ml-1 transition-colors">Terms of Service</Link> |
                   <a href="#" className="text-gray-300 hover:text-white ml-1 transition-colors">Accessibility</a>
                 </p>
               </div>
