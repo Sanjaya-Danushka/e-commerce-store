@@ -74,8 +74,8 @@ const OrdersPage = ({ cart, refreshCart }) => {
         </div>
       </div>
 
-      <div className="orders-page">
-        <div className="orders-grid">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 gap-6">
           {orders.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
