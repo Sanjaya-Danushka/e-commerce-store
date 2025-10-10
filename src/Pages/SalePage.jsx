@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import { Link } from "react-router";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
+import CustomDropdown from "../components/CustomDropdown";
 
 const SalePage = ({ cart, wishlist, refreshCart }) => {
   const [saleProducts, setSaleProducts] = useState([]);
@@ -170,16 +171,19 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
 
                   {/* Quantity Selector */}
                   <div className="mb-3">
-                    <select
+                    <CustomDropdown
+                      options={[
+                        { value: 1, label: "Qty: 1" },
+                        { value: 2, label: "Qty: 2" },
+                        { value: 3, label: "Qty: 3" },
+                        { value: 4, label: "Qty: 4" },
+                        { value: 5, label: "Qty: 5" }
+                      ]}
                       value={quantities[product.id] || 1}
-                      onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors">
-                      <option value="1">Qty: 1</option>
-                      <option value="2">Qty: 2</option>
-                      <option value="3">Qty: 3</option>
-                      <option value="4">Qty: 4</option>
-                      <option value="5">Qty: 5</option>
-                    </select>
+                      onChange={(value) => handleQuantityChange(product.id, value)}
+                      placeholder="Select quantity"
+                      className="w-full"
+                    />
                   </div>
 
                   {/* Success message */}

@@ -49,10 +49,9 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
+      <title>Home</title>
       <Header cart={cart} wishlist={wishlist} />
 
       {/* Promotional Banner */}

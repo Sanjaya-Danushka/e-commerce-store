@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
+import CustomDropdown from "../components/CustomDropdown";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
 
@@ -215,19 +216,19 @@ const ProductsPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
 
               {/* Categories */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Categories</h4>
-                <div className="space-y-2">
+                <h4 className="text-lg font-semibold text-gray-800 mb-3">📂 Categories</h4>
+                <div className="space-y-3">
                   {categories.map((category) => (
-                    <label key={category.id} className="flex items-center space-x-3 cursor-pointer">
+                    <label key={category.id} className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                       <input
                         type="radio"
                         name="category"
                         value={category.id}
                         checked={selectedCategory === category.id}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="text-blue-600 focus:ring-blue-500"
+                        className="text-blue-600 focus:ring-blue-500 focus:ring-2 w-4 h-4"
                       />
-                      <span className="text-gray-700">{category.icon} {category.name}</span>
+                      <span className="text-gray-700 font-medium">{category.icon} {category.name}</span>
                     </label>
                   ))}
                 </div>
@@ -235,64 +236,67 @@ const ProductsPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
 
               {/* Price Range */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Price Range</h4>
+                <h4 className="text-lg font-semibold text-gray-800 mb-3">💰 Price Range</h4>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      value={priceRange.min}
-                      onChange={(e) => setPriceRange(prev => ({ ...prev, min: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-500">-</span>
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      value={priceRange.max}
-                      onChange={(e) => setPriceRange(prev => ({ ...prev, max: parseInt(e.target.value) || 10000 }))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">$</span>
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={priceRange.min}
+                        onChange={(e) => setPriceRange(prev => ({ ...prev, min: parseInt(e.target.value) || 0 }))}
+                        className="w-full pl-8 pr-3 py-3 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-300 transition-all duration-200"
+                      />
+                    </div>
+                    <span className="text-gray-500 font-medium">-</span>
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">$</span>
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={priceRange.max}
+                        onChange={(e) => setPriceRange(prev => ({ ...prev, max: parseInt(e.target.value) || 10000 }))}
+                        className="w-full pl-8 pr-3 py-3 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-300 transition-all duration-200"
+                      />
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    ${priceRange.min} - ${priceRange.max}
+                  <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                    Current range: ${priceRange.min} - ${priceRange.max}
                   </div>
                 </div>
               </div>
 
               {/* Free Shipping */}
               <div className="mb-6">
-                <label className="flex items-center space-x-3 cursor-pointer">
+                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                   <input
                     type="checkbox"
                     checked={freeShipping}
                     onChange={(e) => setFreeShipping(e.target.checked)}
-                    className="text-blue-600 focus:ring-blue-500 rounded"
+                    className="text-blue-600 focus:ring-blue-500 rounded w-5 h-5"
                   />
-                  <span className="text-gray-700">Free Shipping (Orders over $50)</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700 font-medium">🚚 Free Shipping</span>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">(Orders over $50)</span>
+                  </div>
                 </label>
               </div>
 
               {/* Rating Filter */}
               <div className="mb-6">
                 <h4 className="text-lg font-semibold text-gray-800 mb-3">Minimum Rating</h4>
-                <div className="relative">
-                  <select
-                    value={minRating}
-                    onChange={(e) => setMinRating(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-300 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value={0}>⭐ Any Rating</option>
-                    <option value={3}>⭐⭐⭐ 3+ Stars</option>
-                    <option value={4}>⭐⭐⭐⭐ 4+ Stars</option>
-                    <option value={5}>⭐⭐⭐⭐⭐ 5 Stars Only</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <CustomDropdown
+                  options={[
+                    { value: 0, label: "⭐ Any Rating" },
+                    { value: 3, label: "⭐⭐⭐ 3+ Stars" },
+                    { value: 4, label: "⭐⭐⭐⭐ 4+ Stars" },
+                    { value: 5, label: "⭐⭐⭐⭐⭐ 5 Stars Only" }
+                  ]}
+                  value={minRating}
+                  onChange={setMinRating}
+                  placeholder="Select minimum rating"
+                />
               </div>
 
               {/* Clear Filters */}
@@ -305,9 +309,9 @@ const ProductsPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
                   setMinRating(0);
                   setSortBy("name");
                 }}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Clear All Filters
+                🗑️ Clear All Filters
               </button>
             </div>
           </div>
@@ -322,17 +326,19 @@ const ProductsPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
 
               <div className="flex items-center space-x-3">
                 <label className="text-gray-700 font-medium">Sort by:</label>
-                <select
+                <CustomDropdown
+                  options={[
+                    { value: "name", label: "📝 Name (A-Z)" },
+                    { value: "price-low", label: "💰 Price (Low to High)" },
+                    { value: "price-high", label: "💎 Price (High to Low)" },
+                    { value: "rating", label: "⭐ Highest Rated" },
+                    { value: "newest", label: "🆕 Newest First" }
+                  ]}
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="name">Name (A-Z)</option>
-                  <option value="price-low">Price (Low to High)</option>
-                  <option value="price-high">Price (High to Low)</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="newest">Newest First</option>
-                </select>
+                  onChange={setSortBy}
+                  placeholder="Sort products"
+                  className="min-w-[200px]"
+                />
               </div>
             </div>
 
@@ -437,22 +443,25 @@ const ProductsPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
 
                       {/* Quantity Selector */}
                       <div className="mb-3">
-                        <select
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Quantity:</label>
+                        <CustomDropdown
+                          options={[
+                            { value: 1, label: "Qty: 1" },
+                            { value: 2, label: "Qty: 2" },
+                            { value: 3, label: "Qty: 3" },
+                            { value: 4, label: "Qty: 4" },
+                            { value: 5, label: "Qty: 5" },
+                            { value: 6, label: "Qty: 6" },
+                            { value: 7, label: "Qty: 7" },
+                            { value: 8, label: "Qty: 8" },
+                            { value: 9, label: "Qty: 9" },
+                            { value: 10, label: "Qty: 10" }
+                          ]}
                           value={quantities[product.id] || 1}
-                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors"
-                        >
-                          <option value="1">Qty: 1</option>
-                          <option value="2">Qty: 2</option>
-                          <option value="3">Qty: 3</option>
-                          <option value="4">Qty: 4</option>
-                          <option value="5">Qty: 5</option>
-                          <option value="6">Qty: 6</option>
-                          <option value="7">Qty: 7</option>
-                          <option value="8">Qty: 8</option>
-                          <option value="9">Qty: 9</option>
-                          <option value="10">Qty: 10</option>
-                        </select>
+                          onChange={(value) => handleQuantityChange(product.id, value)}
+                          placeholder="Select quantity"
+                          className="w-full"
+                        />
                       </div>
 
                       {/* Success message */}
