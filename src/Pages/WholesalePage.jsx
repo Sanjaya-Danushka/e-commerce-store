@@ -114,11 +114,6 @@ const WholesalePage = ({ cart }) => {
     setShowModal(true);
   };
 
-  const handleCatalogDownload = () => {
-    setModalType("catalog");
-    setShowModal(true);
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -436,7 +431,10 @@ For inquiries or to get started, contact our wholesale team at wholesale@shopeas
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={handleCatalogDownload}
+              onClick={() => {
+                setModalType("apply");
+                setShowModal(true);
+              }}
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
             >
               Apply for Wholesale
