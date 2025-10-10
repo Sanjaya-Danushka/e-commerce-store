@@ -24,7 +24,6 @@ import ReturnsExchangesPage from "./Pages/ReturnsExchangesPage";
 import SizeGuidePage from "./Pages/SizeGuidePage";
 import TrackOrderPage from "./Pages/TrackOrderPage";
 import GiftCardsPage from "./Pages/GiftCardsPage";
-import Footer from "./components/Footer";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 
@@ -94,7 +93,6 @@ const App = () => {
         <Route path="track-order" element={<TrackOrderPage cart={cart} />} />
         <Route path="gift-cards" element={<GiftCardsPage cart={cart} />} />
       </Routes>
-      <Footer />
     </div>
   );
 };
