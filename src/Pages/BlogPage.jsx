@@ -351,21 +351,80 @@ Our commitment to quality sourcing builds lasting relationships with customers a
               </div>
             </div>
 
+            {/* Popular Articles */}
+            <div className="bg-white rounded-xl p-6 shadow-sm mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Popular Articles</h3>
+              <div className="space-y-4">
+                {[
+                  { title: "10 Must-Have Gadgets for Remote Work", views: "2.5K views" },
+                  { title: "Sustainable Fashion Brands We're Loving", views: "1.8K views" },
+                  { title: "Complete Guide to Smart Home Security", views: "3.2K views" },
+                  { title: "Holiday Shopping Trends 2024", views: "4.1K views" }
+                ].map((article, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                    <h4 className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer transition-colors">
+                      {article.title}
+                    </h4>
+                    <span className="text-xs text-gray-500">{article.views}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Follow Us */}
+            <div className="bg-white rounded-xl p-6 shadow-sm mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Follow Us</h3>
+              <div className="flex space-x-3">
+                {[
+                  { name: "Twitter", icon: "🐦", color: "hover:text-blue-400" },
+                  { name: "Facebook", icon: "📘", color: "hover:text-blue-600" },
+                  { name: "Instagram", icon: "📷", color: "hover:text-pink-600" },
+                  { name: "LinkedIn", icon: "💼", color: "hover:text-blue-700" }
+                ].map((social, index) => (
+                  <a
+                    key={index}
+                    href="#"
+                    className={`w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg ${social.color} transition-colors`}
+                  >
+                    {social.icon}
+                  </a>
+                ))}
+              </div>
+            </div>
+
             {/* Newsletter CTA */}
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">Never Miss a Post</h3>
               <p className="text-gray-600 text-sm mb-4">
                 Subscribe to get the latest articles and insights delivered to your inbox.
               </p>
-              <button
-                onClick={handleBlogSubscription}
-                disabled={blogIsLoading}
-                className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 ${
-                  blogIsLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {blogIsLoading ? 'Subscribing...' : 'Subscribe Now'}
-              </button>
+              <div className="space-y-3">
+                <input
+                  type="email"
+                  placeholder="Enter your email for updates"
+                  value={blogEmail}
+                  onChange={(e) => setBlogEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                />
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!blogEmail || !blogEmail.includes('@')) {
+                      alert('Please enter a valid email address to subscribe');
+                      return;
+                    }
+                    handleBlogSubscription(e);
+                  }}
+                  disabled={blogIsLoading}
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 text-sm ${
+                    blogIsLoading
+                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                  }`}
+                >
+                  {blogIsLoading ? 'Subscribing...' : 'Subscribe Now'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
