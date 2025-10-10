@@ -43,6 +43,9 @@ const Header = ({ cart, wishlist }) => {
             <Link to="/" className="text-gray-700 hover:text-gray-900 text-lg font-medium transition-colors">
               Home
             </Link>
+            <Link to="/products" className="text-gray-700 hover:text-gray-900 text-lg font-medium transition-colors">
+              Products
+            </Link>
             <Link to="/sale" className="text-red-600 hover:text-red-700 text-lg font-medium transition-colors">
               Sale
             </Link>
@@ -134,6 +137,9 @@ const Header = ({ cart, wishlist }) => {
             <nav className="space-y-2">
               <Link to="/" className="block text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
                 Home
+              </Link>
+              <Link to="/products" className="block text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                Products
               </Link>
               <Link to="/sale" className="block text-red-600 hover:text-red-700 px-3 py-2 text-sm font-medium">
                 Sale

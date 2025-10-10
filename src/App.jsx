@@ -4,8 +4,8 @@ import CategoriesPage from "./Pages/CategoriesPage";
 import BrandsPage from "./Pages/BrandsPage";
 import SalePage from "./Pages/SalePage";
 import NewArrivalsPage from "./Pages/NewArrivalsPage";
+import ProductsPage from "./Pages/ProductsPage";
 import WishlistPage from "./Pages/WishlistPage";
-import { Routes, Route } from "react-router-dom";
 import CheckoutPage from "./Pages/CheckutPage";
 import OrdersPage from "./Pages/OrdersPage";
 import TrackingPage from "./Pages/TrackingPage";
@@ -14,6 +14,7 @@ import ContactPage from "./Pages/ContactPage";
 import TermsPage from "./Pages/TermsPage";
 import PrivacyPage from "./Pages/PrivacyPage";
 import axios from "axios";
+import { Routes, Route } from "react-router-dom";
 
 const App = () => {
   const [cart, setCart] = useState([]);
@@ -57,6 +58,7 @@ const App = () => {
       <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
       <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
       <Route path="/brands" element={<BrandsPage cart={cart} wishlist={wishlist} />} />
+      <Route path="/products" element={<ProductsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
       <Route path="/sale" element={<SalePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
       <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
       <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
