@@ -323,8 +323,8 @@ const HomePage = ({ cart, refreshCart }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">About Us</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Contact</a></li>
+                <li><a href="/about" className="text-gray-300 hover:text-white transition-colors duration-200">About Us</a></li>
+                <li><a href="/contact" className="text-gray-300 hover:text-white transition-colors duration-200">Contact</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">FAQ</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Shipping Info</a></li>
               </ul>
@@ -337,7 +337,7 @@ const HomePage = ({ cart, refreshCart }) => {
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Returns</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Track Order</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Size Guide</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Support</a></li>
+                <li><a href="/contact" className="text-gray-300 hover:text-white transition-colors duration-200">Support</a></li>
               </ul>
             </div>
           </div>
@@ -345,8 +345,8 @@ const HomePage = ({ cart, refreshCart }) => {
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-gray-400">
               © 2024 ShopEase. All rights reserved. |
-              <a href="#" className="text-gray-300 hover:text-white ml-1">Privacy Policy</a> |
-              <a href="#" className="text-gray-300 hover:text-white ml-1">Terms of Service</a>
+              <a href="/privacy" className="text-gray-300 hover:text-white ml-1">Privacy Policy</a> |
+              <a href="/terms" className="text-gray-300 hover:text-white ml-1">Terms of Service</a>
             </p>
           </div>
         </div>

@@ -30,6 +30,18 @@ const Header = ({ cart }) => {
           {/* Right section - Orders & Cart */}
           <div className="flex items-center space-x-6">
             <Link
+              to="/about"
+              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
+              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            >
+              Contact
+            </Link>
+            <Link
               to="/orders"
               className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             >
