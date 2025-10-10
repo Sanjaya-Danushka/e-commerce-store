@@ -330,11 +330,101 @@ const GiftCardsPage = ({ cart }) => {
               Gift Card Help
             </button>
             <button
-              onClick={() => navigate('/gift-cards')}
+              onClick={() => {
+                // Scroll to examples section or show examples
+                const examplesSection = document.getElementById('gift-card-examples');
+                if (examplesSection) {
+                  examplesSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-purple-500 hover:text-purple-600 transition-all duration-300"
             >
               View Examples
             </button>
+          </div>
+        </div>
+
+        {/* Gift Card Examples Section */}
+        <div id="gift-card-examples" className="mt-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Gift Card Examples</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Birthday Surprise",
+                description: "Perfect for celebrating someone's special day",
+                amount: "$50",
+                design: "Birthday",
+                occasion: "Birthday"
+              },
+              {
+                title: "Thank You Gesture",
+                description: "Show appreciation with a thoughtful gift",
+                amount: "$25",
+                design: "Thank You",
+                occasion: "Thank You"
+              },
+              {
+                title: "Holiday Cheer",
+                description: "Spread joy during the festive season",
+                amount: "$100",
+                design: "Holiday",
+                occasion: "Holiday"
+              },
+              {
+                title: "Just Because",
+                description: "A sweet surprise for no particular reason",
+                amount: "$75",
+                design: "Classic",
+                occasion: "Any Occasion"
+              },
+              {
+                title: "Congratulations",
+                description: "Celebrate achievements and milestones",
+                amount: "$150",
+                design: "Classic",
+                occasion: "Congratulations"
+              },
+              {
+                title: "Wedding Gift",
+                description: "Help the happy couple start their new life",
+                amount: "$200",
+                design: "Classic",
+                occasion: "Wedding"
+              }
+            ].map((example, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="text-center mb-4">
+                  <div className={`w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-2xl ${
+                    example.design === 'Birthday' ? 'bg-yellow-100' :
+                    example.design === 'Thank You' ? 'bg-green-100' :
+                    example.design === 'Holiday' ? 'bg-red-100' :
+                    'bg-blue-100'
+                  }`}>
+                    {example.design === 'Birthday' ? '🎂' :
+                     example.design === 'Thank You' ? '🙏' :
+                     example.design === 'Holiday' ? '🎄' : '🎁'}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">{example.title}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{example.occasion}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-gray-600 text-sm">{example.description}</p>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                    <span className="text-lg font-bold text-green-600">{example.amount}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      example.design === 'Birthday' ? 'bg-yellow-100 text-yellow-800' :
+                      example.design === 'Thank You' ? 'bg-green-100 text-green-800' :
+                      example.design === 'Holiday' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {example.design}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
