@@ -120,36 +120,6 @@ const CareersPage = ({ cart }) => {
       portfolio: ""
     });
   };
-  const jobOpenings = [
-    {
-      title: "Senior Frontend Developer",
-      department: "Engineering",
-      location: "New York, NY",
-      type: "Full-time",
-      description: "We're looking for a passionate frontend developer to join our growing team."
-    },
-    {
-      title: "UX/UI Designer",
-      department: "Design",
-      location: "Remote",
-      type: "Full-time",
-      description: "Help us create beautiful, intuitive user experiences for millions of customers."
-    },
-    {
-      title: "Digital Marketing Manager",
-      department: "Marketing",
-      location: "New York, NY",
-      type: "Full-time",
-      description: "Lead our digital marketing efforts and grow our online presence."
-    },
-    {
-      title: "Customer Success Specialist",
-      department: "Support",
-      location: "Austin, TX",
-      type: "Full-time",
-      description: "Be the voice of our customers and help us improve their experience."
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -216,7 +186,10 @@ const CareersPage = ({ cart }) => {
                     </div>
                     <p className="text-gray-600">{job.description}</p>
                   </div>
-                  <button className="mt-4 md:mt-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                  <button
+                    onClick={() => handleApplyClick(job.title)}
+                    className="mt-4 md:mt-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                  >
                     Apply Now
                   </button>
                 </div>
@@ -231,11 +204,152 @@ const CareersPage = ({ cart }) => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             We're always looking for talented people. Send us your resume and we'll keep you in mind for future opportunities.
           </p>
-          <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+          <button
+            onClick={handleResumeClick}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+          >
             Send Your Resume
           </button>
         </div>
       </div>
+
+      {/* Application Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {modalType === "apply" ? `Apply for ${selectedJob}` : "Send Your Resume"}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+
+                {modalType === "apply" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Cover Letter
+                    </label>
+                    <textarea
+                      name="coverLetter"
+                      value={formData.coverLetter}
+                      onChange={handleInputChange}
+                      rows="4"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Tell us why you're interested in this position..."
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Portfolio/LinkedIn (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    name="portfolio"
+                    value={formData.portfolio}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://yourportfolio.com or LinkedIn URL"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Resume/CV *
+                  </label>
+                  <input
+                    type="file"
+                    name="resume"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Upload PDF, DOC, or DOCX (max 5MB)</p>
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                      isLoading
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                    }`}
+                  >
+                    {isLoading ? 'Submitting...' : `Submit ${modalType === "apply" ? "Application" : "Resume"}`}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
