@@ -1,7 +1,9 @@
 import React from "react";
 import Header from "../components/Header";
+import { useNavigate } from "react-router-dom";
 
 const ReturnsExchangesPage = ({ cart }) => {
+  const navigate = useNavigate();
   const returnPolicies = [
     {
       title: "30-Day Return Policy",
@@ -183,10 +185,16 @@ const ReturnsExchangesPage = ({ cart }) => {
             Our customer service team is available to assist with any return or exchange questions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300"
+            >
               Start a Return
             </button>
-            <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-green-500 hover:text-green-600 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-green-500 hover:text-green-600 transition-all duration-300"
+            >
               Contact Support
             </button>
           </div>
