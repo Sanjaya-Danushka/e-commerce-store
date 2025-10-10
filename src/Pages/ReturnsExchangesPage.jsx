@@ -12,6 +12,7 @@ const ReturnsExchangesPage = ({ cart }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleReturnSubmission = async (event) => {
     event.preventDefault();
+
     // Validate form
     if (!returnForm.orderNumber.trim()) {
       alert('Please enter your order number');
@@ -31,27 +32,18 @@ const ReturnsExchangesPage = ({ cart }) => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call to initiate return
-      const response = await fetch('/api/returns/initiate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(returnForm),
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Mock successful return initiation
+      // Reset form
+      setReturnForm({
+        orderNumber: "",
+        reason: "",
+        returnMethod: ""
       });
 
-      if (response.ok) {
-        // Reset form
-        setReturnForm({
-          orderNumber: "",
-          reason: "",
-          returnMethod: ""
-        });
-
-        alert(`Return request initiated successfully! You will receive a return label via email within 24 hours.`);
-      } else {
-        throw new Error('Failed to initiate return');
-      }
+      alert(`Return request initiated successfully! You will receive a return label via email within 24 hours for order ${returnForm.orderNumber}.`);
     } catch (error) {
       console.error('Return initiation error:', error);
       alert('Failed to initiate return. Please try again or contact support.');
