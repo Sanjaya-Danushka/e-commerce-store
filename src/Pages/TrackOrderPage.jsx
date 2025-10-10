@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
+import { useNavigate } from "react-router-dom";
 
 const TrackOrderPage = ({ cart }) => {
+  const navigate = useNavigate();
   const [orderNumber, setOrderNumber] = useState("");
   const [email, setEmail] = useState("");
   const [trackingResults, setTrackingResults] = useState(null);
@@ -169,10 +171,16 @@ const TrackOrderPage = ({ cart }) => {
             Can't find your order or have questions about your delivery? Our support team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+            >
               Contact Support
             </button>
-            <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-blue-500 hover:text-blue-600 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-blue-500 hover:text-blue-600 transition-all duration-300"
+            >
               Order Help Center
             </button>
           </div>

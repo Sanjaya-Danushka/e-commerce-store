@@ -1,7 +1,9 @@
 import React from "react";
 import Header from "../components/Header";
+import { useNavigate } from "react-router-dom";
 
 const SizeGuidePage = ({ cart }) => {
+  const navigate = useNavigate();
   const sizeCharts = {
     men: {
       title: "Men's Clothing",
@@ -210,10 +212,16 @@ const SizeGuidePage = ({ cart }) => {
             Our sizing experts are here to help you find the perfect fit for any item.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+            >
               Size Consultation
             </button>
-            <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-purple-500 hover:text-purple-600 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-purple-500 hover:text-purple-600 transition-all duration-300"
+            >
               Contact Support
             </button>
           </div>

@@ -1,12 +1,21 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
+import { useNavigate } from "react-router-dom";
+
+import React, { useState } from "react";
+import Header from "../components/Header";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const GiftCardsPage = ({ cart }) => {
+  const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [senderName, setSenderName] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedDesign, setSelectedDesign] = useState(1);
 
   const giftCardAmounts = [25, 50, 75, 100, 150, 200];
 
@@ -249,10 +258,16 @@ const GiftCardsPage = ({ cart }) => {
             Our gift card specialists can help you find the perfect gift card for any occasion.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300">
+            <button
+              onClick={() => navigate('/contact')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+            >
               Gift Card Help
             </button>
-            <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-purple-500 hover:text-purple-600 transition-all duration-300">
+            <button
+              onClick={() => navigate('/gift-cards')}
+              className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-purple-500 hover:text-purple-600 transition-all duration-300"
+            >
               View Examples
             </button>
           </div>
