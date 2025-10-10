@@ -16,18 +16,18 @@ const CheckutPage = ({ cart }) => {
 
   useEffect(() => {
     axios
-      .get('http://localhost:3000/api/delivery-options')
+      .get("http://localhost:3000/api/delivery-options")
       .then((response) => {
         setDeliveryOptions(response.data);
       })
       .catch((error) => {
-        console.error('Error fetching delivery options:', error);
+        console.error("Error fetching delivery options:", error);
       });
   }, []);
 
   const calculateDeliveryDate = (deliveryDays) => {
     const today = dayjs();
-    return today.add(deliveryDays, 'days');
+    return today.add(deliveryDays, "days");
   };
 
   const handleUpdateQuantity = (productId) => {
@@ -47,20 +47,22 @@ const CheckutPage = ({ cart }) => {
           );
         })
         .catch((error) => {
-          console.error('Error updating quantity:', error);
+          console.error("Error updating quantity:", error);
         });
     }
   };
 
   const handleDeleteItem = (productId) => {
-    if (confirm('Are you sure you want to delete this item?')) {
+    if (confirm("Are you sure you want to delete this item?")) {
       axios
         .delete(`http://localhost:3000/api/cart-items/${productId}`)
         .then(() => {
-          setCartItems(cartItems.filter(item => item.productId !== productId));
+          setCartItems(
+            cartItems.filter((item) => item.productId !== productId)
+          );
         })
         .catch((error) => {
-          console.error('Error deleting item:', error);
+          console.error("Error deleting item:", error);
         });
     }
   };
@@ -78,21 +80,21 @@ const CheckutPage = ({ cart }) => {
         );
       })
       .catch((error) => {
-        console.error('Error updating delivery option:', error);
+        console.error("Error updating delivery option:", error);
       });
   };
 
   const handlePlaceOrder = () => {
     axios
-      .post('http://localhost:3000/api/orders', {})
+      .post("http://localhost:3000/api/orders", {})
       .then(() => {
-        alert('Order placed successfully!');
+        alert("Order placed successfully!");
         setCartItems([]);
-        window.location.href = '/orders';
+        window.location.href = "/orders";
       })
       .catch((error) => {
-        console.error('Error placing order:', error);
-        alert('Failed to place order. Please try again.');
+        console.error("Error placing order:", error);
+        alert("Failed to place order. Please try again.");
       });
   };
 
@@ -116,11 +118,17 @@ const CheckutPage = ({ cart }) => {
     }, 0);
   };
 
-  const itemsTotal = calculateItemsTotal();
-  const shippingTotal = calculateShippingTotal();
-  const totalBeforeTax = itemsTotal + shippingTotal;
-  const tax = Math.round(totalBeforeTax * 0.1);
-  const orderTotal = totalBeforeTax + tax;
+  const calculateTotalBeforeTax = () => {
+    return calculateItemsTotal() + calculateShippingTotal();
+  };
+
+  const calculateTax = () => {
+    return Math.round(calculateTotalBeforeTax() * 0.1);
+  };
+
+  const calculateOrderTotal = () => {
+    return calculateTotalBeforeTax() + calculateTax();
+  };
 
   return (
     <div>
@@ -153,17 +161,23 @@ const CheckutPage = ({ cart }) => {
 
         <div className="checkout-grid">
           <div className="order-summary">
-            {deliveryOptions.length > 0 && cartItems.length > 0 && cartItems.map((cartItem) => {
-              const selectedDeliveryOption = deliveryOptions.find(
-                (deliveryOption) => {
-                  return deliveryOption.id === cartItem.deliveryOptionId;
-                }
-              );
-              return (
-                <div key={cartItem.productId} className="cart-item-container">
-                  <div className="delivery-date">
-                    Delivery date: {selectedDeliveryOption && calculateDeliveryDate(selectedDeliveryOption.deliveryDays).format("dddd, MMMM D")}
-                  </div>
+            {deliveryOptions.length > 0 &&
+              cartItems.length > 0 &&
+              cartItems.map((cartItem) => {
+                const selectedDeliveryOption = deliveryOptions.find(
+                  (deliveryOption) => {
+                    return deliveryOption.id === cartItem.deliveryOptionId;
+                  }
+                );
+                return (
+                  <div key={cartItem.productId} className="cart-item-container">
+                    <div className="delivery-date">
+                      Delivery date:{" "}
+                      {selectedDeliveryOption &&
+                        calculateDeliveryDate(
+                          selectedDeliveryOption.deliveryDays
+                        ).format("dddd, MMMM D")}
+                    </div>
 
                     <div className="cart-item-details-grid">
                       <img
@@ -235,7 +249,9 @@ const CheckutPage = ({ cart }) => {
                               />
                               <div>
                                 <div className="delivery-option-date">
-                                  {calculateDeliveryDate(deliveryOption.deliveryDays).format("dddd, MMMM D")}
+                                  {calculateDeliveryDate(
+                                    deliveryOption.deliveryDays
+                                  ).format("dddd, MMMM D")}
                                 </div>
                                 <div className="delivery-option-price">
                                   {priceString}
@@ -246,9 +262,9 @@ const CheckutPage = ({ cart }) => {
                         })}
                       </div>
                     </div>
-                </div>
-              );
-            })}
+                  </div>
+                );
+              })}
           </div>
 
           <div className="payment-summary">
@@ -256,33 +272,35 @@ const CheckutPage = ({ cart }) => {
             <div className="payment-summary-row">
               <div>Items ({calculateItemsCount()}):</div>
               <div className="payment-summary-money">
-                {formatMoney(itemsTotal)}
+                {formatMoney(calculateItemsTotal())}
               </div>
             </div>
 
             <div className="payment-summary-row">
               <div>Shipping &amp; handling:</div>
               <div className="payment-summary-money">
-                {formatMoney(shippingTotal)}
+                {formatMoney(calculateShippingTotal())}
               </div>
             </div>
 
             <div className="payment-summary-row subtotal-row">
               <div>Total before tax:</div>
               <div className="payment-summary-money">
-                {formatMoney(totalBeforeTax)}
+                {formatMoney(calculateTotalBeforeTax())}
               </div>
             </div>
 
             <div className="payment-summary-row">
               <div>Estimated tax (10%):</div>
-              <div className="payment-summary-money">{formatMoney(tax)}</div>
+              <div className="payment-summary-money">
+                {formatMoney(calculateTax())}
+              </div>
             </div>
 
             <div className="payment-summary-row total-row">
               <div>Order total:</div>
               <div className="payment-summary-money">
-                {formatMoney(orderTotal)}
+                {formatMoney(calculateOrderTotal())}
               </div>
             </div>
 
