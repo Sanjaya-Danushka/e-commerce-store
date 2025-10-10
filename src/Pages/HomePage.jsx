@@ -788,11 +788,11 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
               <h3 className="text-lg font-bold text-white mb-4">Customer Service</h3>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Shipping Info</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Returns & Exchanges</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Size Guide</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Track Order</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Gift Cards</a></li>
+                <li><Link to="/shipping-info" className="text-gray-400 hover:text-white transition-colors">Shipping Info</Link></li>
+                <li><Link to="/returns-exchanges" className="text-gray-400 hover:text-white transition-colors">Returns & Exchanges</Link></li>
+                <li><Link to="/size-guide" className="text-gray-400 hover:text-white transition-colors">Size Guide</Link></li>
+                <li><Link to="/track-order" className="text-gray-400 hover:text-white transition-colors">Track Order</Link></li>
+                <li><Link to="/gift-cards" className="text-gray-400 hover:text-white transition-colors">Gift Cards</Link></li>
               </ul>
             </div>
 

@@ -18,6 +18,11 @@ import PressPage from "./Pages/PressPage";
 import BlogPage from "./Pages/BlogPage";
 import AffiliateProgramPage from "./Pages/AffiliateProgramPage";
 import WholesalePage from "./Pages/WholesalePage";
+import ShippingInfoPage from "./Pages/ShippingInfoPage";
+import ReturnsExchangesPage from "./Pages/ReturnsExchangesPage";
+import SizeGuidePage from "./Pages/SizeGuidePage";
+import TrackOrderPage from "./Pages/TrackOrderPage";
+import GiftCardsPage from "./Pages/GiftCardsPage";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 
@@ -79,6 +84,11 @@ const App = () => {
       <Route path="blog" element={<BlogPage cart={cart} />} />
       <Route path="affiliate-program" element={<AffiliateProgramPage cart={cart} />} />
       <Route path="wholesale" element={<WholesalePage cart={cart} />} />
+      <Route path="shipping-info" element={<ShippingInfoPage cart={cart} />} />
+      <Route path="returns-exchanges" element={<ReturnsExchangesPage cart={cart} />} />
+      <Route path="size-guide" element={<SizeGuidePage cart={cart} />} />
+      <Route path="track-order" element={<TrackOrderPage cart={cart} />} />
+      <Route path="gift-cards" element={<GiftCardsPage cart={cart} />} />
     </Routes>
   );
 };
