@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "./tracking.css";
 import Header from "../components/Header";
 import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";

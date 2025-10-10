@@ -1,6 +1,4 @@
 import React from "react";
-import "./checkout.css";
-import "./checkout-header.css";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
 import dayjs from "dayjs";

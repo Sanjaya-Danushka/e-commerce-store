@@ -1,5 +1,4 @@
 import React from "react";
-import "./HomePage.css";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import CustomDropdown from "../components/CustomDropdown";

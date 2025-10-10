@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "./orders.css";
 import axios from "axios";
 import Header from "../components/Header";
 import OrderContainer from "../components/OrderContainer";
