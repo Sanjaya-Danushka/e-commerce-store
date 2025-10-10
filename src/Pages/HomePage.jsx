@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import { formatMoney } from "../utils/money";
 
-const HomePage = ({ cart }) => {
+const HomePage = ({ cart, refreshCart }) => {
   const [products, setProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [addedToCart, setAddedToCart] = useState({});
@@ -29,27 +29,6 @@ const HomePage = ({ cart }) => {
       ...quantities,
       [productId]: parseInt(quantity),
     });
-  };
-
-  const handleAddToCart = (productId) => {
-    const quantity = quantities[productId] || 1;
-    axios
-      .post("/api/cart-items", {
-        productId: productId,
-        quantity: quantity,
-      })
-      .then(() => {
-        // Show "Added" message
-        setAddedToCart({ ...addedToCart, [productId]: true });
-        // Hide after 2 seconds
-        setTimeout(() => {
-          setAddedToCart({ ...addedToCart, [productId]: false });
-        }, 2000);
-      })
-      .catch((error) => {
-        console.error("Error adding to cart:", error);
-        alert("Failed to add product to cart.");
-      });
   };
 
   return (
@@ -116,7 +95,32 @@ const HomePage = ({ cart }) => {
 
                 <button
                   className="add-to-cart-button button-primary"
-                  onClick={() => handleAddToCart(product.id)}>
+                  onClick={() => {
+                    axios
+                      .post("/api/cart-items", {
+                        productId: product.id,
+                        quantity: quantities[product.id] || 1,
+                      })
+                      .then(() => {
+                        // Refresh cart to update header count
+                        refreshCart();
+                        // Show "Added" message
+                        setAddedToCart({
+                          ...addedToCart,
+                          [product.id]: true,
+                        });
+                        setTimeout(() => {
+                          setAddedToCart({
+                            ...addedToCart,
+                            [product.id]: false,
+                          });
+                        }, 2000);
+                      })
+                      .catch((error) => {
+                        console.error("Error adding to cart:", error);
+                        alert("Failed to add product to cart.");
+                      });
+                  }}>
                   Add to Cart
                 </button>
               </div>
