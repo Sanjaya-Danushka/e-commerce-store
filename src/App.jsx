@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import HomePage from "./Pages/HomePage";
+import CategoriesPage from "./Pages/CategoriesPage";
+import BrandsPage from "./Pages/BrandsPage";
+import SalePage from "./Pages/SalePage";
+import NewArrivalsPage from "./Pages/NewArrivalsPage";
 import { Routes, Route } from "react-router-dom";
 import CheckoutPage from "./Pages/CheckutPage";
 import OrdersPage from "./Pages/OrdersPage";
@@ -25,6 +29,10 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage cart={cart} refreshCart={fetchCartItems} />} />
+      <Route path="/categories" element={<CategoriesPage cart={cart} refreshCart={fetchCartItems} />} />
+      <Route path="/brands" element={<BrandsPage cart={cart} refreshCart={fetchCartItems} />} />
+      <Route path="/sale" element={<SalePage cart={cart} refreshCart={fetchCartItems} />} />
+      <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} refreshCart={fetchCartItems} />} />
       <Route path="checkout" element={<CheckoutPage cart={cart} />} />
       <Route path="orders" element={<OrdersPage cart={cart} refreshCart={fetchCartItems} />} />
       <Route path="tracking" element={<TrackingPage cart={cart} />} />
