@@ -17,10 +17,10 @@ const createTransporter = () => {
   });
 };
 
-// POST /api/subscribe - Handle newsletter subscription
+// POST /api/subscribe - Handle newsletter subscription and gift cards
 router.post('/', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, isGiftCard, giftCard } = req.body;
 
     // Validate email
     if (!email) {
@@ -52,6 +52,93 @@ router.post('/', async (req, res) => {
     // Create transporter
     const transporter = createTransporter();
 
+    // Handle gift card emails
+    if (isGiftCard && giftCard) {
+      const { amount, senderName, message, design } = giftCard;
+
+      // Email options for gift card recipient
+      const giftCardMailOptions = {
+        from: process.env.FROM_EMAIL || process.env.SMTP_USER, // eslint-disable-line no-undef
+        to: email,
+        subject: `🎁 You received a $${amount} ShopEase Gift Card!`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333; text-align: center;">🎁 You Have a Gift Card!</h2>
+
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; margin: 20px 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 48px; font-weight: bold;">$${amount}</h1>
+              <p style="color: white; margin: 10px 0 0 0; font-size: 18px;">ShopEase Gift Card</p>
+              <p style="color: white; margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
+                Design: ${design === 1 ? 'Classic Blue' : design === 2 ? 'Birthday Surprise' : design === 3 ? 'Holiday Magic' : 'Thank You'}
+              </p>
+            </div>
+
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">From: ${senderName}</h3>
+              ${message ? `<p style="color: #666; font-style: italic;">"${message}"</p>` : ''}
+              <p style="color: #666; margin: 15px 0 0 0;">
+                <strong>Gift Card Code:</strong> GC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Start Shopping
+              </a>
+            </div>
+
+            <div style="border-top: 2px solid #eee; padding-top: 20px; margin-top: 30px;">
+              <h4 style="color: #333; margin-bottom: 15px;">How to Use Your Gift Card:</h4>
+              <ol style="color: #666; padding-left: 20px;">
+                <li>Add items to your cart</li>
+                <li>At checkout, enter your gift card code</li>
+                <li>The gift card amount will be applied to your order</li>
+                <li>Complete your purchase!</li>
+              </ol>
+            </div>
+
+            <p style="color: #666; font-size: 14px; text-align: center; margin-top: 30px;">
+              Questions? Contact us at support@shopease.com
+            </p>
+          </div>
+        `,
+      };
+
+      // Send gift card email
+      await transporter.sendMail(giftCardMailOptions);
+
+      // Also send notification to admin about gift card purchase
+      const adminNotificationOptions = {
+        from: process.env.FROM_EMAIL || process.env.SMTP_USER, // eslint-disable-line no-undef
+        to: 'dsanjaya712@gmail.com', // Admin email
+        subject: `🎁 New Gift Card Purchase - $${amount}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">New Gift Card Purchase</h2>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 10px 0;"><strong>Recipient:</strong> ${email}</p>
+              <p style="margin: 10px 0;"><strong>Amount:</strong> $${amount}</p>
+              <p style="margin: 10px 0;"><strong>Sender:</strong> ${senderName}</p>
+              <p style="margin: 10px 0;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+              ${message ? `<p style="margin: 10px 0;"><strong>Message:</strong> ${message}</p>` : ''}
+            </div>
+          </div>
+        `,
+      };
+
+      // Send admin notification (don't fail if this fails)
+      try {
+        await transporter.sendMail(adminNotificationOptions);
+      } catch (adminError) {
+        console.warn('Failed to send admin notification:', adminError.message);
+      }
+
+      return res.status(200).json({
+        message: `Gift card for $${amount} sent successfully to ${email}!`
+      });
+    }
+
+    // Handle regular newsletter subscription
     // Email options for admin notification
     const mailOptions = {
       from: process.env.FROM_EMAIL || process.env.SMTP_USER, // eslint-disable-line no-undef

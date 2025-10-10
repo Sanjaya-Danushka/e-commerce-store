@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
-
-import React, { useState } from "react";
-import Header from "../components/Header";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const GiftCardsPage = ({ cart }) => {
@@ -46,10 +42,63 @@ const GiftCardsPage = ({ cart }) => {
     }
   ];
 
-  const handlePurchase = (e) => {
+  const handlePurchase = async (e) => {
     e.preventDefault();
-    // Mock gift card purchase
-    alert(`Gift card for $${selectedAmount || customAmount} sent successfully!`);
+
+    // Validate form
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      alert('Please enter a valid recipient email address');
+      return;
+    }
+
+    if (!senderName.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
+    const amount = selectedAmount || parseFloat(customAmount);
+    if (!amount || amount < 10) {
+      alert('Please select or enter a valid amount (minimum $10)');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Send gift card email using existing email system
+      const response = await axios.post('/api/subscribe', {
+        email: recipientEmail,
+        isGiftCard: true,
+        giftCard: {
+          amount: amount,
+          senderName: senderName,
+          message: message,
+          design: selectedDesign
+        }
+      });
+
+      if (response.status === 200) {
+        // Reset form
+        setRecipientEmail('');
+        setSenderName('');
+        setMessage('');
+        setSelectedAmount(50);
+        setCustomAmount('');
+        setSelectedDesign(1);
+
+        alert(`Gift card for $${amount} sent successfully to ${recipientEmail}!`);
+      }
+    } catch (error) {
+      console.error('Gift card purchase error:', error);
+
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`Gift card purchase failed: ${error.response.data.error}`);
+      } else {
+        alert('Gift card purchase failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,6 +120,7 @@ const GiftCardsPage = ({ cart }) => {
           <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Purchase Gift Card</h2>
 
+          <form onSubmit={handlePurchase}>
             {/* Amount Selection */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Amount</h3>
@@ -78,6 +128,7 @@ const GiftCardsPage = ({ cart }) => {
                 {giftCardAmounts.map((amount) => (
                   <button
                     key={amount}
+                    type="button"
                     onClick={() => {
                       setSelectedAmount(amount);
                       setCustomAmount("");
@@ -114,7 +165,15 @@ const GiftCardsPage = ({ cart }) => {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Design</h3>
               <div className="grid grid-cols-2 gap-4">
                 {giftCardDesigns.map((design) => (
-                  <div key={design.id} className="border-2 border-gray-300 rounded-lg p-4 hover:border-blue-500 cursor-pointer transition-all duration-300">
+                  <div
+                    key={design.id}
+                    onClick={() => setSelectedDesign(design.id)}
+                    className={`border-2 rounded-lg p-4 hover:border-blue-500 cursor-pointer transition-all duration-300 ${
+                      selectedDesign === design.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300'
+                    }`}
+                  >
                     <div className="text-center">
                       <div className="text-4xl mb-2">{design.preview}</div>
                       <h4 className="font-medium text-gray-900">{design.name}</h4>
@@ -166,11 +225,17 @@ const GiftCardsPage = ({ cart }) => {
 
             {/* Purchase Button */}
             <button
-              onClick={handlePurchase}
-              className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300"
+              type="submit"
+              disabled={isLoading}
+              className={`w-full py-4 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                isLoading
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700'
+              }`}
             >
-              Purchase Gift Card - ${(selectedAmount || customAmount || 0)}
+              {isLoading ? 'Sending Gift Card...' : `Purchase Gift Card - $${(selectedAmount || customAmount || 0)}`}
             </button>
+          </form>
           </div>
 
           {/* Gift Card Information */}
