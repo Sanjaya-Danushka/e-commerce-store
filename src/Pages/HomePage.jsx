@@ -1,14 +1,18 @@
 import React from "react";
 import "./HomePage.css";
+import axios from "axios";
 import Header from "../components/Header";
 import { products } from "../data/products";
 
 const HomePage = () => {
-  fetch("http://localhost:3000/api/products")
+  axios
+    .get("http://localhost:3000/api/products")
     .then((response) => {
-      return response.json();
+      return response.data;
     })
-    .then((data) => console.log(data));
+    .then((data) => {
+      console.log(data);
+    });
 
   return (
     <div>
