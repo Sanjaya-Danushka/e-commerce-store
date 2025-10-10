@@ -1,7 +1,8 @@
 import React from "react";
 import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 
-const OrderProduct = ({ item, onAddToCart }) => {
+const OrderProduct = ({ item, orderId, onAddToCart }) => {
   return (
     <React.Fragment>
       <div className="product-image-container">
@@ -28,11 +29,11 @@ const OrderProduct = ({ item, onAddToCart }) => {
       </div>
 
       <div className="product-actions">
-        <a href="/tracking">
+        <Link to={`/tracking?orderId=${orderId}&productId=${item.productId}`}>
           <button className="track-package-button button-secondary">
             Track package
           </button>
-        </a>
+        </Link>
       </div>
     </React.Fragment>
   );

@@ -13,6 +13,7 @@ const OrderContainer = ({ order, onAddToCart }) => {
             <OrderProduct
               key={item.productId}
               item={item}
+              orderId={order.id}
               onAddToCart={onAddToCart}
             />
           ))}

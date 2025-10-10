@@ -4,7 +4,7 @@ import axios from "axios";
 import Header from "../components/Header";
 import OrderContainer from "../components/OrderContainer";
 
-const OrdersPage = ({ cart }) => {
+const OrdersPage = ({ cart, refreshCart }) => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
@@ -25,6 +25,7 @@ const OrdersPage = ({ cart }) => {
         quantity: 1,
       })
       .then(() => {
+        refreshCart();
         alert("Product added to cart!");
       })
       .catch((error) => {
