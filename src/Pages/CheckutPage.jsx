@@ -158,8 +158,14 @@ const CheckutPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <a href="/" className="flex items-center">
-                <img className="h-8 w-auto" src="/images/logo-white.png" alt="Logo" />
-                <img className="h-6 w-auto md:hidden ml-2" src="/images/mobile-logo.png" alt="Mobile Logo" />
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-xl font-bold text-gray-900 tracking-tight">ShopEase</span>
+                </div>
               </a>
             </div>
 
