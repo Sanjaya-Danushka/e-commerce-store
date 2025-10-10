@@ -53,7 +53,7 @@ const HomePage = ({ cart, refreshCart }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <title>Home</title>
-      <Header cart={cart} onSearch={handleSearch} searchQuery={searchQuery} />
+      <Header cart={cart} />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white">
@@ -111,42 +111,42 @@ const HomePage = ({ cart, refreshCart }) => {
               <p className="text-gray-500">Try searching for something else or browse our featured products.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
               {products.map((product) => {
                 return (
-                  <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 p-4 group">
-                    <div className="aspect-square mb-4 overflow-hidden rounded-lg bg-gray-100">
+                  <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 p-6 group max-w-sm mx-auto">
+                    <div className="aspect-[4/3] mb-6 overflow-hidden rounded-lg bg-gray-100">
                       <img
                         className="product-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         src={`/${product.image}`}
                       />
                     </div>
 
-                    <div className="product-name h-12 mb-2">
-                      <h3 className="font-medium text-gray-900 text-sm leading-tight line-clamp-2">
+                    <div className="product-name h-16 mb-4">
+                      <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2">
                         {product.name}
                       </h3>
                     </div>
 
-                    <div className="product-rating-container flex items-center mb-3">
+                    <div className="product-rating-container flex items-center mb-4">
                       <img
-                        className="product-rating-stars w-16 h-4 mr-2"
+                        className="product-rating-stars w-20 h-5 mr-3"
                         src={`/images/ratings/rating-${product.rating.stars * 10}.png`}
                       />
-                      <div className="product-rating-count text-green-600 text-xs font-medium">
+                      <div className="product-rating-count text-green-600 text-sm font-medium">
                         ({product.rating.count})
                       </div>
                     </div>
 
-                    <div className="product-price text-lg font-bold text-gray-900 mb-3">
+                    <div className="product-price text-xl font-bold text-gray-900 mb-4">
                       {formatMoney(product.priceCents)}
                     </div>
 
-                    <div className="product-quantity-container mb-4">
+                    <div className="product-quantity-container mb-6">
                       <select
                         value={quantities[product.id] || 1}
                         onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="1">Qty: 1</option>
                         <option value="2">Qty: 2</option>
                         <option value="3">Qty: 3</option>
@@ -161,15 +161,15 @@ const HomePage = ({ cart, refreshCart }) => {
                     </div>
 
                     <div
-                      className={`added-to-cart flex items-center text-green-600 text-sm font-medium mb-3 transition-opacity duration-300 ${
+                      className={`added-to-cart flex items-center text-green-600 text-base font-medium mb-4 transition-opacity duration-300 ${
                         addedToCart[product.id] ? 'opacity-100' : 'opacity-0'
                       }`}>
-                      <img src="/images/icons/checkmark.png" className="w-4 h-4 mr-2" />
+                      <img src="/images/icons/checkmark.png" className="w-5 h-5 mr-2" />
                       Added to cart!
                     </div>
 
                     <button
-                      className="add-to-cart-button w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                      className="add-to-cart-button w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center text-base"
                       onClick={() => {
                         axios
                           .post("/api/cart-items", {
