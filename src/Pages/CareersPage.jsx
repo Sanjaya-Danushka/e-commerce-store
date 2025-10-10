@@ -1,7 +1,125 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
+import axios from "axios";
 
 const CareersPage = ({ cart }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState(""); // "apply" or "resume"
+  const [selectedJob, setSelectedJob] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    resume: null,
+    coverLetter: "",
+    portfolio: ""
+  });
+
+  const jobOpenings = [
+    {
+      title: "Senior Frontend Developer",
+      department: "Engineering",
+      location: "New York, NY",
+      type: "Full-time",
+      description: "We're looking for a passionate frontend developer to join our growing team."
+    },
+    {
+      title: "UX/UI Designer",
+      department: "Design",
+      location: "Remote",
+      type: "Full-time",
+      description: "Help us create beautiful, intuitive user experiences for millions of customers."
+    },
+    {
+      title: "Digital Marketing Manager",
+      department: "Marketing",
+      location: "New York, NY",
+      type: "Full-time",
+      description: "Lead our digital marketing efforts and grow our online presence."
+    },
+    {
+      title: "Customer Success Specialist",
+      department: "Support",
+      location: "Austin, TX",
+      type: "Full-time",
+      description: "Be the voice of our customers and help us improve their experience."
+    }
+  ];
+
+  const handleApplyClick = (jobTitle) => {
+    setSelectedJob(jobTitle);
+    setModalType("apply");
+    setShowModal(true);
+  };
+
+  const handleResumeClick = () => {
+    setModalType("resume");
+    setShowModal(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      resume: e.target.files[0]
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const submissionData = {
+        ...formData,
+        applicationType: modalType,
+        jobTitle: modalType === "apply" ? selectedJob : "General Application",
+        submittedAt: new Date().toISOString()
+      };
+
+      const response = await axios.post('/api/careers/apply', submissionData);
+
+      if (response.status === 200) {
+        alert(`Thank you for your ${modalType === "apply" ? "application" : "resume"}! We'll review it and get back to you soon.`);
+        setShowModal(false);
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          resume: null,
+          coverLetter: "",
+          portfolio: ""
+        });
+      }
+    } catch (error) {
+      console.error('Application submission error:', error);
+      alert('Failed to submit application. Please try again or contact us directly.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      resume: null,
+      coverLetter: "",
+      portfolio: ""
+    });
+  };
   const jobOpenings = [
     {
       title: "Senior Frontend Developer",
