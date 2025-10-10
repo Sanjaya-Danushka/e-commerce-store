@@ -12,6 +12,7 @@ import paymentSummaryRoutes from './routes/paymentSummary.js';
 import contactRoutes from './routes/contact.js';
 import subscribeRoutes from './routes/subscribe.js';
 import careersRoutes from './routes/careers.js';
+import affiliateRoutes from './routes/affiliate.js';
 import { Product } from './models/Product.js';
 import { DeliveryOption } from './models/DeliveryOption.js';
 import { CartItem } from './models/CartItem.js';
@@ -48,6 +49,7 @@ app.use('/api/payment-summary', paymentSummaryRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/subscribe', subscribeRoutes);
 app.use('/api/careers', careersRoutes);
+app.use('/api/affiliate', affiliateRoutes);
 
 // Serve static files from the dist folder
 app.use(express.static(path.join(__dirname, 'dist')));
