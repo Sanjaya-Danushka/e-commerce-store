@@ -1,14 +1,27 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
+import axios from "axios";
 
 const ContactPage = ({ cart }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState(""); // "chat" or "callback"
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [chatFormData, setChatFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    preferredTime: '',
+    message: ''
+  });
+
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
 
@@ -19,37 +32,64 @@ const ContactPage = ({ cart }) => {
     });
   };
 
+  const handleChatFormChange = (e) => {
+    setChatFormData({
+      ...chatFormData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsLoading(true);
     setSubmitMessage('');
     setSubmitError('');
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await axios.post('/api/contact', formData);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setSubmitMessage(data.message || 'Thank you for your message! We\'ll get back to you soon.');
+      if (response.status === 200) {
+        setSubmitMessage(response.data.message || 'Thank you for your message! We\'ll get back to you soon.');
         setFormData({ name: '', email: '', subject: '', message: '' });
-      } else {
-        setSubmitError(data.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      setSubmitError('Failed to send message. Please check your connection and try again.');
+      setSubmitError(error.response?.data?.error || 'Failed to send message. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post('/api/contact/chat-request', chatFormData);
+
+      if (response.status === 200) {
+        setSubmitMessage('Chat request submitted! Our team will contact you shortly.');
+        setShowModal(false);
+        setChatFormData({ name: '', email: '', phone: '', preferredTime: '', message: '' });
+      }
+    } catch (error) {
+      console.error('Error submitting chat request:', error);
+      setSubmitError(error.response?.data?.error || 'Failed to submit chat request. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStartChat = () => {
+    setModalType("chat");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSubmitMessage('');
+    setSubmitError('');
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <title>Contact Us</title>
@@ -143,14 +183,14 @@ const ContactPage = ({ cart }) => {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full font-semibold py-3 px-6 rounded-lg transition-colors duration-200 ${
-                  isSubmitting
+                  isLoading
                     ? 'bg-gray-400 cursor-not-allowed text-white'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
+                {isLoading ? 'Sending...' : 'Send Message'}
               </button>
 
               {submitMessage && (
@@ -224,7 +264,10 @@ const ContactPage = ({ cart }) => {
               <p className="text-gray-600 mb-6">
                 Need immediate help? Our customer support team is available 24/7 via live chat.
               </p>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+              <button
+                onClick={handleStartChat}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+              >
                 Start Live Chat
               </button>
             </div>
@@ -269,6 +312,263 @@ const ContactPage = ({ cart }) => {
           </div>
         </div>
       </div>
+
+      {/* Contact Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {modalType === "chat" ? "Start Live Chat" : "Request Callback"}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {modalType === "chat" ? (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 p-6 rounded-lg">
+                    <h3 className="text-xl font-bold text-blue-900 mb-3">Live Chat Request</h3>
+                    <p className="text-blue-800 mb-4">
+                      Request a live chat session with our customer support team. We'll connect you with an available representative.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleChatSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={chatFormData.name}
+                          onChange={handleChatFormChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Your Full Name"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={chatFormData.email}
+                          onChange={handleChatFormChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="your@email.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={chatFormData.phone}
+                          onChange={handleChatFormChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Preferred Time
+                        </label>
+                        <select
+                          name="preferredTime"
+                          value={chatFormData.preferredTime}
+                          onChange={handleChatFormChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Select preferred time</option>
+                          <option value="now">Right Now</option>
+                          <option value="15min">In 15 minutes</option>
+                          <option value="30min">In 30 minutes</option>
+                          <option value="1hour">In 1 hour</option>
+                          <option value="callback">Request Callback</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Message (Optional)
+                      </label>
+                      <textarea
+                        name="message"
+                        value={chatFormData.message}
+                        onChange={handleChatFormChange}
+                        rows="3"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Brief description of your question..."
+                      />
+                    </div>
+
+                    <div className="flex gap-4 pt-6">
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                          isLoading
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                        }`}
+                      >
+                        {isLoading ? 'Submitting...' : 'Request Chat'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-green-50 p-6 rounded-lg">
+                    <h3 className="text-xl font-bold text-green-900 mb-3">Callback Request</h3>
+                    <p className="text-green-800 mb-4">
+                      Request a callback from our customer support team. We'll call you back within 2 hours during business hours.
+                    </p>
+                    <div className="bg-white p-4 rounded-lg">
+                      <p className="text-sm text-gray-600">
+                        <strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM EST
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleChatSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={chatFormData.name}
+                          onChange={handleChatFormChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Your Full Name"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={chatFormData.email}
+                          onChange={handleChatFormChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="your@email.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={chatFormData.phone}
+                          onChange={handleChatFormChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Preferred Time
+                        </label>
+                        <select
+                          name="preferredTime"
+                          value={chatFormData.preferredTime}
+                          onChange={handleChatFormChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Select preferred time</option>
+                          <option value="asap">As soon as possible</option>
+                          <option value="morning">Morning (9AM - 12PM)</option>
+                          <option value="afternoon">Afternoon (12PM - 3PM)</option>
+                          <option value="evening">Evening (3PM - 6PM)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Reason for Callback
+                      </label>
+                      <textarea
+                        name="message"
+                        value={chatFormData.message}
+                        onChange={handleChatFormChange}
+                        rows="3"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Brief description of why you need a callback..."
+                      />
+                    </div>
+
+                    <div className="flex gap-4 pt-6">
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                          isLoading
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700'
+                        }`}
+                      >
+                        {isLoading ? 'Submitting...' : 'Request Callback'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
