@@ -1,9 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
 
 const ReturnsExchangesPage = ({ cart }) => {
   const navigate = useNavigate();
+  const [returnForm, setReturnForm] = useState({
+    orderNumber: "",
+    reason: "",
+    returnMethod: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleReturnSubmission = async (event) => {
+    event.preventDefault();
+    // Validate form
+    if (!returnForm.orderNumber.trim()) {
+      alert('Please enter your order number');
+      return;
+    }
+
+    if (!returnForm.reason) {
+      alert('Please select a reason for return');
+      return;
+    }
+
+    if (!returnForm.returnMethod) {
+      alert('Please select a return method');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Simulate API call to initiate return
+      const response = await fetch('/api/returns/initiate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(returnForm),
+      });
+
+      if (response.ok) {
+        // Reset form
+        setReturnForm({
+          orderNumber: "",
+          reason: "",
+          returnMethod: ""
+        });
+
+        alert(`Return request initiated successfully! You will receive a return label via email within 24 hours.`);
+      } else {
+        throw new Error('Failed to initiate return');
+      }
+    } catch (error) {
+      console.error('Return initiation error:', error);
+      alert('Failed to initiate return. Please try again or contact support.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const returnPolicies = [
     {
       title: "30-Day Return Policy",
@@ -219,19 +274,26 @@ const ReturnsExchangesPage = ({ cart }) => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Order Number</label>
                       <input
                         type="text"
+                        value={returnForm.orderNumber}
+                        onChange={(e) => setReturnForm({...returnForm, orderNumber: e.target.value})}
                         placeholder="e.g. SE-2024-001234"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Return</label>
-                      <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        <option>Wrong size</option>
-                        <option>Item not as described</option>
-                        <option>Changed my mind</option>
-                        <option>Defective item</option>
-                        <option>Arrived damaged</option>
-                        <option>Other</option>
+                      <select
+                        value={returnForm.reason}
+                        onChange={(e) => setReturnForm({...returnForm, reason: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="">Select a reason</option>
+                        <option value="wrong-size">Wrong size</option>
+                        <option value="not-as-described">Item not as described</option>
+                        <option value="changed-mind">Changed my mind</option>
+                        <option value="defective">Defective item</option>
+                        <option value="damaged">Arrived damaged</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
                   </div>
@@ -240,21 +302,42 @@ const ReturnsExchangesPage = ({ cart }) => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Return Options</h3>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
-                      <input type="radio" name="return-method" value="mail" className="text-green-600" />
+                      <input
+                        type="radio"
+                        name="return-method"
+                        value="mail"
+                        checked={returnForm.returnMethod === "mail"}
+                        onChange={(e) => setReturnForm({...returnForm, returnMethod: e.target.value})}
+                        className="text-green-600"
+                      />
                       <div>
                         <h4 className="font-medium text-gray-900">Mail-in Return</h4>
                         <p className="text-sm text-gray-600">Free return shipping label provided</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
-                      <input type="radio" name="return-method" value="dropoff" className="text-green-600" />
+                      <input
+                        type="radio"
+                        name="return-method"
+                        value="dropoff"
+                        checked={returnForm.returnMethod === "dropoff"}
+                        onChange={(e) => setReturnForm({...returnForm, returnMethod: e.target.value})}
+                        className="text-green-600"
+                      />
                       <div>
                         <h4 className="font-medium text-gray-900">Drop-off Return</h4>
                         <p className="text-sm text-gray-600">Return at any UPS location</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
-                      <input type="radio" name="return-method" value="pickup" className="text-green-600" />
+                      <input
+                        type="radio"
+                        name="return-method"
+                        value="pickup"
+                        checked={returnForm.returnMethod === "pickup"}
+                        onChange={(e) => setReturnForm({...returnForm, returnMethod: e.target.value})}
+                        className="text-green-600"
+                      />
                       <div>
                         <h4 className="font-medium text-gray-900">Scheduled Pickup</h4>
                         <p className="text-sm text-gray-600">We'll pick up from your location</p>
@@ -265,8 +348,16 @@ const ReturnsExchangesPage = ({ cart }) => {
               </div>
 
               <div className="text-center">
-                <button className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300">
-                  Initiate Return Process
+                <button
+                  onClick={handleReturnSubmission}
+                  disabled={isSubmitting}
+                  className={`px-8 py-4 rounded-lg text-lg font-semibold transition-all duration-300 ${
+                    isSubmitting
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700'
+                  }`}
+                >
+                  {isSubmitting ? 'Processing Return...' : 'Initiate Return Process'}
                 </button>
               </div>
             </div>
