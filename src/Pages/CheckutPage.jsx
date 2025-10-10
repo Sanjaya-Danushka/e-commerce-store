@@ -149,36 +149,43 @@ const CheckutPage = () => {
   };
 
   return (
-    <div>
-      {" "}
+    <div className="min-h-screen bg-gray-50">
       <title>Checkout</title>
-      <div className="checkout-header">
-        <div className="header-content">
-          <div className="checkout-header-left-section">
-            <a href="/">
-              <img className="logo" src="/images/logo-white.png" />
-              <img className="mobile-logo" src="/images/mobile-logo.png" />
-            </a>
-          </div>
 
-          <div className="checkout-header-middle-section">
-            Checkout (
-            <a className="return-to-home-link" href="/">
-              {calculateItemsCount()} items
-            </a>
-            )
-          </div>
+      {/* Header */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <a href="/" className="flex items-center">
+                <img className="h-8 w-auto" src="/images/logo-white.png" alt="Logo" />
+                <img className="h-6 w-auto md:hidden ml-2" src="/images/mobile-logo.png" alt="Mobile Logo" />
+              </a>
+            </div>
 
-          <div className="checkout-header-right-section">
-            <img src="/images/icons/checkout-lock-icon.png" />
+            <div className="text-center">
+              <h1 className="text-lg font-semibold text-gray-900">
+                Checkout ({calculateItemsCount()} items)
+              </h1>
+            </div>
+
+            <div className="flex items-center">
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
-      <div className="checkout-page">
-        <div className="page-title">Review your order</div>
 
-        <div className="checkout-grid">
-          <div className="order-summary">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Review your order</h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Order Summary */}
+          <div className="space-y-6">
             {deliveryOptions.length > 0 &&
               cartItems.length > 0 &&
               cartItems.map((cartItem) => {
@@ -188,56 +195,67 @@ const CheckutPage = () => {
                   }
                 );
                 return (
-                  <div key={cartItem.productId} className="cart-item-container">
-                    <div className="delivery-date">
-                      Delivery date:{" "}
-                      {selectedDeliveryOption &&
-                        calculateDeliveryDate(
-                          selectedDeliveryOption.deliveryDays
-                        ).format("dddd, MMMM D")}
+                  <div key={cartItem.productId} className="bg-white rounded-xl shadow-sm p-6">
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm font-medium text-blue-900">
+                        Delivery date:{" "}
+                        <span className="font-semibold">
+                          {selectedDeliveryOption &&
+                            calculateDeliveryDate(
+                              selectedDeliveryOption.deliveryDays
+                            ).format("dddd, MMMM D")}
+                        </span>
+                      </p>
                     </div>
 
-                    <div className="cart-item-details-grid">
-                      <img
-                        className="product-image"
-                        src={`/${cartItem.product.image}`}
-                      />
-
-                      <div className="cart-item-details">
-                        <div className="product-name">
-                          {cartItem.product.name}
-                        </div>
-                        <div className="product-price">
-                          {formatMoney(cartItem.product.priceCents)}
-                        </div>
-                        <div className="product-quantity">
-                          <span>
-                            Quantity:{" "}
-                            <span className="quantity-label">
-                              {cartItem.quantity}
-                            </span>
-                          </span>
-                          <span
-                            className="update-quantity-link link-primary"
-                            onClick={() =>
-                              handleUpdateQuantity(cartItem.productId)
-                            }
-                            style={{ cursor: "pointer" }}>
-                            Update
-                          </span>
-                          <span
-                            className="delete-quantity-link link-primary"
-                            onClick={() => handleDeleteItem(cartItem.productId)}
-                            style={{ cursor: "pointer" }}>
-                            Delete
-                          </span>
-                        </div>
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <img
+                          className="w-20 h-20 object-cover rounded-lg"
+                          src={`/${cartItem.product.image}`}
+                          alt={cartItem.product.name}
+                        />
                       </div>
 
-                      <div className="delivery-options">
-                        <div className="delivery-options-title">
-                          Choose a delivery option:
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 mb-2">
+                          {cartItem.product.name}
+                        </h3>
+                        <p className="text-lg font-bold text-gray-900 mb-3">
+                          {formatMoney(cartItem.product.priceCents)}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <span className="text-sm text-gray-600">
+                              Quantity:{" "}
+                              <span className="font-medium text-gray-900">
+                                {cartItem.quantity}
+                              </span>
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-3">
+                            <button
+                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                              onClick={() => handleUpdateQuantity(cartItem.productId)}>
+                              Update
+                            </button>
+                            <button
+                              className="text-sm text-red-600 hover:text-red-800 font-medium"
+                              onClick={() => handleDeleteItem(cartItem.productId)}>
+                              Delete
+                            </button>
+                          </div>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">
+                        Choose a delivery option:
+                      </h4>
+                      <div className="space-y-3">
                         {deliveryOptions.map((deliveryOption) => {
                           let priceString = "FREE Shipping";
                           if (deliveryOption.priceCents > 0) {
@@ -247,9 +265,9 @@ const CheckutPage = () => {
                           }
 
                           return (
-                            <div
+                            <label
                               key={deliveryOption.id}
-                              className="delivery-option">
+                              className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                               <input
                                 type="radio"
                                 checked={
@@ -262,20 +280,20 @@ const CheckutPage = () => {
                                     deliveryOption.id
                                   )
                                 }
-                                className="delivery-option-input"
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                 name={`delivery-option-${cartItem.productId}`}
                               />
-                              <div>
-                                <div className="delivery-option-date">
+                              <div className="ml-3 flex-1">
+                                <div className="text-sm font-medium text-gray-900">
                                   {calculateDeliveryDate(
                                     deliveryOption.deliveryDays
                                   ).format("dddd, MMMM D")}
                                 </div>
-                                <div className="delivery-option-price">
+                                <div className="text-sm text-gray-500">
                                   {priceString}
                                 </div>
                               </div>
-                            </div>
+                            </label>
                           );
                         })}
                       </div>
@@ -285,49 +303,51 @@ const CheckutPage = () => {
               })}
           </div>
 
-          <div className="payment-summary">
-            <div className="payment-summary-title">Payment Summary</div>
-            <div className="payment-summary-row">
-              <div>Items ({calculateItemsCount()}):</div>
-              <div className="payment-summary-money">
-                {formatMoney(calculateItemsTotal())}
-              </div>
-            </div>
+          {/* Payment Summary */}
+          <div className="lg:sticky lg:top-8">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                Payment Summary
+              </h3>
 
-            <div className="payment-summary-row">
-              <div>Shipping &amp; handling:</div>
-              <div className="payment-summary-money">
-                {formatMoney(calculateShippingTotal())}
-              </div>
-            </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Items ({calculateItemsCount()}):</span>
+                  <span className="font-medium">{formatMoney(calculateItemsTotal())}</span>
+                </div>
 
-            <div className="payment-summary-row subtotal-row">
-              <div>Total before tax:</div>
-              <div className="payment-summary-money">
-                {formatMoney(calculateTotalBeforeTax())}
-              </div>
-            </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Shipping & handling:</span>
+                  <span className="font-medium">{formatMoney(calculateShippingTotal())}</span>
+                </div>
 
-            <div className="payment-summary-row">
-              <div>Estimated tax (10%):</div>
-              <div className="payment-summary-money">
-                {formatMoney(calculateTax())}
-              </div>
-            </div>
+                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                  <span className="text-gray-600">Total before tax:</span>
+                  <span className="font-medium">{formatMoney(calculateTotalBeforeTax())}</span>
+                </div>
 
-            <div className="payment-summary-row total-row">
-              <div>Order total:</div>
-              <div className="payment-summary-money">
-                {formatMoney(calculateOrderTotal())}
-              </div>
-            </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Estimated tax (10%):</span>
+                  <span className="font-medium">{formatMoney(calculateTax())}</span>
+                </div>
 
-            <button
-              className="place-order-button button-primary"
-              onClick={handlePlaceOrder}
-              disabled={cartItems.length === 0}>
-              Place your order
-            </button>
+                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                  <span className="text-lg font-semibold text-gray-900">Order total:</span>
+                  <span className="text-lg font-bold text-gray-900">{formatMoney(calculateOrderTotal())}</span>
+                </div>
+              </div>
+
+              <button
+                className={`w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors duration-200 ${
+                  cartItems.length === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+                onClick={handlePlaceOrder}
+                disabled={cartItems.length === 0}>
+                Place your order
+              </button>
+            </div>
           </div>
         </div>
       </div>
