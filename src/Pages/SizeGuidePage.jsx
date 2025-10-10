@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
-
 const SizeGuidePage = ({ cart }) => {
   const navigate = useNavigate();
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [preferredFit, setPreferredFit] = useState("Regular Fit");
+  const [sizeRecommendation, setSizeRecommendation] = useState(null);
+
   const sizeCharts = {
     men: {
       title: "Men's Clothing",
@@ -32,6 +36,62 @@ const SizeGuidePage = ({ cart }) => {
         eu: [36, 37, 38, 39, 40, 41, 42, 43]
       }
     }
+  };
+
+  const getSizeRecommendation = () => {
+    if (!height || !weight) {
+      alert('Please enter both height and weight to get a size recommendation');
+      return;
+    }
+
+    const heightNum = parseFloat(height);
+    const weightNum = parseFloat(weight);
+
+    if (heightNum < 140 || heightNum > 220) {
+      alert('Please enter a valid height between 140-220 cm');
+      return;
+    }
+
+    if (weightNum < 30 || weightNum > 200) {
+      alert('Please enter a valid weight between 30-200 kg');
+      return;
+    }
+
+    // Simple size recommendation logic based on height and weight
+    let recommendedSize = 'M'; // Default
+
+    if (preferredFit === 'Slim Fit') {
+      if (heightNum < 165 || weightNum < 55) recommendedSize = 'XS';
+      else if (heightNum < 175 || weightNum < 70) recommendedSize = 'S';
+      else if (heightNum < 185 || weightNum < 85) recommendedSize = 'M';
+      else if (heightNum < 195 || weightNum < 100) recommendedSize = 'L';
+      else recommendedSize = 'XL';
+    } else if (preferredFit === 'Regular Fit') {
+      if (heightNum < 160 || weightNum < 50) recommendedSize = 'XS';
+      else if (heightNum < 170 || weightNum < 65) recommendedSize = 'S';
+      else if (heightNum < 180 || weightNum < 80) recommendedSize = 'M';
+      else if (heightNum < 190 || weightNum < 95) recommendedSize = 'L';
+      else recommendedSize = 'XL';
+    } else if (preferredFit === 'Loose Fit') {
+      if (heightNum < 155 || weightNum < 45) recommendedSize = 'XS';
+      else if (heightNum < 165 || weightNum < 60) recommendedSize = 'S';
+      else if (heightNum < 175 || weightNum < 75) recommendedSize = 'M';
+      else if (heightNum < 185 || weightNum < 90) recommendedSize = 'L';
+      else recommendedSize = 'XL';
+    } else if (preferredFit === 'Oversized') {
+      if (heightNum < 150 || weightNum < 40) recommendedSize = 'XS';
+      else if (heightNum < 160 || weightNum < 55) recommendedSize = 'S';
+      else if (heightNum < 170 || weightNum < 70) recommendedSize = 'M';
+      else if (heightNum < 180 || weightNum < 85) recommendedSize = 'L';
+      else recommendedSize = 'XL';
+    }
+
+    setSizeRecommendation({
+      size: recommendedSize,
+      fit: preferredFit,
+      height: heightNum,
+      weight: weightNum
+    });
   };
 
   const measurementTips = [
@@ -205,6 +265,104 @@ const SizeGuidePage = ({ cart }) => {
           </div>
         </div>
 
+        {/* Size Consultation Section */}
+        <div id="size-consultation" className="bg-white rounded-2xl shadow-sm p-8 md:p-12 mt-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Size Consultation</h2>
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Personal Size Consultation</h3>
+                <p className="text-gray-600 mb-6">
+                  Get personalized sizing advice from our experts. Tell us about your measurements and preferences, and we'll help you find the perfect fit.
+                </p>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    One-on-one sizing advice
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Brand-specific recommendations
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Fit preference guidance
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Size Finder</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                    <input
+                      type="number"
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                      placeholder="170"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                    <input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      placeholder="65"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Fit</label>
+                    <select
+                      value={preferredFit}
+                      onChange={(e) => setPreferredFit(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option>Slim Fit</option>
+                      <option>Regular Fit</option>
+                      <option>Loose Fit</option>
+                      <option>Oversized</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={getSizeRecommendation}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                  >
+                    Get Size Recommendation
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Size Recommendation Results */}
+            {sizeRecommendation && (
+              <div className="mt-8 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Your Size Recommendation</h3>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full mb-4">
+                    <span className="text-2xl font-bold text-white">{sizeRecommendation.size}</span>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900 mb-2">
+                    Recommended Size: <span className="text-green-600">{sizeRecommendation.size}</span>
+                  </p>
+                  <p className="text-gray-600 mb-2">Fit Preference: {sizeRecommendation.fit}</p>
+                  <p className="text-sm text-gray-500">
+                    Based on {sizeRecommendation.height}cm height and {sizeRecommendation.weight}kg weight
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Contact Section */}
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 md:p-12 mt-16 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Still Need Help?</h2>
@@ -213,7 +371,12 @@ const SizeGuidePage = ({ cart }) => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => navigate('/contact')}
+              onClick={() => {
+                const consultationSection = document.getElementById('size-consultation');
+                if (consultationSection) {
+                  consultationSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
             >
               Size Consultation
