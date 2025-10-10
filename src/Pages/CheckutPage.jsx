@@ -6,15 +6,22 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
-const CheckutPage = ({ cart }) => {
+const CheckutPage = () => {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
-  const [cartItems, setCartItems] = useState(cart);
+  const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    setCartItems(cart);
-  }, [cart]);
+    // Fetch cart items directly
+    axios
+      .get("http://localhost:3000/api/cart-items?expand=product")
+      .then((response) => {
+        setCartItems(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching cart items:", error);
+      });
 
-  useEffect(() => {
+    // Fetch delivery options
     axios
       .get("http://localhost:3000/api/delivery-options")
       .then((response) => {
@@ -99,10 +106,12 @@ const CheckutPage = ({ cart }) => {
   };
 
   const calculateItemsCount = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
   const calculateItemsTotal = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce(
       (total, item) => total + item.product.priceCents * item.quantity,
       0
@@ -110,6 +119,13 @@ const CheckutPage = ({ cart }) => {
   };
 
   const calculateShippingTotal = () => {
+    if (
+      !cartItems ||
+      cartItems.length === 0 ||
+      !deliveryOptions ||
+      deliveryOptions.length === 0
+    )
+      return 0;
     return cartItems.reduce((total, item) => {
       const deliveryOption = deliveryOptions.find(
         (opt) => opt.id === item.deliveryOptionId
@@ -138,8 +154,8 @@ const CheckutPage = ({ cart }) => {
         <div className="header-content">
           <div className="checkout-header-left-section">
             <a href="/">
-              <img className="logo" src="images/logo-white.png" />
-              <img className="mobile-logo" src="images/mobile-logo.png" />
+              <img className="logo" src="/images/logo-white.png" />
+              <img className="mobile-logo" src="/images/mobile-logo.png" />
             </a>
           </div>
 
@@ -152,7 +168,7 @@ const CheckutPage = ({ cart }) => {
           </div>
 
           <div className="checkout-header-right-section">
-            <img src="images/icons/checkout-lock-icon.png" />
+            <img src="/images/icons/checkout-lock-icon.png" />
           </div>
         </div>
       </div>
@@ -182,7 +198,7 @@ const CheckutPage = ({ cart }) => {
                     <div className="cart-item-details-grid">
                       <img
                         className="product-image"
-                        src={cartItem.product.image}
+                        src={`/${cartItem.product.image}`}
                       />
 
                       <div className="cart-item-details">
