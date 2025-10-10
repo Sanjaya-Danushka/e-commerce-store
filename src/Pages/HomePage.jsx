@@ -147,27 +147,53 @@ const HomePage = ({ cart, refreshCart }) => {
       </div>
 
       {/* Brand Showcase */}
-      <div className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative py-16 bg-white overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full -translate-x-48 -translate-y-48"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full translate-x-48 translate-y-48"></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 text-sm font-medium mb-4">
+              🏢 Premium Partnerships
+            </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Trusted by Leading Brands</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">We partner with the world's most recognized brands to bring you authentic, quality products</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8 items-center justify-items-center">
             {[
-              { name: 'Nike', logo: 'NIKE', style: 'text-black font-black text-lg tracking-wider' },
-              { name: 'Adidas', logo: 'adidas', style: 'text-black font-bold text-lg' },
-              { name: 'Apple', logo: 'Apple', style: 'text-gray-900 font-medium text-lg' },
-              { name: 'Samsung', logo: 'SAMSUNG', style: 'text-blue-600 font-bold text-sm tracking-wider' },
-              { name: 'Sony', logo: 'SONY', style: 'text-black font-bold text-lg tracking-wide' },
-              { name: 'Dell', logo: 'DELL', style: 'text-blue-700 font-bold text-lg tracking-wide' }
+              { name: 'Nike', logo: 'nike', fallback: '🏃‍♂️' },
+              { name: 'Adidas', logo: 'adidas', fallback: '⚡' },
+              { name: 'Apple', logo: 'apple-logo', fallback: '📱' },
+              { name: 'Samsung', logo: 'samsung', fallback: '📺' },
+              { name: 'Sony', logo: 'sony', fallback: '🎮' },
+              { name: 'Dell', logo: 'dell', fallback: '💻' }
             ].map((brand) => (
-              <div key={brand.name} className="group cursor-pointer text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300 hover:shadow-lg">
-                <div className={`mb-3 group-hover:scale-110 transition-transform duration-300 ${brand.style}`}>
-                  {brand.logo}
+              <div key={brand.name} className="group cursor-pointer text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300 hover:shadow-lg relative">
+                {/* Decorative background glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                <div className="relative mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <img
+                    src={`/images/logos/${brand.logo}.png`}
+                    alt={`${brand.name} Logo`}
+                    className="h-12 w-auto mx-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <div
+                    className="h-12 w-12 mx-auto flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300"
+                    style={{display: 'none'}}
+                  >
+                    {brand.fallback}
+                  </div>
                 </div>
-                <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
+                <div className="relative font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
                   {brand.name}
                 </div>
               </div>
@@ -176,31 +202,40 @@ const HomePage = ({ cart, refreshCart }) => {
 
           {/* Additional Brand Stats */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">
-              <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-gray-700 font-medium">Brand Partners</div>
+            <div className="relative p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+              <div className="relative">
+                <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
+                <div className="text-gray-700 font-medium">Brand Partners</div>
+              </div>
             </div>
-            <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl">
-              <div className="text-3xl font-bold text-green-600 mb-2">98%</div>
-              <div className="text-gray-700 font-medium">Authentic Products</div>
+            <div className="relative p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+              <div className="relative">
+                <div className="text-3xl font-bold text-green-600 mb-2">98%</div>
+                <div className="text-gray-700 font-medium">Authentic Products</div>
+              </div>
             </div>
-            <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
-              <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
-              <div className="text-gray-700 font-medium">Brand Support</div>
+            <div className="relative p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+              <div className="relative">
+                <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
+                <div className="text-gray-700 font-medium">Brand Support</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Featured Products Section */}
-        <div className="mb-20">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 text-sm font-medium mb-4">
               🔥 Limited Time Offers
             </div>
 
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
               {searchQuery ? (
                 <>
                   Search Results for
@@ -262,11 +297,11 @@ const HomePage = ({ cart, refreshCart }) => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
                 return (
-                  <div key={product.id} className="group product-card bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 p-10 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200 max-w-md mx-auto">
-                    <div className="relative aspect-[16/9] mb-10 overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
+                  <div key={product.id} className="group product-card bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 transform hover:-translate-y-3 border border-gray-100 hover:border-blue-200 max-w-sm mx-auto">
+                    <div className="relative aspect-[4/3] mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
                       <img
                         className="product-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                         src={`/${product.image}`}
@@ -274,21 +309,21 @@ const HomePage = ({ cart, refreshCart }) => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                       {/* Sale badge */}
-                      <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                         SALE
                       </div>
 
                       {/* Favorite button */}
-                      <button className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg">
-                        <svg className="w-5 h-5 text-gray-600 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <button className="absolute top-4 right-4 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg">
+                        <svg className="w-6 h-6 text-gray-600 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                       </button>
                     </div>
 
                     <div className="space-y-4">
-                      <div className="product-name h-16">
-                        <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+                      <div className="product-name h-20">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
                           {product.name}
                         </h3>
                       </div>
@@ -298,7 +333,7 @@ const HomePage = ({ cart, refreshCart }) => {
                           {[1, 2, 3, 4, 5].map((star) => (
                             <svg
                               key={star}
-                              className={`w-4 h-4 ${star <= product.rating.stars ? 'text-yellow-400' : 'text-gray-300'}`}
+                              className={`w-5 h-5 ${star <= product.rating.stars ? 'text-yellow-400' : 'text-gray-300'}`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -306,20 +341,19 @@ const HomePage = ({ cart, refreshCart }) => {
                             </svg>
                           ))}
                         </div>
-                        <div className="product-rating-count text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
+                        <div className="product-rating-count text-green-600 text-sm font-medium bg-green-50 px-3 py-1 rounded-full">
                           ({product.rating.count})
                         </div>
                       </div>
 
-                      <div className="product-price text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                        {formatMoney(product.priceCents)}
-                      </div>
-
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="product-price text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                          {formatMoney(product.priceCents)}
+                        </div>
                         <span className="text-lg text-gray-500 line-through">
                           {formatMoney(Math.round(product.priceCents * 1.3))}
                         </span>
-                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                           Save {Math.round(30)}%
                         </span>
                       </div>
@@ -343,15 +377,15 @@ const HomePage = ({ cart, refreshCart }) => {
                       </div>
 
                       <div
-                        className={`added-to-cart flex items-center justify-center text-green-600 text-sm font-medium bg-green-50 rounded-xl py-2 transition-all duration-300 ${
+                        className={`added-to-cart flex items-center justify-center text-green-600 text-base font-medium bg-green-50 rounded-xl py-3 transition-all duration-300 ${
                           addedToCart[product.id] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
                         }`}>
-                        <img src="/images/icons/checkmark.png" className="w-4 h-4 mr-2" />
+                        <img src="/images/icons/checkmark.png" className="w-5 h-5 mr-2" />
                         Added to cart!
                       </div>
 
                       <button
-                        className="add-to-cart-button w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-base shadow-lg hover:shadow-xl transform hover:scale-105 group-hover:shadow-blue-200"
+                        className="add-to-cart-button w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-base shadow-lg hover:shadow-xl transform hover:scale-105 group-hover:shadow-blue-200"
                         onClick={() => {
                           axios
                             .post("/api/cart-items", {
@@ -378,7 +412,7 @@ const HomePage = ({ cart, refreshCart }) => {
                         }}>
                         <span className="flex items-center">
                           Add to Cart
-                          <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                           </svg>
                         </span>
@@ -392,53 +426,68 @@ const HomePage = ({ cart, refreshCart }) => {
         </div>
 
         {/* Categories Section */}
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Shop by Category</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover our carefully curated collections designed for every lifestyle and need
-            </p>
+        <div className="relative mb-16 bg-gray-50 py-16">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 opacity-3">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-transparent rounded-full -translate-x-32 -translate-y-32"></div>
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-100 to-transparent rounded-full translate-x-32 translate-y-32"></div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { name: 'Electronics', icon: '📱', color: 'from-blue-500 to-indigo-600', description: 'Latest gadgets & devices', items: '2,500+ items' },
-              { name: 'Fashion', icon: '👕', color: 'from-purple-500 to-pink-600', description: 'Trendy clothing & accessories', items: '5,200+ items' },
-              { name: 'Home & Garden', icon: '🏠', color: 'from-green-500 to-emerald-600', description: 'Everything for your space', items: '1,800+ items' },
-              { name: 'Sports', icon: '⚽', color: 'from-orange-500 to-red-600', description: 'Gear up for action', items: '3,100+ items' }
-            ].map((category, index) => (
-              <div key={category.name} className="group cursor-pointer animate-slide-up" style={{animationDelay: `${index * 0.1}s`}}>
-                <div className={`relative bg-gradient-to-br ${category.color} rounded-2xl p-8 text-white text-center transform group-hover:scale-105 group-hover:-rotate-1 transition-all duration-500 shadow-lg group-hover:shadow-2xl overflow-hidden h-48`}>
-                  {/* Background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0 bg-white/20 transform rotate-12 scale-150"></div>
-                  </div>
-
-                  <div className="relative h-full flex flex-col justify-between">
-                    <div>
-                      <div className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                        {category.icon}
-                      </div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-yellow-200 transition-colors duration-300">
-                        {category.name}
-                      </h3>
-                    </div>
-
-                    <div className="text-center">
-                      <p className="text-sm opacity-90 mb-2">
-                        {category.description}
-                      </p>
-                      <div className="text-xs opacity-80 font-medium">
-                        {category.items}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                </div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 text-green-700 text-sm font-medium mb-4">
+                🛍️ Shop by Category
               </div>
-            ))}
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Discover Your Perfect Match</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Explore our handpicked collections, each curated for different lifestyles and preferences
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { name: 'Electronics', icon: '📱', color: 'from-blue-500 to-indigo-600', description: 'Latest gadgets & devices', items: '2,500+ items' },
+                { name: 'Fashion', icon: '👕', color: 'from-purple-500 to-pink-600', description: 'Trendy clothing & accessories', items: '5,200+ items' },
+                { name: 'Home & Garden', icon: '🏠', color: 'from-green-500 to-emerald-600', description: 'Everything for your space', items: '1,800+ items' },
+                { name: 'Sports', icon: '⚽', color: 'from-orange-500 to-red-600', description: 'Gear up for action', items: '3,100+ items' }
+              ].map((category, index) => (
+                <div key={category.name} className="group cursor-pointer animate-slide-up relative" style={{animationDelay: `${index * 0.1}s`}}>
+                  <div className={`relative bg-gradient-to-br ${category.color} rounded-2xl p-8 text-white text-center transform group-hover:scale-105 group-hover:-rotate-1 transition-all duration-500 shadow-lg group-hover:shadow-2xl overflow-hidden h-56`}>
+                    {/* Background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute inset-0 bg-white/20 transform rotate-12 scale-150"></div>
+                    </div>
+
+                    {/* Floating decorative elements */}
+                    <div className="absolute top-2 right-2 w-8 h-8 bg-white/10 rounded-full animate-pulse"></div>
+                    <div className="absolute bottom-2 left-2 w-6 h-6 bg-white/10 rounded-full animate-pulse animation-delay-1000"></div>
+
+                    <div className="relative h-full flex flex-col justify-between">
+                      <div>
+                        <div className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                          {category.icon}
+                        </div>
+                        <h3 className="text-xl font-bold mb-2 group-hover:text-yellow-200 transition-colors duration-300">
+                          {category.name}
+                        </h3>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-sm opacity-90 mb-2">
+                          {category.description}
+                        </p>
+                        <div className="text-xs opacity-80 font-medium bg-white/20 rounded-full px-3 py-1 inline-block">
+                          {category.items}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -511,58 +560,74 @@ const HomePage = ({ cart, refreshCart }) => {
         </div>
 
         {/* Customer Testimonials */}
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Don't just take our word for it - hear from our satisfied customers</p>
+        <div className="relative mb-16 bg-white py-16">
+          {/* Subtle decorative elements */}
+          <div className="absolute inset-0 opacity-2">
+            <div className="absolute top-1/4 left-0 w-32 h-32 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full -translate-x-16"></div>
+            <div className="absolute bottom-1/4 right-0 w-32 h-32 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full translate-x-16"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: 'Sarah Johnson',
-                role: 'Verified Buyer',
-                rating: 5,
-                text: 'Amazing quality and fast delivery! The customer service is top-notch. Will definitely shop here again.',
-                avatar: 'SJ'
-              },
-              {
-                name: 'Michael Chen',
-                role: 'Verified Buyer',
-                rating: 5,
-                text: 'Best online shopping experience I\'ve had. Genuine products, great prices, and excellent support team.',
-                avatar: 'MC'
-              },
-              {
-                name: 'Emily Rodriguez',
-                role: 'Verified Buyer',
-                rating: 5,
-                text: 'Love the variety and quality. The sale prices are unbeatable. Highly recommend this store!',
-                avatar: 'ER'
-              }
-            ].map((testimonial, index) => (
-              <div key={testimonial.name} className={`bg-white p-6 rounded-2xl shadow-lg border border-gray-100 animate-slide-up`} style={{animationDelay: `${index * 0.2}s`}}>
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-
-                <p className="text-gray-700 leading-relaxed">"{testimonial.text}"</p>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 text-yellow-700 text-sm font-medium mb-4">
+                💬 Customer Love
               </div>
-            ))}
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Don't just take our word for it - hear from our satisfied customers who trust us with their shopping</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  name: 'Sarah Johnson',
+                  role: 'Verified Buyer',
+                  rating: 5,
+                  text: 'Amazing quality and fast delivery! The customer service is top-notch. Will definitely shop here again.',
+                  avatar: 'SJ'
+                },
+                {
+                  name: 'Michael Chen',
+                  role: 'Verified Buyer',
+                  rating: 5,
+                  text: 'Best online shopping experience I\'ve had. Genuine products, great prices, and excellent support team.',
+                  avatar: 'MC'
+                },
+                {
+                  name: 'Emily Rodriguez',
+                  role: 'Verified Buyer',
+                  rating: 5,
+                  text: 'Love the variety and quality. The sale prices are unbeatable. Highly recommend this store!',
+                  avatar: 'ER'
+                }
+              ].map((testimonial, index) => (
+                <div key={testimonial.name} className={`relative bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 animate-slide-up`} style={{animationDelay: `${index * 0.2}s`}}>
+                  {/* Decorative corner element */}
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full"></div>
+
+                  <div className="relative">
+                    <div className="flex items-center mb-6">
+                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4 shadow-lg">
+                        {testimonial.avatar}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-lg">{testimonial.name}</h4>
+                        <p className="text-sm text-gray-600">{testimonial.role}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <svg key={i} className="w-5 h-5 text-yellow-400 fill-current mr-1" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+
+                    <p className="text-gray-700 leading-relaxed text-lg">"{testimonial.text}"</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
