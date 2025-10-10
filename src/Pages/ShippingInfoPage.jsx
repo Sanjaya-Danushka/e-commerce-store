@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
 
 const ShippingInfoPage = ({ cart }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
   const navigate = useNavigate();
 
   const shippingOptions = [
@@ -47,15 +45,6 @@ const ShippingInfoPage = ({ cart }) => {
 
   const handleTrackOrder = () => {
     navigate('/track-order');
-  };
-
-  const handleCalculateShipping = () => {
-    setModalType("calculator");
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
   };
 
   return (

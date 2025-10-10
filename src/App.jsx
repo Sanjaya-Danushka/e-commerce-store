@@ -65,7 +65,7 @@ const App = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="App">
       <Routes>
         <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
         <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
