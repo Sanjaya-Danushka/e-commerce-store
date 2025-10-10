@@ -186,7 +186,13 @@ const ReturnsExchangesPage = ({ cart }) => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => navigate('/contact')}
+              onClick={() => {
+                // Scroll to return form section
+                const returnForm = document.getElementById('return-form');
+                if (returnForm) {
+                  returnForm.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300"
             >
               Start a Return
@@ -197,6 +203,73 @@ const ReturnsExchangesPage = ({ cart }) => {
             >
               Contact Support
             </button>
+          </div>
+        </div>
+
+        {/* Return Form Section */}
+        <div id="return-form" className="mt-16">
+          <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Start Your Return</h2>
+            <div className="max-w-2xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Return Information</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Order Number</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. SE-2024-001234"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Return</label>
+                      <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option>Wrong size</option>
+                        <option>Item not as described</option>
+                        <option>Changed my mind</option>
+                        <option>Defective item</option>
+                        <option>Arrived damaged</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Return Options</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
+                      <input type="radio" name="return-method" value="mail" className="text-green-600" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">Mail-in Return</h4>
+                        <p className="text-sm text-gray-600">Free return shipping label provided</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
+                      <input type="radio" name="return-method" value="dropoff" className="text-green-600" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">Drop-off Return</h4>
+                        <p className="text-sm text-gray-600">Return at any UPS location</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
+                      <input type="radio" name="return-method" value="pickup" className="text-green-600" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">Scheduled Pickup</h4>
+                        <p className="text-sm text-gray-600">We'll pick up from your location</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <button className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300">
+                  Initiate Return Process
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
