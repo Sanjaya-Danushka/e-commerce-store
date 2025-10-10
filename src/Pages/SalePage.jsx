@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
 
-const SalePage = ({ cart, refreshCart }) => {
+const SalePage = ({ cart, wishlist, refreshCart }) => {
   const [saleProducts, setSaleProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
@@ -48,7 +48,7 @@ const SalePage = ({ cart, refreshCart }) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header cart={cart} />
+        <Header cart={cart} wishlist={wishlist} />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
@@ -61,7 +61,7 @@ const SalePage = ({ cart, refreshCart }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header cart={cart} />
+      <Header cart={cart} wishlist={wishlist} />
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-red-600 via-pink-600 to-orange-600 text-white py-20">

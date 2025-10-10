@@ -2,7 +2,7 @@ import React from "react";
 import Header from "../components/Header";
 import { Link } from "react-router";
 
-const CategoriesPage = ({ cart }) => {
+const CategoriesPage = ({ cart, wishlist }) => {
   const categories = [
     {
       id: 'electronics',
@@ -62,7 +62,7 @@ const CategoriesPage = ({ cart }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header cart={cart} />
+      <Header cart={cart} wishlist={wishlist} />
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white py-20">

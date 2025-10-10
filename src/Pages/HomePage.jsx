@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import { formatMoney } from "../utils/money";
 
-const HomePage = ({ cart, refreshCart }) => {
+const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
@@ -53,7 +53,7 @@ const HomePage = ({ cart, refreshCart }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <title>Home</title>
-      <Header cart={cart} />
+      <Header cart={cart} wishlist={wishlist} />
 
       {/* Promotional Banner */}
       <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white py-3">
@@ -314,8 +314,40 @@ const HomePage = ({ cart, refreshCart }) => {
                       </div>
 
                       {/* Favorite button */}
-                      <button className="absolute top-4 right-4 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg">
-                        <svg className="w-6 h-6 text-gray-600 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <button
+                        onClick={() => {
+                          const isInWishlist = wishlist.some(item => item.productId === product.id);
+
+                          if (isInWishlist) {
+                            // Remove from wishlist
+                            const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
+                            updateWishlist(updatedWishlist);
+                          } else {
+                            // Add to wishlist
+                            const newWishlistItem = {
+                              productId: product.id,
+                              dateAdded: new Date().toISOString()
+                            };
+                            const updatedWishlist = [...wishlist, newWishlistItem];
+                            updateWishlist(updatedWishlist);
+                          }
+                        }}
+                        className={`absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg ${
+                          wishlist.some(item => item.productId === product.id)
+                            ? 'bg-red-500 hover:bg-red-600'
+                            : 'bg-white/90 backdrop-blur-sm hover:bg-gray-100'
+                        }`}
+                      >
+                        <svg
+                          className={`w-6 h-6 ${
+                            wishlist.some(item => item.productId === product.id)
+                              ? 'text-white'
+                              : 'text-gray-600 hover:text-red-500'
+                          } transition-colors`}
+                          fill={wishlist.some(item => item.productId === product.id) ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                       </button>
