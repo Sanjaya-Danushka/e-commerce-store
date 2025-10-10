@@ -755,87 +755,106 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       {/* Footer */}
       <footer className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {/* Company Info */}
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-3xl font-bold">ShopEase</span>
-              </div>
-              <p className="text-gray-300 mb-6 max-w-md text-lg">
-                Your premier online shopping destination since 2020. We connect customers with authentic products from trusted brands worldwide, offering quality, value, and exceptional service.
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white mb-4">ShopEase</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Your trusted online marketplace for premium products from top brands worldwide.
+                Quality guaranteed, prices unbeatable.
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 p-2 bg-gray-800 rounded-full hover:bg-blue-600">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
                   </svg>
                 </a>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 p-2 bg-gray-800 rounded-full hover:bg-blue-600">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
                   </svg>
                 </a>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors duration-200 p-2 bg-gray-800 rounded-full hover:bg-blue-600">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.219-5.162 1.219-5.162s-.31-.62-.31-1.538c0-1.441.833-2.515 1.871-2.515.883 0 1.306.663 1.306 1.457 0 .887-.565 2.211-.856 3.434-.244 1.032.518 1.871 1.538 1.871 1.846 0 3.267-1.949 3.267-4.75 0-2.484-1.785-4.223-4.34-4.223-2.956 0-4.692 2.217-4.692 4.51 0 .893.344 1.852.775 2.374.085.103.097.194.072.299-.079.33-.254 1.037-.289 1.183-.046.191-.151.232-.35.14-1.301-.605-2.115-2.507-2.115-4.028 0-3.273 2.378-6.279 6.852-6.279 3.598 0 6.397 2.565 6.397 5.996 0 3.578-2.254 6.455-5.387 6.455-1.052 0-2.042-.547-2.38-1.193 0 0-.52 1.98-.646 2.467-.234.897-.866 2.021-1.289 2.705C9.525 23.814 10.748 24 12.017 24c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001 12.017.001z"/>
+                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.219-5.160 1.219-5.160s-.219-.438-.219-1.085c0-1.016.673-1.774 1.508-1.774.711 0 1.055.533 1.055 1.174 0 .713-.454 1.778-.689 2.765-.196.828.414 1.503 1.229 1.503 1.474 0 2.608-1.554 2.608-3.804 0-1.99-1.430-3.382-3.472-3.382-2.365 0-3.756 1.774-3.756 3.61 0 .713.275 1.479.618 1.898.068.082.077.154.057.239-.061.257-.196.796-.223.907-.035.146-.116.177-.268.107-1.001-.465-1.624-1.926-1.624-3.1 0-2.523 1.834-4.84 5.287-4.84 2.781 0 4.943 1.982 4.943 4.628 0 2.757-1.739 4.976-4.151 4.976-.811 0-1.573-.421-1.834-.919l-.498 1.902c-.181.695-.669 1.566-.995 2.097A12.013 12.013 0 0 0 12.017 24c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"/>
                   </svg>
                 </a>
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Shop</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">New Arrivals</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Best Sellers</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Sale Items</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Gift Cards</a></li>
-              </ul>
-            </div>
-
             {/* Customer Service */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Support</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Help Center</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Contact Us</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Track Order</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors duration-200">Returns</a></li>
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white mb-4">Customer Service</h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Shipping Info</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Returns & Exchanges</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Size Guide</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Track Order</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Gift Cards</a></li>
               </ul>
             </div>
-          </div>
 
-          {/* Newsletter Signup in Footer */}
-          <div className="mt-12 pt-8 border-t border-gray-800">
-            <div className="max-w-md mx-auto text-center">
-              <h3 className="text-lg font-semibold mb-4">Stay Updated</h3>
-              <p className="text-gray-400 mb-4">Get exclusive deals and new product alerts</p>
-              <div className="flex gap-2">
+            {/* Quick Links */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Press</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Affiliate Program</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Wholesale</a></li>
+              </ul>
+            </div>
+
+            {/* Newsletter & Contact */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white mb-4">Stay Connected</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Get exclusive deals and early access to new products.
+              </p>
+              <div className="space-y-3">
                 <input
                   type="email"
-                  placeholder="Enter email"
-                  className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your email"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <button className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
                   Subscribe
                 </button>
+              </div>
+              <div className="pt-4 border-t border-gray-800">
+                <p className="text-gray-400 text-sm">
+                  📧 support@shopease.com<br/>
+                  📞 1-800-SHOP-NOW<br/>
+                  📍 123 Commerce St, NY 10001
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-            <p className="text-gray-400">
-              © 2024 ShopEase. All rights reserved. |
-              <a href="#" className="text-gray-300 hover:text-white ml-1">Privacy Policy</a> |
-              <a href="#" className="text-gray-300 hover:text-white ml-1">Terms of Service</a> |
-              <a href="#" className="text-gray-300 hover:text-white ml-1">Accessibility</a>
-            </p>
+          {/* Payment Methods & Bottom Bar */}
+          <div className="border-t border-gray-800 pt-6">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-400 text-sm">We Accept:</span>
+                <div className="flex space-x-2">
+                  <div className="bg-gray-700 rounded px-2 py-1 text-xs text-gray-300">VISA</div>
+                  <div className="bg-gray-700 rounded px-2 py-1 text-xs text-gray-300">MC</div>
+                  <div className="bg-gray-700 rounded px-2 py-1 text-xs text-gray-300">AMEX</div>
+                  <div className="bg-gray-700 rounded px-2 py-1 text-xs text-gray-300">PP</div>
+                </div>
+              </div>
+              <div className="text-center md:text-right">
+                <p className="text-gray-400 text-sm">
+                  © 2024 ShopEase. All rights reserved. |
+                  <a href="#" className="text-gray-300 hover:text-white ml-1 transition-colors">Privacy Policy</a> |
+                  <a href="#" className="text-gray-300 hover:text-white ml-1 transition-colors">Terms of Service</a> |
+                  <a href="#" className="text-gray-300 hover:text-white ml-1 transition-colors">Accessibility</a>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
