@@ -1,17 +1,29 @@
 {
   "env": {
-    "browser": true,
-    "es2021": true,
-    "node": true
+    "node": true,
+    "es2022": true,
+    "es6": true
   },
-  "extends": "eslint:recommended",
+  "extends": ["eslint:recommended"],
   "parserOptions": {
-    "ecmaVersion": 2022, // Update to support top-level await
+    "ecmaVersion": 2022,
     "sourceType": "module"
+  },
+  "globals": {
+    "process": "readonly",
+    "console": "readonly",
+    "Buffer": "readonly",
+    "__dirname": "readonly",
+    "__filename": "readonly",
+    "global": "readonly",
+    "require": "readonly",
+    "module": "readonly",
+    "exports": "readonly"
   },
   "rules": {
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
-    "semi": ["error", "always"]
+    "semi": ["error", "always"],
+    "no-undef": "off"
   }
 }

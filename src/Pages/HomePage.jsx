@@ -15,6 +15,8 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [vipEmail, setVipEmail] = useState("");
+  const [vipIsLoading, setVipIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -63,15 +65,50 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
     setIsLoading(true);
     try {
-      // Mock API call for email subscription
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      setEmail("");
-      alert('Thank you for subscribing! You\'ll receive our latest deals and updates.');
+      const response = await axios.post('/api/subscribe', { email });
+
+      if (response.status === 200) {
+        setEmail('');
+        alert('Thank you for subscribing! You\'ll receive our latest deals and updates.');
+      }
     } catch (error) {
       console.error('Subscription error:', error);
-      alert('Subscription failed. Please try again.');
+
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`Subscription failed: ${error.response.data.error}`);
+      } else {
+        alert('Subscription failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVipEmailSubscription = async (e) => {
+    e.preventDefault();
+    if (!vipEmail || !vipEmail.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setVipIsLoading(true);
+    try {
+      const response = await axios.post('/api/subscribe', { email: vipEmail });
+
+      if (response.status === 200) {
+        setVipEmail('');
+        alert('Welcome to ShopEase VIP! You\'ll receive exclusive early access to sales and new arrivals.');
+      }
+    } catch (error) {
+      console.error('VIP Subscription error:', error);
+
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`Subscription failed: ${error.response.data.error}`);
+      } else {
+        alert('Subscription failed. Please try again.');
+      }
+    } finally {
+      setVipIsLoading(false);
     }
   };
 
@@ -734,12 +771,19 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                 <input
                   type="email"
                   placeholder="Enter your email for VIP access"
+                  value={vipEmail}
+                  onChange={(e) => setVipEmail(e.target.value)}
                   className="relative w-full px-6 py-4 text-gray-900 bg-white rounded-full text-lg focus:outline-none focus:ring-4 focus:ring-white/30 shadow-xl transform transition-all duration-300 group-hover:scale-105"
                 />
               </div>
-              <button className="relative bg-white text-indigo-600 font-bold py-4 px-8 rounded-full hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl group overflow-hidden">
+              <button
+                onClick={handleVipEmailSubscription}
+                disabled={vipIsLoading}
+                className={`relative bg-white text-indigo-600 font-bold py-4 px-8 rounded-full hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl group overflow-hidden ${
+                  vipIsLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}>
                 <span className="relative z-10 flex items-center">
-                  Get VIP Access
+                  {vipIsLoading ? 'Joining...' : 'Get VIP Access'}
                   <svg
                     className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-200"
                     fill="none"
