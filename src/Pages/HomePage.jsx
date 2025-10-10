@@ -4,6 +4,12 @@ import Header from "../components/Header";
 import { products } from "../data/products";
 
 const HomePage = () => {
+  fetch("http://localhost:3000/api/products")
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => console.log(data));
+
   return (
     <div>
       <title>Home</title>
