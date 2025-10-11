@@ -33,6 +33,11 @@ export const Product = sequelize.define('Product', {
       this.setDataValue('keywords', val.join(','));
     }
   },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'All Categories'
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },

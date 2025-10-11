@@ -24,6 +24,8 @@ import ReturnsExchangesPage from "./Pages/ReturnsExchangesPage";
 import SizeGuidePage from "./Pages/SizeGuidePage";
 import TrackOrderPage from "./Pages/TrackOrderPage";
 import GiftCardsPage from "./Pages/GiftCardsPage";
+import AdminPage from "./Pages/AdminPage";
+import AdminLoginPage from "./Pages/AdminLoginPage";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 
@@ -92,6 +94,8 @@ const App = () => {
         <Route path="size-guide" element={<SizeGuidePage cart={cart} />} />
         <Route path="track-order" element={<TrackOrderPage cart={cart} />} />
         <Route path="gift-cards" element={<GiftCardsPage cart={cart} />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </div>
   );

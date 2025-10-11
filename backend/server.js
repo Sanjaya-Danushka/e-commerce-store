@@ -3,6 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
+
+// Import all routes
 import productRoutes from './routes/products.js';
 import deliveryOptionRoutes from './routes/deliveryOptions.js';
 import cartItemRoutes from './routes/cartItems.js';
@@ -15,6 +17,10 @@ import careersRoutes from './routes/careers.js';
 import affiliateRoutes from './routes/affiliate.js';
 import wholesaleRoutes from './routes/wholesale.js';
 import contactChatRoutes from './routes/contactChat.js';
+import adminRoutes from './routes/admin.js';
+import adminAuthRoutes from './routes/adminAuth.js';
+
+// Import models and data for seeding
 import { Product } from './models/Product.js';
 import { DeliveryOption } from './models/DeliveryOption.js';
 import { CartItem } from './models/CartItem.js';
@@ -23,14 +29,9 @@ import { defaultProducts } from './defaultData/defaultProducts.js';
 import { defaultDeliveryOptions } from './defaultData/defaultDeliveryOptions.js';
 import { defaultCart } from './defaultData/defaultCart.js';
 import { defaultOrders } from './defaultData/defaultOrders.js';
-import fs from 'fs';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000; // eslint-disable-line no-undef
+const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -41,7 +42,7 @@ app.use(express.json());
 // Serve images from the images folder
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-// Use routes
+// API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/delivery-options', deliveryOptionRoutes);
 app.use('/api/cart-items', cartItemRoutes);
@@ -54,27 +55,14 @@ app.use('/api/careers', careersRoutes);
 app.use('/api/affiliate', affiliateRoutes);
 app.use('/api/wholesale', wholesaleRoutes);
 app.use('/api/contact/chat-request', contactChatRoutes);
-
-// Serve static files from the dist folder
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Catch-all route to serve index.html for any unmatched routes
-app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'dist', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send('index.html not found');
-  }
-});
+app.use('/api/admin', adminRoutes);
+app.use('/api/auth/admin', adminAuthRoutes);
 
 // Error handling middleware
-/* eslint-disable no-unused-vars */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
-/* eslint-enable no-unused-vars */
 
 // Sync database and load default data if none exist
 await sequelize.sync();
