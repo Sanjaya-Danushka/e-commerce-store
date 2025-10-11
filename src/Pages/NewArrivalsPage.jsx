@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
-import { Link } from "react-router";
-import { formatMoney } from "../utils/money";
-import axios from "axios";
-import CustomDropdown from "../components/CustomDropdown";
+import React, { useState, useEffect } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import CustomDropdown from '../components/CustomDropdown';
+import { formatMoney } from '../utils/money';
+import axios from 'axios';
 
 const imageCategories = {
   'hero-mega-sale-banner.jpg': 'promotional',
@@ -18,7 +18,8 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
   const [newArrivals, setNewArrivals] = useState([]);
   const [allNewArrivals, setAllNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [wishlistItems, setWishlistItems] = useState(new Set());
   const [quantities, setQuantities] = useState({});
   const [addedToCart, setAddedToCart] = useState({});
 
@@ -57,7 +58,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
 
   useEffect(() => {
     // Filter products based on search query
-    if (searchQuery.trim() === "") {
+    if (searchQuery.trim() === '') {
       setNewArrivals(allNewArrivals);
     } else {
       const filtered = allNewArrivals.filter((product) =>
@@ -75,6 +76,30 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
       [productId]: parseInt(quantity),
     });
   };
+
+  const toggleWishlist = async (productId) => {
+    try {
+      const isInWishlist = wishlistItems.has(productId);
+
+      if (isInWishlist) {
+        // Remove from wishlist
+        await axios.delete(`/api/wishlist/${productId}`);
+        setWishlistItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(productId);
+          return newSet;
+        });
+      } else {
+        // Add to wishlist
+        await axios.post('/api/wishlist', { productId });
+        setWishlistItems(prev => new Set(prev).add(productId));
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      alert('Failed to update wishlist. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
@@ -142,33 +167,6 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                     </svg>
                   </button>
                 )}
-              </div>
-            </div>
-
-            {/* Stats Section */}
-            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mt-12 animate-slide-up animation-delay-800">
-              <div className="flex items-center space-x-3 text-white/90">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="text-left">
-                  <div className="text-2xl font-bold">Daily Updates</div>
-                  <div className="text-white/80">Fresh products every day</div>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3 text-white/90">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                </div>
-                <div className="text-left">
-                  <div className="text-2xl font-bold">Premium Quality</div>
-                  <div className="text-white/80">Curated selection</div>
-                </div>
               </div>
             </div>
           </div>
@@ -246,10 +244,9 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                   image: "/images/newPage-images/ports-equipment-sale.jpg"
                 }
               ].map((category, index) => (
-                <Link
+                <div
                   key={category.name}
-                  to={`/new-arrivals/${category.name.toLowerCase()}`}
-                  className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 transform hover:-translate-y-2 border border-gray-100 hover:border-green-200 animate-slide-up relative overflow-hidden"
+                  className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 transform hover:-translate-y-2 border border-gray-100 hover:border-green-200 animate-slide-up relative overflow-hidden cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {/* Background Image */}
@@ -278,7 +275,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
 
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
@@ -323,11 +320,11 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {newArrivals.map((product, index) => (
               <div
                 key={product.id}
-                className="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 transform hover:-translate-y-3 border border-gray-100 hover:border-green-200 animate-slide-up relative overflow-hidden"
+                className="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-5 transform hover:-translate-y-3 border border-gray-100 hover:border-green-200 animate-slide-up relative overflow-hidden"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Background pattern */}
@@ -340,7 +337,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                 <div className="absolute bottom-2 left-2 w-4 h-4 bg-emerald-500/10 rounded-full animate-pulse animation-delay-1000"></div>
 
                 <div className="relative">
-                  <div className="relative aspect-[4/3] mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
+                  <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
                     <img
                       className="product-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       src={`/${product.image}`}
@@ -354,21 +351,33 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                     </div>
 
                     {/* Favorite button */}
-                    <button className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg">
-                      <svg className="w-6 h-6 text-gray-600 hover:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button
+                      onClick={() => toggleWishlist(product.id)}
+                      className={`absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg ${
+                        wishlistItems.has(product.id) ? 'bg-red-100' : ''
+                      }`}
+                    >
+                      <svg
+                        className={`w-6 h-6 transition-colors duration-200 ${
+                          wishlistItems.has(product.id) ? 'text-red-500 fill-current' : 'text-gray-600 hover:text-green-500'
+                        }`}
+                        fill={wishlistItems.has(product.id) ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     </button>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <div>
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 mb-3">
                         🆕 New Arrival
                       </span>
                     </div>
 
-                    <div className="product-name h-20">
+                    <div className="product-name h-16">
                       <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-3 group-hover:text-green-600 transition-colors duration-200">
                         {product.name}
                       </h3>
@@ -514,6 +523,8 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
