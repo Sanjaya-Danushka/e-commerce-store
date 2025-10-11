@@ -41,9 +41,16 @@ export const adminAPI = {
   uploadImage: (file) => {
     const formData = new FormData();
     formData.append('image', file);
+
+    // Get the current token
+    const token = localStorage.getItem('adminToken');
+
+    console.log('Uploading image with token:', token ? 'Present' : 'Missing');
+
     return api.post('/admin/upload', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'multipart/form-data',
+        ...(token && { 'Authorization': `Bearer ${token}` })
       }
     });
   },

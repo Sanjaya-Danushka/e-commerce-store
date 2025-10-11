@@ -12,6 +12,7 @@ const AdminPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [imageKey, setImageKey] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     image: '',
@@ -67,6 +68,7 @@ const AdminPage = () => {
         keywords: product.keywords,
         category: product.category || 'All Categories'
       });
+      console.log('Editing product:', product.name, 'with image:', product.image);
     } else {
       setEditingProduct(null);
       setFormData({
@@ -102,13 +104,26 @@ const AdminPage = () => {
     setUploading(true);
     try {
       const response = await adminAPI.uploadImage(file);
-      setFormData({
-        ...formData,
+      console.log('Image upload response:', response.data);
+
+      // Update form data with the new image path
+      setFormData(prevData => ({
+        ...prevData,
         image: response.data.imagePath
-      });
+      }));
+
+      // Update the image key to force re-render
+      setImageKey(prev => prev + 1);
+
+      console.log('Updated formData.image to:', response.data.imagePath);
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      if (error.response?.status === 401) {
+        alert('Authentication failed. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        alert(`Error uploading image: ${error.response?.data?.error || error.message}`);
+      }
     } finally {
       setUploading(false);
     }
@@ -146,11 +161,17 @@ const AdminPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('Submitting form data:', formData);
+      console.log('Editing product:', editingProduct?.name);
+
       if (editingProduct) {
+        console.log('Updating product with image:', formData.image);
         await adminAPI.updateProduct(editingProduct.id, formData);
       } else {
         await adminAPI.createProduct(formData);
       }
+
+      alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
       closeModal();
       fetchProducts(currentPage, searchTerm);
     } catch (error) {
@@ -323,12 +344,24 @@ const AdminPage = () => {
 
                   {/* Image Preview */}
                   {formData.image && (
-                    <div className="mb-3">
+                    <div className="mb-3 flex items-center space-x-3">
                       <img
+                        key={`${formData.image}-${imageKey}`} // Force re-render when image changes
                         src={`/${formData.image}`}
                         alt="Product preview"
                         className="w-32 h-32 object-cover rounded-md border"
+                        onError={(e) => {
+                          console.error('Image failed to load:', e.target.src);
+                          e.target.style.display = 'none';
+                        }}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prevData => ({...prevData, image: ''}))}
+                        className="px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
                     </div>
                   )}
 
@@ -336,14 +369,21 @@ const AdminPage = () => {
                   <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                       dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                    }`}
+                    } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                   >
                     <div className="space-y-2">
                       <div className="text-gray-600">
-                        {uploading ? 'Uploading...' : 'Drag and drop an image here, or click to select'}
+                        {uploading ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                            <span>Uploading image...</span>
+                          </div>
+                        ) : (
+                          'Drag and drop an image here, or click to select'
+                        )}
                       </div>
                       <input
                         type="file"
@@ -351,12 +391,17 @@ const AdminPage = () => {
                         onChange={handleFileSelect}
                         className="hidden"
                         id="image-upload"
+                        disabled={uploading}
                       />
                       <label
                         htmlFor="image-upload"
-                        className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                        className={`inline-block px-4 py-2 rounded-md cursor-pointer transition-colors ${
+                          uploading
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        }`}
                       >
-                        Choose File
+                        {uploading ? 'Uploading...' : 'Choose File'}
                       </label>
                     </div>
                   </div>

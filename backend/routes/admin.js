@@ -47,10 +47,13 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
     // Return the path relative to the images folder
     const imagePath = `images/products/${req.file.filename}`;
+    console.log('Image uploaded successfully:', imagePath);
+
     res.json({
       message: 'Image uploaded successfully',
       imagePath: imagePath,
-      filename: req.file.filename
+      filename: req.file.filename,
+      success: true
     });
   } catch (error) {
     console.error('Error uploading image:', error);
