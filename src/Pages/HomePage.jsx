@@ -99,7 +99,10 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
           <img
             src="/images/banners/hero-shopping-experience.jpg"
             alt="Premium Shopping Experience"
-            className="w-full h-full object-cover opacity-20 mix-blend-multiply"
+            className="w-full h-full object-cover opacity-70 mix-blend-multiply"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
           />
         </div>
 
@@ -667,7 +670,10 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                       <img
                         src={category.image}
                         alt={`${category.name} Collection`}
-                        className="w-full h-full object-cover opacity-20 mix-blend-multiply"
+                        className="w-full h-full object-cover opacity-70 mix-blend-multiply"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
                       />
                     </div>
 
@@ -717,7 +723,10 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
           <img
             src="/images/banners/customer-testimonials-bg.jpg"
             alt="Happy Customers"
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-70"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
           />
         </div>
 
