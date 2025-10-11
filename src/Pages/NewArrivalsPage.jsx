@@ -14,14 +14,16 @@ const imageCategories = {
   'hero-seasonal-sale-banner.jpg': 'seasonal'
 };
 
-const NewArrivalsPage = ({ cart, refreshCart }) => {
+const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [newArrivals, setNewArrivals] = useState([]);
   const [allNewArrivals, setAllNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [wishlistItems, setWishlistItems] = useState(new Set());
   const [quantities, setQuantities] = useState({});
   const [addedToCart, setAddedToCart] = useState({});
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState(false);
+  const [isNewsletterSubscribing, setIsNewsletterSubscribing] = useState(false);
 
   useEffect(() => {
     const fetchNewArrivals = async () => {
@@ -77,33 +79,87 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
     });
   };
 
-  const toggleWishlist = async (productId) => {
-    try {
-      const isInWishlist = wishlistItems.has(productId);
+  const toggleWishlist = (productId) => {
+    console.log('Toggle wishlist called for product:', productId);
+    console.log('Current wishlist:', wishlist);
+    console.log('Wishlist length:', wishlist?.length);
 
-      if (isInWishlist) {
-        // Remove from wishlist
-        await axios.delete(`/api/wishlist/${productId}`);
-        setWishlistItems(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(productId);
-          return newSet;
-        });
-      } else {
-        // Add to wishlist
-        await axios.post('/api/wishlist', { productId });
-        setWishlistItems(prev => new Set(prev).add(productId));
-      }
+    const isInWishlist = wishlist?.some((item) => item.productId === productId);
+    console.log('Is in wishlist:', isInWishlist);
+
+    if (isInWishlist) {
+      // Remove from wishlist
+      const updatedWishlist = wishlist.filter((item) => item.productId !== productId);
+      console.log('Removing from wishlist, new wishlist:', updatedWishlist);
+      updateWishlist(updatedWishlist);
+    } else {
+      // Add to wishlist
+      const newWishlistItem = {
+        productId: productId,
+        dateAdded: new Date().toISOString(),
+      };
+      const updatedWishlist = [...wishlist, newWishlistItem];
+      console.log('Adding to wishlist, new wishlist:', updatedWishlist);
+      updateWishlist(updatedWishlist);
+    }
+  };
+
+  const handleNewsletterSubscribe = async (e) => {
+    e.preventDefault();
+
+    if (!newsletterEmail.trim()) {
+      alert("Please enter your email address");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newsletterEmail)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    setIsNewsletterSubscribing(true);
+
+    try {
+      console.log("New Arrivals newsletter subscription:", newsletterEmail);
+
+      const response = await axios.post("/api/subscribe", { email: newsletterEmail });
+
+      console.log("New Arrivals newsletter subscription successful:", response.data);
+
+      setIsNewsletterSubscribed(true);
+      setNewsletterEmail("");
+
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setIsNewsletterSubscribed(false);
+      }, 3000);
+
     } catch (error) {
-      console.error('Error updating wishlist:', error);
-      alert('Failed to update wishlist. Please try again.');
+      console.error("New Arrivals newsletter subscription error:", error);
+
+      if (error.code === 'ECONNABORTED') {
+        alert("Request timed out. Please check if your backend server is running.");
+      } else if (error.response) {
+        const errorMessage = error.response.data?.message ||
+                           error.response.data?.error ||
+                           `Server error (${error.response.status})`;
+        alert(`Subscription failed: ${errorMessage}`);
+      } else if (error.request) {
+        alert("Network error. Please check your internet connection and backend server.");
+      } else {
+        alert("Failed to subscribe. Please try again or check the console for details.");
+      }
+    } finally {
+      setIsNewsletterSubscribing(false);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-        <Header cart={cart} />
+        <Header cart={cart} wishlist={wishlist} />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
@@ -116,7 +172,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-      <Header cart={cart} />
+      <Header cart={cart} wishlist={wishlist} />
 
       {/* Enhanced Hero Section */}
       <div className="relative py-24 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 overflow-hidden">
@@ -352,16 +408,20 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
 
                     {/* Favorite button */}
                     <button
-                      onClick={() => toggleWishlist(product.id)}
-                      className={`absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg ${
-                        wishlistItems.has(product.id) ? 'bg-red-100' : ''
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Wishlist button clicked for product:', product.id);
+                        toggleWishlist(product.id);
+                      }}
+                      className={`absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg z-10 ${
+                        wishlist.some((item) => item.productId === product.id) ? 'bg-red-100' : ''
                       }`}
                     >
                       <svg
                         className={`w-6 h-6 transition-colors duration-200 ${
-                          wishlistItems.has(product.id) ? 'text-red-500 fill-current' : 'text-gray-600 hover:text-green-500'
+                          wishlist.some((item) => item.productId === product.id) ? 'text-red-500 fill-current' : 'text-gray-600 hover:text-green-500'
                         }`}
-                        fill={wishlistItems.has(product.id) ? 'currentColor' : 'none'}
+                        fill={wishlist.some((item) => item.productId === product.id) ? 'currentColor' : 'none'}
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
@@ -400,7 +460,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                     </div>
 
                     {/* Quantity Selector */}
-                    <div className="product-quantity-container">
+                    <div className="product-quantity-container relative z-10">
                       <CustomDropdown
                         options={[
                           { value: 1, label: "Qty: 1" },
@@ -418,7 +478,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
 
                     {/* Success message */}
                     <div
-                      className={`added-to-cart flex items-center justify-center text-green-600 text-base font-medium bg-green-50 rounded-xl py-3 transition-all duration-300 ${
+                      className={`added-to-cart flex items-center justify-center text-green-600 text-base font-medium bg-green-50 rounded-xl py-3 transition-all duration-300 relative z-10 ${
                         addedToCart[product.id] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
                       }`}>
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,8 +488,9 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                     </div>
 
                     <button
-                      className="add-to-cart-button w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
-                      onClick={() => {
+                      className="add-to-cart-button w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-lg shadow-lg hover:shadow-xl transform hover:scale-105 relative z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         axios
                           .post("/api/cart-items", {
                             productId: product.id,
@@ -473,7 +534,7 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
                 </div>
 
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl"></div>
+                <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl pointer-events-none"></div>
               </div>
             ))}
           </div>
@@ -508,16 +569,39 @@ const NewArrivalsPage = ({ cart, refreshCart }) => {
             </p>
 
             <div className="max-w-md mx-auto">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  className="flex-1 px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20"
-                />
-                <button className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Get Notified
-                </button>
-              </div>
+              <form onSubmit={handleNewsletterSubscribe}>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    disabled={isNewsletterSubscribed || isNewsletterSubscribing}
+                    className="flex-1 px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20 disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isNewsletterSubscribed || isNewsletterSubscribing || !newsletterEmail.trim()}
+                    className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isNewsletterSubscribing ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Subscribing...
+                      </div>
+                    ) : isNewsletterSubscribed ? (
+                      <div className="flex items-center justify-center">
+                        <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Subscribed!
+                      </div>
+                    ) : (
+                      "Get Notified"
+                    )}
+                  </button>
+                </div>
+              </form>
               <p className="text-sm text-gray-400 mt-4">Join 50,000+ subscribers. Unsubscribe anytime.</p>
             </div>
           </div>

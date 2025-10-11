@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router";
 
 const Header = ({ cart, wishlist }) => {
-  let totalQuantity = 0;
-  cart.forEach((cartItem) => {
-    totalQuantity += cartItem.quantity;
-  });
+  const totalQuantity = useMemo(() => {
+    const quantity = cart ? cart.reduce((total, cartItem) => total + cartItem.quantity, 0) : 0;
+    console.log('Header - Cart quantity calculated:', quantity);
+    return quantity;
+  }, [cart]);
 
-  let wishlistCount = wishlist ? wishlist.length : 0;
+  const wishlistCount = useMemo(() => {
+    const count = wishlist ? wishlist.length : 0;
+    console.log('Header - Wishlist count calculated:', count, 'wishlist:', wishlist);
+    return count;
+  }, [wishlist]);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
