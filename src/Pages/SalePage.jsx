@@ -340,7 +340,7 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
       )}
 
       {/* Featured Sale Items */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-2 sm:px-4 lg:px-6 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 animate-fade-in">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 text-red-700 text-sm font-medium mb-4 animate-slide-up">
@@ -412,13 +412,13 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {saleProducts.map((product, index) => (
                 <div
                   key={product.id}
-                  className="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-10 transform hover:-translate-y-3 border border-gray-100 hover:border-red-200 animate-slide-up"
+                  className="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-6 transform hover:-translate-y-3 border border-gray-100 hover:border-red-200 animate-slide-up"
                   style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="relative aspect-[4/3] mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
+                  <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
                     <img
                       className="product-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       src={`/${product.image}`}
@@ -448,8 +448,8 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
                     </button>
                   </div>
 
-                  <div className="space-y-8">
-                    <div className="product-name h-20">
+                  <div className="space-y-5">
+                    <div className="product-name h-16">
                       <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-3 group-hover:text-red-600 transition-colors duration-200">
                         {product.name}
                       </h3>
