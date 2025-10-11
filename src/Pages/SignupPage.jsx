@@ -13,7 +13,7 @@ const SignupPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -53,6 +53,8 @@ const SignupPage = () => {
     );
 
     if (result.success) {
+      // Registration successful and user is automatically logged in
+      // Navigate to home page where user will see their profile
       navigate('/');
     } else {
       setError(result.error);

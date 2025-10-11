@@ -46,21 +46,28 @@ export const AuthProvider = ({ children }) => {
 
       if (urlToken && urlToken !== storedToken) {
         // New token from OAuth callback
+        console.log('Processing OAuth callback token:', urlToken.substring(0, 20) + '...');
+
         localStorage.setItem('authToken', urlToken);
         setToken(urlToken);
+
+        // Set axios header immediately
         axios.defaults.headers.common['Authorization'] = `Bearer ${urlToken}`;
 
-        // Clean URL
+        // Clean URL first
         window.history.replaceState({}, document.title, window.location.pathname);
 
         // Fetch user profile with new token
         try {
+          console.log('Fetching user profile with OAuth token...');
           const response = await axios.get('/api/auth/profile');
+          console.log('OAuth user profile fetched:', response.data.user);
           setUser(response.data.user);
         } catch (error) {
-          console.error('Token verification failed:', error);
+          console.error('OAuth token verification failed:', error.response?.data || error.message);
           localStorage.removeItem('authToken');
           setToken(null);
+          delete axios.defaults.headers.common['Authorization'];
           setUser(null);
         }
       } else if (storedToken) {
