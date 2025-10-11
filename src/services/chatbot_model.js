@@ -53,15 +53,27 @@ class IntentClassifier {
       });
     });
 
-    // Apply intent-specific bonuses
+    // Apply intent-specific bonuses with priority ordering
+    if (lowerMessage.includes('return') || lowerMessage.includes('exchange') || lowerMessage.includes('refund') ||
+        lowerMessage.includes('damaged') || lowerMessage.includes('broken') || lowerMessage.includes('wrong') ||
+        lowerMessage.includes('defective') || lowerMessage.includes('dissatisfied')) {
+      scores.customer_service = (scores.customer_service || 0) + 5; // Higher priority for customer service
+      debugMatches.customer_service = (debugMatches.customer_service || []).concat(['CUSTOMER_SERVICE_BONUS']);
+    }
+
     if (lowerMessage.includes('go to') || lowerMessage.includes('take me') || lowerMessage.includes('visit') || lowerMessage.includes('open')) {
-      scores.navigation = (scores.navigation || 0) + 2;
+      scores.navigation = (scores.navigation || 0) + 3;
       debugMatches.navigation = (debugMatches.navigation || []).concat(['NAVIGATION_BONUS']);
     }
 
     if (lowerMessage.includes('contact') || lowerMessage.includes('customer care') || lowerMessage.includes('support')) {
-      scores.customer_service = (scores.customer_service || 0) + 2;
+      scores.customer_service = (scores.customer_service || 0) + 4;
       debugMatches.customer_service = (debugMatches.customer_service || []).concat(['SERVICE_BONUS']);
+    }
+
+    if (lowerMessage.includes('order') && lowerMessage.includes('track')) {
+      scores.order_tracking = (scores.order_tracking || 0) + 3;
+      debugMatches.order_tracking = (debugMatches.order_tracking || []).concat(['ORDER_TRACKING_BONUS']);
     }
 
     // Find the intent with highest score
@@ -77,7 +89,8 @@ class IntentClassifier {
 
     // Calculate confidence based on score relative to total possible patterns
     const totalPatterns = Object.values(this.patterns).reduce((sum, patterns) => sum + patterns.length, 0);
-    const confidence = Math.min(bestScore / Math.max(totalPatterns * 0.5, 1), 1.0);
+    const maxPossibleScore = totalPatterns * 3; // Max score per pattern
+    const confidence = Math.min(bestScore / Math.max(maxPossibleScore * 0.02, 1), 1.0); // Much lower threshold
 
     console.log('🎯 Intent Classification Debug:', {
       message: lowerMessage,
@@ -272,17 +285,30 @@ class ChatbotModel {
     try {
       console.log('📚 Loading training dataset...');
 
-      // Load external training data
-      const response = await fetch('/training_data.json');
+      // Load the user's own intents.json data
+      const response = await fetch('/intents.json');
       if (!response.ok) {
         throw new Error(`Failed to load training data: ${response.status}`);
       }
 
       const externalTrainingData = await response.json();
-      console.log(`✅ Loaded external training data: ${externalTrainingData.intents.length} intents, ${externalTrainingData.products.length} products`);
+      console.log(`✅ Loaded user training data: ${externalTrainingData.intents.length} intents`);
 
-      // Combine external data with store-specific data
-      this.trainingData = this.combineTrainingData(externalTrainingData, this.storeProducts);
+      // Use provided products if available, otherwise use empty array
+      const productsToUse = this.storeProducts.length > 0 ? this.storeProducts : [];
+
+      // Use the user's intents data structure
+      this.trainingData = {
+        intents: externalTrainingData.intents,
+        products: productsToUse,
+        training_metadata: {
+          created: new Date().toISOString(),
+          version: "3.0",
+          total_intents: externalTrainingData.intents.length,
+          total_products: productsToUse.length,
+          description: "User's college chatbot training dataset with store products integration"
+        }
+      };
 
       console.log(`✅ Combined training data: ${this.trainingData.intents.length} intents, ${this.trainingData.products.length} products`);
 
@@ -291,108 +317,6 @@ class ChatbotModel {
       console.error('❌ Failed to load training data:', error);
       this.fallbackToBasicModel();
     }
-  }
-
-  combineTrainingData(externalData, storeProducts) {
-    // Start with external training data
-    const combinedData = { ...externalData };
-
-    // Add store-specific products to the training data
-    if (storeProducts && storeProducts.length > 0) {
-      // Merge products, avoiding duplicates by ID
-      const existingProductIds = new Set(combinedData.products.map(p => p.id));
-      const newProducts = storeProducts.filter(p => !existingProductIds.has(p.id));
-
-      combinedData.products = [...combinedData.products, ...newProducts];
-
-      // Update metadata
-      combinedData.training_metadata.total_products = combinedData.products.length;
-      combinedData.training_metadata.store_products_added = newProducts.length;
-      combinedData.training_metadata.last_updated = new Date().toISOString();
-
-      console.log(`🛍️ Added ${newProducts.length} store products to training data`);
-    }
-
-    // Add store-specific intents and patterns
-    this.addStoreSpecificIntents(combinedData);
-
-    return combinedData;
-  }
-
-  addStoreSpecificIntents(trainingData) {
-    // Add store-specific greeting responses
-    const greetingIntent = trainingData.intents.find(i => i.tag === 'greeting');
-    if (greetingIntent) {
-      greetingIntent.responses.push(
-        "Welcome to our store! I'm here to help you discover amazing products from our catalog! 🛍️",
-        "Hi! I'm your shopping assistant, trained on our actual product inventory. What would you like to find today?",
-        "Hello! I'm excited to help you shop from our extensive collection. What are you looking for?"
-      );
-    }
-
-    // Add store-specific product search patterns and responses
-    const productSearchIntent = trainingData.intents.find(i => i.tag === 'product_search');
-    if (productSearchIntent) {
-      productSearchIntent.patterns.push(
-        'from your store',
-        'in your inventory',
-        'do you sell',
-        'available in store',
-        'your products',
-        'what products do you have',
-        'show me your',
-        'browse your'
-      );
-
-      productSearchIntent.responses.push(
-        "I found some great products from our store! Here are my top recommendations:",
-        "Based on our current inventory, here are the best matches for you:",
-        "I've found these excellent products from our catalog:"
-      );
-    }
-
-    // Add store-specific navigation patterns and responses
-    const navigationIntent = trainingData.intents.find(i => i.tag === 'navigation');
-    if (navigationIntent) {
-      navigationIntent.patterns.push(
-        'go to products',
-        'show me products',
-        'browse store',
-        'shop now',
-        'see products'
-      );
-
-      navigationIntent.responses.push(
-        "I can help you navigate our store! We have products, categories, cart, and orders sections.",
-        "Let me guide you through our site! You can browse products, check categories, view your cart, or track orders.",
-        "Our store has several sections - let me help you find what you need!"
-      );
-    }
-
-    // Add category-specific responses
-    const categoryIntent = trainingData.intents.find(i => i.tag === 'category_browse');
-    if (categoryIntent) {
-      categoryIntent.responses.push(
-        "We have products organized by category. Let me show you what's available!",
-        "Our categories make it easy to find what you need. What type of products interest you?"
-      );
-    }
-  }
-
-  initializeModel() {
-    // Initialize the intent classification model
-    this.intentClassifier = new IntentClassifier(this.trainingData.intents);
-
-    // Initialize the response generator
-    this.responseGenerator = new ResponseGenerator(this.trainingData.intents);
-
-    // Initialize the product matcher with available products
-    const productsToUse = this.storeProducts.length > 0 ? this.storeProducts : this.trainingData.products;
-    this.productMatcher = new ProductMatcher(productsToUse);
-
-    this.isModelLoaded = true;
-    console.log('🧠 Advanced AI Model initialized successfully');
-    console.log(`📦 Using ${this.productMatcher.products.length} products for matching`);
   }
 
   // Method to update products when new data is available
@@ -404,10 +328,75 @@ class ChatbotModel {
 
     if (newProducts && newProducts.length > 0) {
       this.storeProducts = newProducts;
+      this.trainingData.products = newProducts;
       // Update the product matcher with new products
       this.productMatcher.updateProducts(newProducts);
       console.log(`🛍️ Updated chatbot model with ${newProducts.length} store products`);
     }
+  }
+
+  initializeModel() {
+    // Initialize the intent classification model
+    this.intentClassifier = new IntentClassifier(this.trainingData.intents);
+
+    // Initialize the response generator
+    this.responseGenerator = new ResponseGenerator(this.trainingData.intents);
+
+    // Initialize the product matcher with store products
+    this.productMatcher = new ProductMatcher(this.trainingData.products);
+
+    this.isModelLoaded = true;
+    console.log('🧠 Advanced AI Model initialized successfully');
+    console.log(`📦 Using ${this.productMatcher.products.length} products for matching`);
+  }
+
+  fallbackToBasicModel() {
+    console.log('🔄 Falling back to basic rule-based model');
+
+    // Create basic patterns even if training data fails to load
+    this.basicPatterns = {
+      greeting: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', 'whats up'],
+      customer_service: ['help', 'support', 'problem', 'issue', 'contact', 'assistance', 'return', 'exchange', 'refund', 'damaged', 'broken'],
+      product_search: ['find', 'looking for', 'want', 'need', 'search', 'show me', 'get me', 'recommend', 'suggest', 'discover'],
+      navigation: ['go to', 'take me', 'visit', 'where is', 'how to get to', 'check', 'view', 'my'],
+      price_inquiry: ['price', 'cost', 'expensive', 'cheap', 'budget', 'how much', 'deals', 'discount'],
+      order_tracking: ['order', 'track', 'delivery', 'shipping', 'status']
+    };
+
+    this.basicResponses = {
+      greeting: "Hello! I'm your shopping assistant. How can I help you today?",
+      customer_service: "I'm here to help! What seems to be the problem?",
+      product_search: "What kind of product are you looking for?",
+      navigation: "I can help you navigate! Where would you like to go?",
+      price_inquiry: "I can help you find products in your budget!",
+      order_tracking: "I can help you track your orders! Do you have an order number?",
+      general: "I'm here to help with any questions you have!"
+    };
+
+    this.isModelLoaded = true;
+  }
+
+  // Basic classification for fallback when training data fails to load
+  basicClassify(message) {
+    const lowerMessage = message.toLowerCase();
+
+    // Simple keyword-based classification
+    for (const [intent, patterns] of Object.entries(this.basicPatterns)) {
+      const matches = patterns.filter(pattern => lowerMessage.includes(pattern)).length;
+      if (matches > 0) {
+        return {
+          intent,
+          confidence: Math.min(matches * 0.4, 1.0), // Higher confidence scoring
+          scores: { [intent]: matches }
+        };
+      }
+    }
+
+    return {
+      intent: 'general',
+      confidence: 0.1,
+      scores: {}
+    };
   }
 
   async predict(message) {
@@ -417,21 +406,57 @@ class ChatbotModel {
 
     try {
       // Step 1: Classify intent
-      const intentResult = this.intentClassifier.classify(message);
+      let intentResult;
 
-      // Step 2: Generate response based on intent
-      const response = this.responseGenerator.generate(intentResult);
-
-      // Step 3: Find relevant products if needed
-      let products = [];
-      if (intentResult.intent === 'product_search') {
-        products = this.productMatcher.findMatches(message);
+      if (this.trainingData) {
+        intentResult = this.intentClassifier.classify(message);
+      } else {
+        // Use basic fallback classification
+        intentResult = this.basicClassify(message);
       }
 
-      // Step 4: Enhance response with product information
+      // Step 2: Check confidence threshold - much lower threshold for better recognition
+      if (intentResult.confidence < 0.05) {
+        // Very low confidence - ask for clarification
+        return {
+          response: this.generateClarificationResponse(),
+          intent: 'clarification_needed',
+          confidence: intentResult.confidence,
+          suggestions: ['Try being more specific about what you need help with']
+        };
+      }
+
+      // Step 3: Generate response based on intent
+      let response;
+      if (this.trainingData) {
+        response = this.responseGenerator.generate(intentResult);
+      } else {
+        response = this.basicResponses[intentResult.intent] || this.basicResponses.general;
+      }
+
+      // Step 4: Find relevant products if needed
+      let products = [];
+      if (intentResult.intent === 'product_search') {
+        if (this.productMatcher) {
+          products = this.productMatcher.findMatches(message);
+        }
+
+        // If no products found but user seems to be looking for something, suggest clarification
+        if (products.length === 0 && intentResult.confidence < 0.6) {
+          return {
+            response: this.generateNoResultsResponse(),
+            intent: 'no_results',
+            confidence: intentResult.confidence,
+            products: [],
+            suggestions: ['Try different keywords', 'Browse our categories', 'Ask for help']
+          };
+        }
+      }
+
+      // Step 5: Enhance response with product information
       const enhancedResponse = this.enhanceResponse(response, products, message);
 
-      // Step 5: Save to conversation history
+      // Step 6: Save to conversation history
       this.conversationHistory.push({
         userMessage: message,
         intent: intentResult.intent,
@@ -452,22 +477,25 @@ class ChatbotModel {
       console.error('❌ Prediction failed:', error);
       return {
         response: "I'm having trouble understanding. Could you try rephrasing your question?",
-        intent: 'unknown',
+        intent: 'error',
         confidence: 0
       };
     }
   }
 
   enhanceResponse(baseResponse, products, query) {
+    // If we have products and the response indicates recommendations, show them
     if (products.length > 0 && baseResponse.includes('recommendations')) {
       const productList = products.slice(0, 3).map((product, index) => {
         const matchLevel = product.name.toLowerCase().includes(query.toLowerCase()) ? '🎯' : '✨';
-        return `${index + 1}. **${product.name}** ${matchLevel}\n   💰 ${this.formatMoney(product.priceCents)}\n   📂 ${product.category}\n   ⭐ ${product.rating?.stars || 'N/A'} stars (${product.rating?.count || 0} reviews)`;
+        const category = product.category || 'General';
+        return `${index + 1}. **${product.name}** ${matchLevel}\n   💰 ${this.formatMoney(product.priceCents)}\n   📂 ${category}\n   ⭐ ${product.rating?.stars || 'N/A'} stars (${product.rating?.count || 0} reviews)`;
       }).join('\n\n');
 
       return `${baseResponse}\n\n${productList}\n\nWhich one interests you most? I can provide more details or help you add it to your cart! 🛒`;
     }
 
+    // If no products found, return just the base response without product text
     return baseResponse;
   }
 
@@ -490,9 +518,36 @@ class ChatbotModel {
       suggestions.push('Browse our product categories');
       suggestions.push('Check your cart');
       suggestions.push('View your order history');
+      suggestions.push('Go to checkout');
+    }
+
+    if (intent === 'order_tracking') {
+      suggestions.push('Enter your order number for tracking');
+      suggestions.push('Check delivery status');
+      suggestions.push('Contact support if needed');
+    }
+
+    if (intent === 'clarification_needed') {
+      suggestions.push('Try being more specific');
+      suggestions.push('Use different keywords');
+      suggestions.push('Ask about products, orders, or support');
+    }
+
+    if (intent === 'no_results') {
+      suggestions.push('Try different search terms');
+      suggestions.push('Browse our categories');
+      suggestions.push('Ask for product recommendations');
     }
 
     return suggestions;
+  }
+
+  generateClarificationResponse() {
+    return `I want to help you better! Could you tell me more specifically what you're looking for?\n\n💡 For example:\n• "Find me a laptop"\n• "I need help with my order"\n• "Show me deals"\n• "I want to return something"\n\nI'm here to assist with anything! 🛍️`;
+  }
+
+  generateNoResultsResponse() {
+    return `I couldn't find exactly what you're looking for. Let me help you discover something similar!\n\n💡 Try:\n• "Show me sunglasses"\n• "Find watches under $100"\n• "Electronics for beginners"\n\nOr browse our categories to see what's available!`;
   }
 
   formatMoney(cents) {

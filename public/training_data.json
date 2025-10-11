@@ -60,7 +60,23 @@
         "i want to see",
         "can you show me",
         "do you have",
-        "what do you have in"
+        "what do you have in",
+        "sunglasses",
+        "eyewear",
+        "glasses",
+        "shades",
+        "find me",
+        "looking for",
+        "i need",
+        "i want",
+        "show",
+        "get",
+        "looking",
+        "search",
+        "find a",
+        "need a",
+        "want a",
+        "get a"
       ],
       "responses": [
         "I found some great options for you! Here are my top recommendations:",
@@ -96,14 +112,36 @@
         "i have a problem",
         "something is wrong",
         "i need help with",
-        "can you help me"
+        "can you help me",
+        "i'm having trouble",
+        "i need assistance",
+        "help me",
+        "problem with",
+        "issue with",
+        "not working",
+        "broken",
+        "faulty",
+        "want to return",
+        "need to return",
+        "return my order",
+        "exchange item",
+        "refund request",
+        "cancel order",
+        "wrong size",
+        "wrong color",
+        "doesn't fit",
+        "poor quality",
+        "not as described"
       ],
       "responses": [
         "I'm so sorry to hear you're dissatisfied! I want to make this right for you. 😔",
         "I understand your frustration and I'm here to help resolve this issue completely! 💪",
         "Thank you for letting me know - I'm committed to fixing this and ensuring you're completely satisfied! 🌟",
         "I'm here to help! Here are your support options:\n\n📞 **Phone**: 1-800-SHOP-HELP\n📧 **Email**: support@shopease.com\n💬 **Live Chat**: Available 24/7\n🗺️ **Store Locator**: Find us nearby\n\nWhat specific problem can I help you resolve?",
-        "I truly appreciate you reaching out! Let's work together to resolve this completely. 💪"
+        "I truly appreciate you reaching out! Let's work together to resolve this completely. 💪",
+        "I'm sorry you're experiencing this issue. I can help with returns, exchanges, or any other problems. What happened?",
+        "I understand you want to return or exchange your order. I can guide you through our return process or connect you with support.",
+        "For returns and exchanges, we offer a 30-day return policy. I can help you start the return process or answer any questions about it."
       ]
     },
     {
@@ -148,11 +186,47 @@
         "take me to",
         "i want to go to",
         "show me the",
-        "where can i find"
+        "where can i find",
+        "direct me to",
+        "i need to",
+        "how do i get to",
+        "find the",
+        "locate",
+        "go to products",
+        "show me products",
+        "browse store",
+        "shop now",
+        "see products",
+        "go to categories",
+        "show categories",
+        "go to cart",
+        "check cart",
+        "view cart",
+        "my cart",
+        "go to orders",
+        "check orders",
+        "view orders",
+        "my orders",
+        "order page",
+        "orders page",
+        "check my order",
+        "track order",
+        "order status",
+        "go to checkout",
+        "checkout page",
+        "go to account",
+        "my account",
+        "profile page",
+        "go to wishlist",
+        "my wishlist",
+        "favorites page"
       ],
       "responses": [
         "I can help you navigate! Here are quick ways to get where you need:",
-        "Let me take you there! I can guide you to any page you need."
+        "Let me take you there! I can guide you to any page you need.",
+        "I can help you find the right page! What would you like to do?",
+        "Let me show you how to get there. Here are your options:",
+        "I can guide you to any section of our store. Where would you like to go?"
       ]
     },
     {
@@ -185,29 +259,19 @@
         "shopping cart",
         "add item",
         "how to buy",
-        "complete order"
+        "complete order",
+        "add to basket",
+        "shopping basket",
+        "check out",
+        "buy now",
+        "purchase now",
+        "add product"
       ],
       "responses": [
         "I can help you with your cart! Let me guide you through the process.",
-        "Cart assistance is easy! I can help you add items or complete your purchase."
-      ]
-    },
-    {
-      "tag": "order_tracking",
-      "patterns": [
-        "order",
-        "track",
-        "delivery",
-        "shipping",
-        "when will",
-        "order status",
-        "track order",
-        "where is my order",
-        "delivery date"
-      ],
-      "responses": [
-        "I can help you track your orders! Do you have an order number?",
-        "Order tracking is easy - I can guide you to check your order status."
+        "Cart assistance is easy! I can help you add items or complete your purchase.",
+        "I'd be happy to help you with your shopping cart! What do you need assistance with?",
+        "Let me help you with your cart. Are you ready to check out or add more items?"
       ]
     },
     {
@@ -249,15 +313,6 @@
       "rating": { "stars": 4.8, "count": 89 }
     },
     {
-      "id": 3,
-      "name": "Wireless Bluetooth Headphones",
-      "category": "Electronics",
-      "priceCents": 12999,
-      "description": "Premium wireless headphones with noise cancellation",
-      "keywords": ["headphones", "wireless", "bluetooth", "audio", "electronics"],
-      "rating": { "stars": 4.6, "count": 234 }
-    },
-    {
       "id": 5,
       "name": "Polarized Sunglasses - UV Protection",
       "category": "Accessories",
@@ -289,7 +344,7 @@
     "created": "2025-01-11T09:12:02+05:30",
     "version": "1.0",
     "total_intents": 10,
-    "total_products": 4,
+    "total_products": 5,
     "description": "E-commerce chatbot training dataset with intents, patterns, and product information"
   }
 }

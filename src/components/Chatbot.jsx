@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatbotModel } from '../services/chatbot_model.js';
+import ProductCard from './ProductCard.jsx';
 
-const Chatbot = ({ products = [] }) => {
+const Chatbot = ({ products = [], cart = [], wishlist = [], refreshCart = () => {}, updateWishlist = () => {} }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -64,7 +65,6 @@ const Chatbot = ({ products = [] }) => {
     navigate(path);
     setIsOpen(false); // Close chat after navigation
   };
-
   // Quick actions for common requests
   const quickActions = [
     { label: 'Browse Products', action: 'products', path: '/products' },
@@ -77,19 +77,22 @@ const Chatbot = ({ products = [] }) => {
     e.preventDefault();
     if (!inputValue.trim() || !chatbotModel) return;
 
-    const userMessage = {
+    // Clear product cards from previous messages
+    setMessages(prev => prev.map(msg => ({
+      ...msg,
+      showProductCards: false
+    })));
+
+    setMessages(prev => [...prev, {
       id: messages.length + 1,
       type: 'user',
       text: inputValue,
       timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    }]);
     const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
     setShowQuickActions(false);
-
     try {
       // Use the trained model to generate response
       const aiResponse = await chatbotModel.predict(currentInput);
@@ -102,14 +105,15 @@ const Chatbot = ({ products = [] }) => {
           timestamp: new Date(),
           intent: aiResponse.intent,
           confidence: aiResponse.confidence,
-          products: aiResponse.products
+          products: aiResponse.products,
+          showProductCards: aiResponse.products && aiResponse.products.length > 0
         };
 
         setMessages(prev => [...prev, botMessage]);
         setIsTyping(false);
 
         // Show quick actions for certain intents
-        if (['customer_service', 'navigation', 'help'].includes(aiResponse.intent)) {
+        if (['customer_service', 'navigation', 'help', 'order_tracking', 'clarification_needed', 'no_results'].includes(aiResponse.intent)) {
           setShowQuickActions(true);
         }
       }, 1000 + Math.random() * 1000);
@@ -179,7 +183,7 @@ const Chatbot = ({ products = [] }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-full bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
+        <div className="absolute bottom-20 right-0 w-full bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 sm:p-4">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -227,6 +231,36 @@ const Chatbot = ({ products = [] }) => {
                 </div>
               </div>
             ))}
+
+            {/* Product Cards - Only show for the latest message with products */}
+            {(() => {
+              // Find the latest message that has products
+              const latestMessageWithProducts = [...messages].reverse().find(message =>
+                message.showProductCards && message.products && message.products.length > 0
+              );
+
+              if (!latestMessageWithProducts) return null;
+
+              return (
+                <div key={`products-${latestMessageWithProducts.id}`} className="mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {latestMessageWithProducts.products.slice(0, 2).map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        cart={cart}
+                        wishlist={wishlist}
+                        refreshCart={refreshCart}
+                        updateWishlist={updateWishlist}
+                        showAddToCart={true}
+                        showWishlist={true}
+                        className="max-w-none"
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Typing indicator */}
             {isTyping && (
