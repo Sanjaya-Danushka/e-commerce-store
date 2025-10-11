@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { formatMoney } from '../utils/money';
+import React, { useState } from "react";
+import axios from "axios";
+import { formatMoney } from "../utils/money";
 
 const ProductCard = ({
   product,
-  cart = [],
+  // cart = [],
   wishlist = [],
   refreshCart = () => {},
   updateWishlist = () => {},
   showAddToCart = true,
   showWishlist = true,
-  className = ""
+  className = "",
 }) => {
   const [addedToCart, setAddedToCart] = useState(false);
 
@@ -30,10 +30,12 @@ const ProductCard = ({
   };
 
   const handleWishlistToggle = () => {
-    const isInWishlist = wishlist.some(item => item.productId === product.id);
+    const isInWishlist = wishlist.some((item) => item.productId === product.id);
 
     if (isInWishlist) {
-      const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
+      const updatedWishlist = wishlist.filter(
+        (item) => item.productId !== product.id
+      );
       updateWishlist(updatedWishlist);
     } else {
       const newWishlistItem = {
@@ -45,10 +47,11 @@ const ProductCard = ({
     }
   };
 
-  const isInWishlist = wishlist.some(item => item.productId === product.id);
+  const isInWishlist = wishlist.some((item) => item.productId === product.id);
 
   return (
-    <div className={`group product-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 p-4 transform hover:-translate-y-1 border border-gray-100 hover:border-blue-200 ${className}`}>
+    <div
+      className={`group product-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 p-4 transform hover:-translate-y-1 border border-gray-100 hover:border-blue-200 ${className}`}>
       <div className="relative aspect-[4/3] mb-4 overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-md">
         <img
           className="product-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -73,9 +76,7 @@ const ProductCard = ({
             }`}>
             <svg
               className={`w-4 h-4 ${
-                isInWishlist
-                  ? "text-white"
-                  : "text-gray-600 hover:text-red-500"
+                isInWishlist ? "text-white" : "text-gray-600 hover:text-red-500"
               } transition-colors`}
               fill={isInWishlist ? "currentColor" : "none"}
               stroke="currentColor"
@@ -160,7 +161,11 @@ const ProductCard = ({
               : "opacity-0 translate-y-1"
           }`}>
           <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
           </svg>
           Added to cart!
         </div>
