@@ -202,101 +202,103 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
         </div>
       </div>
 
-      {/* Brand Showcase */}
-      <div className="relative py-16 bg-white overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full -translate-x-48 -translate-y-48"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full translate-x-48 translate-y-48"></div>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 animate-fade-in">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 text-sm font-medium mb-4 animate-slide-up">
-              🏢 Premium Partnerships
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4 animate-slide-up animation-delay-200">
-              Trusted by Leading Brands
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto animate-slide-up animation-delay-400">
-              We partner with the world's most recognized brands to bring you
-              authentic, quality products
-            </p>
+      {/* Brand Showcase - Hide when searching */}
+      {!searchQuery && (
+        <div className="relative py-16 bg-white overflow-hidden">
+          {/* Background decorative elements */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full -translate-x-48 -translate-y-48"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full translate-x-48 translate-y-48"></div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8 items-center justify-items-center">
-            {[
-              { name: "Nike", logo: "nike", fallback: "🏃‍♂️" },
-              { name: "Adidas", logo: "adidas", fallback: "⚡" },
-              { name: "Apple", logo: "apple-logo", fallback: "📱" },
-              { name: "Samsung", logo: "samsung", fallback: "📺" },
-              { name: "Sony", logo: "sony", fallback: "🎮" },
-              { name: "Dell", logo: "dell", fallback: "💻" },
-            ].map((brand, index) => (
-              <div
-                key={brand.name}
-                className="group cursor-pointer text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300 hover:shadow-lg relative animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}>
-                {/* Decorative background glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 animate-fade-in">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 text-sm font-medium mb-4 animate-slide-up">
+                🏢 Premium Partnerships
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4 animate-slide-up animation-delay-200">
+                Trusted by Leading Brands
+              </h2>
+              <p className="text-gray-600 max-w-2xl mx-auto animate-slide-up animation-delay-400">
+                We partner with the world's most recognized brands to bring you
+                authentic, quality products
+              </p>
+            </div>
 
-                <div className="relative mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <img
-                    src={`/images/logos/${brand.logo}.png`}
-                    alt={`${brand.name} Logo`}
-                    className="h-12 w-auto mx-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "block";
-                    }}
-                  />
-                  <div
-                    className="h-12 w-12 mx-auto flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300"
-                    style={{ display: "none" }}>
-                    {brand.fallback}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8 items-center justify-items-center">
+              {[
+                { name: "Nike", logo: "nike", fallback: "🏃‍♂️" },
+                { name: "Adidas", logo: "adidas", fallback: "⚡" },
+                { name: "Apple", logo: "apple-logo", fallback: "📱" },
+                { name: "Samsung", logo: "samsung", fallback: "📺" },
+                { name: "Sony", logo: "sony", fallback: "🎮" },
+                { name: "Dell", logo: "dell", fallback: "💻" },
+              ].map((brand, index) => (
+                <div
+                  key={brand.name}
+                  className="group cursor-pointer text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300 hover:shadow-lg relative animate-slide-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}>
+                  {/* Decorative background glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  <div className="relative mb-3 group-hover:scale-110 transition-transform duration-300">
+                    <img
+                      src={`/images/logos/${brand.logo}.png`}
+                      alt={`${brand.name} Logo`}
+                      className="h-12 w-auto mx-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "block";
+                      }}
+                    />
+                    <div
+                      className="h-12 w-12 mx-auto flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300"
+                      style={{ display: "none" }}>
+                      {brand.fallback}
+                    </div>
+                  </div>
+                  <div className="relative font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
+                    {brand.name}
                   </div>
                 </div>
-                <div className="relative font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
-                  {brand.name}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Additional Brand Stats */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center animate-fade-in animation-delay-600">
-            <div className="relative p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden animate-slide-up animation-delay-700">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
-              <div className="relative">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  500+
-                </div>
-                <div className="text-gray-700 font-medium">Brand Partners</div>
-              </div>
-            </div>
-            <div className="relative p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl overflow-hidden animate-slide-up animation-delay-800">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
-              <div className="relative">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  98%
-                </div>
-                <div className="text-gray-700 font-medium">
-                  Authentic Products
+            {/* Additional Brand Stats */}
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center animate-fade-in animation-delay-600">
+              <div className="relative p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden animate-slide-up animation-delay-700">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+                <div className="relative">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    500+
+                  </div>
+                  <div className="text-gray-700 font-medium">Brand Partners</div>
                 </div>
               </div>
-            </div>
-            <div className="relative p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden animate-slide-up animation-delay-900">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
-              <div className="relative">
-                <div className="text-3xl font-bold text-purple-600 mb-2">
-                  24/7
+              <div className="relative p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl overflow-hidden animate-slide-up animation-delay-800">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+                <div className="relative">
+                  <div className="text-3xl font-bold text-green-600 mb-2">
+                    98%
+                  </div>
+                  <div className="text-gray-700 font-medium">
+                    Authentic Products
+                  </div>
                 </div>
-                <div className="text-gray-700 font-medium">Brand Support</div>
+              </div>
+              <div className="relative p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden animate-slide-up animation-delay-900">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+                <div className="relative">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
+                    24/7
+                  </div>
+                  <div className="text-gray-700 font-medium">Brand Support</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Featured Products Section */}
