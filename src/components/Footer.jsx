@@ -1,7 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+
+    if (!email.trim()) {
+      alert("Please enter your email address");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    setIsSubscribing(true);
+
+    try {
+      console.log("Footer newsletter subscription:", email);
+
+      const response = await axios.post("/api/subscribe", { email });
+
+      console.log("Footer subscription successful:", response.data);
+
+      setIsSubscribed(true);
+      setEmail("");
+
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setIsSubscribed(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error("Footer newsletter subscription error:", error);
+
+      if (error.code === 'ECONNABORTED') {
+        alert("Request timed out. Please check if your backend server is running.");
+      } else if (error.response) {
+        const errorMessage = error.response.data?.message ||
+                           error.response.data?.error ||
+                           `Server error (${error.response.status})`;
+        alert(`Subscription failed: ${errorMessage}`);
+      } else if (error.request) {
+        alert("Network error. Please check your internet connection and backend server.");
+      } else {
+        alert("Failed to subscribe. Please try again or check the console for details.");
+      }
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
   return (
     <footer className="bg-gray-900 text-white w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -165,10 +222,31 @@ const Footer = () => {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubscribed || isSubscribing}
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
               />
-              <button className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
-                Subscribe
+              <button
+                onClick={handleSubscribe}
+                disabled={isSubscribed || isSubscribing || !email.trim()}
+                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubscribing ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Subscribing...
+                  </div>
+                ) : isSubscribed ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Subscribed!
+                  </div>
+                ) : (
+                  "Subscribe"
+                )}
               </button>
             </div>
             <div className="pt-4 border-t border-gray-800">
