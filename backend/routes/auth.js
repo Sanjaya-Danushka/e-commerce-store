@@ -115,8 +115,11 @@ router.get('/google/callback', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    console.log('Generated JWT token for user:', user.email);
+
     // Redirect to frontend with token
     const redirectUrl = state ? `${state}?token=${token}` : `/?token=${token}`;
+    console.log('Redirecting to frontend:', redirectUrl);
     res.redirect(`http://localhost:5173${redirectUrl}`);
 
   } catch (error) {
@@ -288,17 +291,30 @@ router.post('/google', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
+    console.log('=== PROFILE REQUEST ===');
+    console.log('Headers received:', JSON.stringify(req.headers, null, 2));
+    console.log('Auth header present:', !!authHeader);
+    console.log('Auth header value:', authHeader);
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No valid auth header - returning 401');
       return res.status(401).json({ error: 'Access token required' });
     }
 
     const token = authHeader.substring(7);
+    console.log('Token length:', token.length);
+    console.log('Token preview:', token.substring(0, 20) + '...');
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+    console.log('✅ Token decoded successfully:', decoded);
 
     const user = await User.findByPk(decoded.id);
     if (!user) {
+      console.log('❌ User not found:', decoded.id);
       return res.status(404).json({ error: 'User not found' });
     }
+
+    console.log('✅ User found:', user.email);
 
     res.json({
       user: {
@@ -310,7 +326,7 @@ router.get('/profile', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('❌ Profile request error:', error);
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: 'Invalid token' });
     }

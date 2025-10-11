@@ -60,8 +60,20 @@ export const AuthProvider = ({ children }) => {
         // Fetch user profile with new token
         try {
           console.log('Fetching user profile with OAuth token...');
-          const response = await axios.get('/api/auth/profile');
-          console.log('OAuth user profile fetched:', response.data.user);
+          const tokenToUse = urlToken;
+          console.log('Token to use:', tokenToUse.substring(0, 50) + '...');
+
+          // Create a fresh axios instance for this request to avoid any header conflicts
+          const axiosInstance = (await import('axios')).default.create({
+            baseURL: 'http://localhost:3000',
+            headers: {
+              'Authorization': `Bearer ${tokenToUse}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const response = await axiosInstance.get('/api/auth/profile');
+          console.log('OAuth user profile fetched successfully:', response.data.user);
           setUser(response.data.user);
         } catch (error) {
           console.error('OAuth token verification failed:', error.response?.data || error.message);
