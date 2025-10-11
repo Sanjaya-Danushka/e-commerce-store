@@ -94,6 +94,15 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-800 text-white overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/banners/hero-shopping-experience.jpg"
+            alt="Premium Shopping Experience"
+            className="w-full h-full object-cover opacity-20 mix-blend-multiply"
+          />
+        </div>
+
         {/* Animated background elements */}
         <div className="absolute inset-0">
           <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -617,6 +626,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                   color: "from-blue-500 to-indigo-600",
                   description: "Latest gadgets & devices",
                   items: "2,500+ items",
+                  image: "/images/banners/electronics-category-hero.jpg"
                 },
                 {
                   name: "Fashion",
@@ -624,6 +634,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                   color: "from-purple-500 to-pink-600",
                   description: "Trendy clothing & accessories",
                   items: "5,200+ items",
+                  image: "/images/banners/fashion-category-hero.jpg"
                 },
                 {
                   name: "Home & Garden",
@@ -631,6 +642,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                   color: "from-green-500 to-emerald-600",
                   description: "Everything for your space",
                   items: "1,800+ items",
+                  image: "/images/banners/home-garden-category-hero.jpg"
                 },
                 {
                   name: "Sports",
@@ -638,6 +650,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                   color: "from-orange-500 to-red-600",
                   description: "Gear up for action",
                   items: "3,100+ items",
+                  image: "/images/banners/sports-category-hero.jpg"
                 },
               ].map((category, index) => (
                 <div
@@ -646,6 +659,15 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                   style={{ animationDelay: `${index * 0.1}s` }}>
                   <div
                     className={`relative bg-gradient-to-br ${category.color} rounded-2xl p-8 text-white text-center transform group-hover:scale-105 group-hover:-rotate-1 transition-all duration-500 shadow-lg group-hover:shadow-2xl overflow-hidden h-56`}>
+                    {/* Background Image */}
+                    <div className="absolute inset-0">
+                      <img
+                        src={category.image}
+                        alt={`${category.name} Collection`}
+                        className="w-full h-full object-cover opacity-20 mix-blend-multiply"
+                      />
+                    </div>
+
                     {/* Background pattern */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute inset-0 bg-white/20 transform rotate-12 scale-150"></div>
@@ -680,6 +702,115 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Customer Testimonials Section */}
+      <div className="relative py-20 bg-gray-900 text-white overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/banners/customer-testimonials-bg.jpg"
+            alt="Happy Customers"
+            className="w-full h-full object-cover opacity-30"
+          />
+        </div>
+
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-gray-900/60"></div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-4">
+              ⭐ Customer Love
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              What Our Customers
+              <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+                Are Saying
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Join thousands of satisfied customers who trust us for their shopping needs
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Sarah Johnson",
+                role: "Verified Buyer",
+                content: "Absolutely love the quality and fast shipping! The customer service team went above and beyond to help me find the perfect gift.",
+                rating: 5,
+                avatar: "SJ"
+              },
+              {
+                name: "Michael Chen",
+                role: "Tech Enthusiast",
+                content: "Best online shopping experience I've had. Authentic products, great prices, and the return process is super easy.",
+                rating: 5,
+                avatar: "MC"
+              },
+              {
+                name: "Emily Rodriguez",
+                role: "Fashion Lover",
+                content: "The fashion collection is amazing! I always find unique pieces that match my style. Highly recommend this store!",
+                rating: 5,
+                avatar: "ER"
+              }
+            ].map((testimonial, index) => (
+              <div
+                key={testimonial.name}
+                className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105"
+                style={{ animationDelay: `${index * 0.2}s` }}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg">{testimonial.name}</h4>
+                    <p className="text-gray-300 text-sm">{testimonial.role}</p>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex items-center space-x-1 mb-3">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-gray-200 leading-relaxed italic">"{testimonial.content}"</p>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-green-400 text-sm font-medium">✓ Verified Purchase</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust indicators */}
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="text-3xl font-bold text-yellow-400 mb-2">50K+</div>
+              <div className="text-gray-300 text-sm">Happy Customers</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="text-3xl font-bold text-green-400 mb-2">4.9★</div>
+              <div className="text-gray-300 text-sm">Average Rating</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="text-3xl font-bold text-blue-400 mb-2">99%</div>
+              <div className="text-gray-300 text-sm">Satisfaction Rate</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="text-3xl font-bold text-purple-400 mb-2">24/7</div>
+              <div className="text-gray-300 text-sm">Customer Support</div>
             </div>
           </div>
         </div>
