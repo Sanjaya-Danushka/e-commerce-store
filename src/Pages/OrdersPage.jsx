@@ -2,20 +2,37 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Header from "../components/Header";
 import OrderContainer from "../components/OrderContainer";
+import { useAuth } from "../contexts/AuthContext";
 
 const OrdersPage = ({ cart, refreshCart }) => {
+  const { user, isAuthenticated } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get("/api/orders?expand=products");
+      setOrders(response.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    axios
-      .get("/api/orders?expand=products")
-      .then((response) => {
-        setOrders(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching orders:", error);
-      });
+    fetchOrders();
   }, []);
+
+  // Refresh orders when user logs in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('User authenticated, refreshing orders for:', user.email);
+      fetchOrders();
+    }
+  }, [isAuthenticated, user]);
 
   const handleAddToCart = (productId) => {
     axios
@@ -76,7 +93,12 @@ const OrdersPage = ({ cart, refreshCart }) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 gap-6">
-          {orders.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 text-lg">Loading your orders...</p>
+            </div>
+          ) : orders.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
@@ -96,25 +118,45 @@ const OrdersPage = ({ cart, refreshCart }) => {
                 No orders yet
               </h3>
               <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-                You haven't placed any orders yet. Start shopping to see your orders here.
+                {isAuthenticated ? "You haven't placed any orders yet. Start shopping to see your orders here." : "Please log in to view your orders."}
               </p>
-              <a
-                href="/"
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                Start Shopping
-                <svg
-                  className="w-5 h-5 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </a>
+              {!isAuthenticated ? (
+                <a
+                  href="/login"
+                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  Sign In to View Orders
+                  <svg
+                    className="w-5 h-5 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </a>
+              ) : (
+                <a
+                  href="/"
+                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  Start Shopping
+                  <svg
+                    className="w-5 h-5 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </a>
+              )}
             </div>
           ) : (
             orders.map((order) => (

@@ -3,12 +3,39 @@ import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { DeliveryOption } from '../models/DeliveryOption.js';
 import { CartItem } from '../models/CartItem.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
+// Helper function to get user ID from JWT token
+const getUserIdFromToken = (req) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    return decoded.id;
+  } catch (error) {
+    return null;
+  }
+};
+
 router.get('/', async (req, res) => {
   const expand = req.query.expand;
-  let orders = await Order.unscoped().findAll({ order: [['orderTimeMs', 'DESC']] }); // Sort by most recent
+  const userId = getUserIdFromToken(req);
+
+  // If no user is authenticated, return empty array (orders are private)
+  if (!userId) {
+    return res.json([]);
+  }
+
+  let orders = await Order.unscoped().findAll({
+    where: { userId },
+    order: [['orderTimeMs', 'DESC']] // Sort by most recent
+  });
 
   if (expand === 'products') {
     orders = await Promise.all(orders.map(async (order) => {
@@ -31,6 +58,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   const cartItems = await CartItem.findAll();
+  const userId = getUserIdFromToken(req);
 
   if (cartItems.length === 0) {
     return res.status(400).json({ error: 'Cart is empty' });
@@ -60,6 +88,7 @@ router.post('/', async (req, res) => {
   totalCostCents = Math.round(totalCostCents * 1.1);
 
   const order = await Order.create({
+    userId,
     orderTimeMs: Date.now(),
     totalCostCents,
     products

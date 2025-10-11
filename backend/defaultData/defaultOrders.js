@@ -1,6 +1,7 @@
 export const defaultOrders = [
   {
     id: "27cba69d-4c3d-4098-b42d-ac7fa62b7664",
+    userId: "229f2ad0-255b-47c9-ab42-3e954e8a0299", // Default user ID from auth system
     orderTimeMs: 1723456800000,
     totalCostCents: 3506,
     products: [
@@ -18,6 +19,7 @@ export const defaultOrders = [
   },
   {
     id: "b6b6c212-d30e-4d4a-805d-90b52ce6b37d",
+    userId: "229f2ad0-255b-47c9-ab42-3e954e8a0299", // Default user ID from auth system
     orderTimeMs: 1718013600000,
     totalCostCents: 4190,
     products: [
