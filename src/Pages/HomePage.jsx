@@ -297,7 +297,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Featured Products Section */}
         <div className="mb-12">
           <div className="text-center mb-8">
@@ -323,7 +323,7 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
               )}
             </h2>
 
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
               {searchQuery
                 ? "Find exactly what you're looking for from our extensive collection"
                 : "Don't miss out on these incredible deals - limited stock available!"}
@@ -394,12 +394,12 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8">
               {products.map((product) => {
                 return (
                   <div
                     key={product.id}
-                    className="group product-card bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 transform hover:-translate-y-3 border border-gray-100 hover:border-blue-200 max-w-sm mx-auto">
+                    className="group product-card bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 transform hover:-translate-y-3 border border-gray-100 hover:border-blue-200">
                     <div className="relative aspect-[4/3] mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
                       <img
                         className="product-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -470,9 +470,9 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
                       </button>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="product-name h-20">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+                    <div className="space-y-6">
+                      <div className="product-name h-24">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-3 group-hover:text-blue-600 transition-colors duration-200">
                           {product.name}
                         </h3>
                       </div>
