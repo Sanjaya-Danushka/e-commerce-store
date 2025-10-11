@@ -19,12 +19,14 @@ import wholesaleRoutes from './routes/wholesale.js';
 import contactChatRoutes from './routes/contactChat.js';
 import adminRoutes from './routes/admin.js';
 import adminAuthRoutes from './routes/adminAuth.js';
+import authRoutes from './routes/auth.js';
 
 // Import models and data for seeding
 import { Product } from './models/Product.js';
 import { DeliveryOption } from './models/DeliveryOption.js';
 import { CartItem } from './models/CartItem.js';
 import { Order } from './models/Order.js';
+import { User } from './models/User.js';
 import { defaultProducts } from './defaultData/defaultProducts.js';
 import { defaultDeliveryOptions } from './defaultData/defaultDeliveryOptions.js';
 import { defaultCart } from './defaultData/defaultCart.js';
@@ -57,6 +59,7 @@ app.use('/api/wholesale', wholesaleRoutes);
 app.use('/api/contact/chat-request', contactChatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/auth/admin', adminAuthRoutes);
+app.use('/api/auth', authRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

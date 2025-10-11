@@ -1,7 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
 
 const Header = ({ cart, wishlist }) => {
+  const { user, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   const totalQuantity = useMemo(() => {
     const quantity = cart ? cart.reduce((total, cartItem) => total + cartItem.quantity, 0) : 0;
     console.log('Header - Cart quantity calculated:', quantity);
@@ -17,6 +21,7 @@ const Header = ({ cart, wishlist }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -25,6 +30,16 @@ const Header = ({ cart, wishlist }) => {
     }
     setIsSearchExpanded(false);
     setSearchQuery('');
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setIsProfileMenuOpen(false);
+    navigate('/');
+  };
+
+  const handleProfileClick = () => {
+    setIsProfileMenuOpen(!isProfileMenuOpen);
   };
 
   return (
@@ -100,11 +115,81 @@ const Header = ({ cart, wishlist }) => {
               </div>
             </div>
 
-            <Link to="/account" className="text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </Link>
+            {/* Authentication Section */}
+            {isAuthenticated && user ? (
+              <>
+                {/* User Profile Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={handleProfileClick}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    {user.profilePicture ? (
+                      <img
+                        src={user.profilePicture}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="hidden lg:block text-sm font-medium">
+                      {user.firstName || user.email}
+                    </span>
+                  </button>
+
+                  {/* Profile Dropdown Menu */}
+                  {isProfileMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                      <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                        <div className="font-medium">{user.firstName} {user.lastName}</div>
+                        <div className="text-gray-500">{user.email}</div>
+                      </div>
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        Your Profile
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        Your Orders
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Login and Signup buttons */}
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
 
             <Link to="/wishlist" className="relative text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,10 +243,48 @@ const Header = ({ cart, wishlist }) => {
               <Link to="/new-arrivals" className="block text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
                 New Arrivals
               </Link>
+
+              {!isAuthenticated ? (
+                <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
+                  <Link to="/login" className="block text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Sign in
+                  </Link>
+                  <Link to="/signup" className="block text-gray-900 hover:text-gray-800 px-3 py-2 text-sm font-medium">
+                    Sign up
+                  </Link>
+                </div>
+              ) : (
+                <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
+                  <div className="px-3 py-2 text-sm text-gray-700">
+                    <div className="font-medium">{user.firstName} {user.lastName}</div>
+                    <div className="text-gray-500">{user.email}</div>
+                  </div>
+                  <Link to="/profile" className="block text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Your Profile
+                  </Link>
+                  <Link to="/orders" className="block text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Your Orders
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
             </nav>
           </div>
         )}
       </div>
+
+      {/* Click outside to close profile menu */}
+      {isProfileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsProfileMenuOpen(false)}
+        />
+      )}
     </header>
   );
 };

@@ -1,8 +1,7 @@
 {
   "env": {
     "node": true,
-    "es2022": true,
-    "es6": true
+    "es2022": true
   },
   "extends": ["eslint:recommended"],
   "parserOptions": {
@@ -10,20 +9,9 @@
     "sourceType": "module"
   },
   "globals": {
-    "process": "readonly",
-    "console": "readonly",
-    "Buffer": "readonly",
-    "__dirname": "readonly",
-    "__filename": "readonly",
-    "global": "readonly",
-    "require": "readonly",
-    "module": "readonly",
-    "exports": "readonly"
+    "process": false
   },
   "rules": {
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "unix"],
-    "semi": ["error", "always"],
     "no-undef": "off"
   }
 }

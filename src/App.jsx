@@ -26,6 +26,10 @@ import TrackOrderPage from "./Pages/TrackOrderPage";
 import GiftCardsPage from "./Pages/GiftCardsPage";
 import AdminPage from "./Pages/AdminPage";
 import AdminLoginPage from "./Pages/AdminLoginPage";
+import LoginPage from "./Pages/LoginPage";
+import SignupPage from "./Pages/SignupPage";
+import ProfilePage from "./Pages/ProfilePage";
+import { AuthProvider } from "./contexts/AuthContext";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 
@@ -67,37 +71,42 @@ const App = () => {
   }, []);
 
   return (
-    <div className="App">
-      <Routes>
-        <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-        <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
-        <Route path="/brands" element={<BrandsPage cart={cart} wishlist={wishlist} />} />
-        <Route path="/products" element={<ProductsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-        <Route path="/sale" element={<SalePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
-        <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
-        <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
-        <Route path="checkout" element={<CheckoutPage cart={cart} />} />
-        <Route path="orders" element={<OrdersPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
-        <Route path="tracking" element={<TrackingPage cart={cart} />} />
-        <Route path="about" element={<AboutPage cart={cart} wishlist={wishlist} />} />
-        <Route path="contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
-        <Route path="terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={wishlist} />} />
-        <Route path="privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
-        <Route path="accessibility" element={<AccessibilityPage cart={cart} />} />
-        <Route path="careers" element={<CareersPage cart={cart} />} />
-        <Route path="press" element={<PressPage cart={cart} />} />
-        <Route path="blog" element={<BlogPage cart={cart} />} />
-        <Route path="affiliate-program" element={<AffiliateProgramPage cart={cart} />} />
-        <Route path="wholesale" element={<WholesalePage cart={cart} />} />
-        <Route path="shipping-info" element={<ShippingInfoPage cart={cart} />} />
-        <Route path="returns-exchanges" element={<ReturnsExchangesPage cart={cart} />} />
-        <Route path="size-guide" element={<SizeGuidePage cart={cart} />} />
-        <Route path="track-order" element={<TrackOrderPage cart={cart} />} />
-        <Route path="gift-cards" element={<GiftCardsPage cart={cart} />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-      </Routes>
-    </div>
+    <AuthProvider>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
+          <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/brands" element={<BrandsPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/products" element={<ProductsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
+          <Route path="/sale" element={<SalePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
+          <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
+          <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
+          <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
+          <Route path="/orders" element={<OrdersPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
+          <Route path="/tracking" element={<TrackingPage cart={cart} />} />
+          <Route path="/about" element={<AboutPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={wishlist} />} />
+          <Route path="/privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/accessibility" element={<AccessibilityPage cart={cart} />} />
+          <Route path="/careers" element={<CareersPage cart={cart} />} />
+          <Route path="/press" element={<PressPage cart={cart} />} />
+          <Route path="/blog" element={<BlogPage cart={cart} />} />
+          <Route path="/affiliate-program" element={<AffiliateProgramPage cart={cart} />} />
+          <Route path="/wholesale" element={<WholesalePage cart={cart} />} />
+          <Route path="/shipping-info" element={<ShippingInfoPage cart={cart} />} />
+          <Route path="/returns-exchanges" element={<ReturnsExchangesPage cart={cart} />} />
+          <Route path="/size-guide" element={<SizeGuidePage cart={cart} />} />
+          <Route path="/track-order" element={<TrackOrderPage cart={cart} />} />
+          <Route path="/gift-cards" element={<GiftCardsPage cart={cart} />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Routes>
+      </div>
+    </AuthProvider>
   );
 };
 
