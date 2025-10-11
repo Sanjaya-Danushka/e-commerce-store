@@ -322,7 +322,15 @@ router.get('/profile', async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        phoneNumber: user.phoneNumber,
+        addressLine1: user.addressLine1,
+        addressLine2: user.addressLine2,
+        city: user.city,
+        state: user.state,
+        postalCode: user.postalCode,
+        country: user.country,
+        profileCompleted: user.profileCompleted
       }
     });
   } catch (error) {
@@ -337,6 +345,76 @@ router.get('/profile', async (req, res) => {
 // POST /api/auth/logout - User logout
 router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
+});
+
+// PUT /api/auth/profile - Update user profile
+router.put('/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update user fields
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      postalCode,
+      country,
+      profileCompleted
+    } = req.body;
+
+    if (firstName !== undefined) user.firstName = firstName;
+    if (lastName !== undefined) user.lastName = lastName;
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (addressLine1 !== undefined) user.addressLine1 = addressLine1;
+    if (addressLine2 !== undefined) user.addressLine2 = addressLine2;
+    if (city !== undefined) user.city = city;
+    if (state !== undefined) user.state = state;
+    if (postalCode !== undefined) user.postalCode = postalCode;
+    if (country !== undefined) user.country = country;
+    if (profileCompleted !== undefined) user.profileCompleted = profileCompleted;
+
+    await user.save();
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        phoneNumber: user.phoneNumber,
+        addressLine1: user.addressLine1,
+        addressLine2: user.addressLine2,
+        city: user.city,
+        state: user.state,
+        postalCode: user.postalCode,
+        country: user.country,
+        profileCompleted: user.profileCompleted
+      },
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default router;

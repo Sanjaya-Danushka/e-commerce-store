@@ -29,76 +29,65 @@ import AdminLoginPage from "./Pages/AdminLoginPage";
 import LoginPage from "./Pages/LoginPage";
 import SignupPage from "./Pages/SignupPage";
 import ProfilePage from "./Pages/ProfilePage";
-import { AuthProvider } from "./contexts/AuthContext";
-import axios from "axios";
+import ProfileCompletionModal from "./components/ProfileCompletionModal";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Routes, Route } from "react-router-dom";
 
-const App = () => {
-  const [cart, setCart] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
-
-  const fetchCartItems = async () => {
-    const response = await axios.get("/api/cart-items?expand=product");
-    setCart(response.data);
-  };
-
-  const fetchWishlistItems = () => {
-    try {
-      const storedWishlist = localStorage.getItem('wishlist');
-      if (storedWishlist) {
-        setWishlist(JSON.parse(storedWishlist));
-      } else {
-        setWishlist([]);
-      }
-    } catch (error) {
-      console.error("Error fetching wishlist:", error);
-      setWishlist([]);
-    }
-  };
-
-  const refreshWishlist = () => {
-    fetchWishlistItems();
-  };
-
-  const updateWishlist = (newWishlist) => {
-    setWishlist(newWishlist);
-    localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-  };
+// AppContent component to handle profile completion modal
+const AppContent = () => {
+  const { needsProfileCompletion, user, isAuthenticated } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    fetchCartItems();
-    fetchWishlistItems();
-  }, []);
+    console.log('AppContent: Auth state check - user:', !!user, 'needsProfileCompletion:', needsProfileCompletion(), 'isAuthenticated:', isAuthenticated);
+
+    // Show profile completion modal after 1 second delay for new users who need to complete their profile
+    if (needsProfileCompletion() && user && !user.profileCompleted && isAuthenticated) {
+      console.log('AppContent: Scheduling profile modal to appear in 1 second');
+      const timer = setTimeout(() => {
+        console.log('AppContent: Showing profile modal after delay');
+        setShowProfileModal(true);
+      }, 1000); // 1 second delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [needsProfileCompletion, user, isAuthenticated]);
+
+  const handleProfileComplete = () => {
+    console.log('AppContent: Profile completed, closing modal');
+    setShowProfileModal(false);
+    // Profile is now completed, user can continue using the site
+  };
 
   return (
-    <AuthProvider>
+    <>
       <div className="App">
         <Routes>
-          <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-          <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/brands" element={<BrandsPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/products" element={<ProductsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-          <Route path="/sale" element={<SalePage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
-          <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
-          <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} updateWishlist={updateWishlist} />} />
-          <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
-          <Route path="/orders" element={<OrdersPage cart={cart} wishlist={wishlist} refreshCart={fetchCartItems} />} />
-          <Route path="/tracking" element={<TrackingPage cart={cart} />} />
-          <Route path="/about" element={<AboutPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={wishlist} />} />
-          <Route path="/privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/accessibility" element={<AccessibilityPage cart={cart} />} />
-          <Route path="/careers" element={<CareersPage cart={cart} />} />
-          <Route path="/press" element={<PressPage cart={cart} />} />
-          <Route path="/blog" element={<BlogPage cart={cart} />} />
-          <Route path="/affiliate-program" element={<AffiliateProgramPage cart={cart} />} />
-          <Route path="/wholesale" element={<WholesalePage cart={cart} />} />
-          <Route path="/shipping-info" element={<ShippingInfoPage cart={cart} />} />
-          <Route path="/returns-exchanges" element={<ReturnsExchangesPage cart={cart} />} />
-          <Route path="/size-guide" element={<SizeGuidePage cart={cart} />} />
-          <Route path="/track-order" element={<TrackOrderPage cart={cart} />} />
-          <Route path="/gift-cards" element={<GiftCardsPage cart={cart} />} />
+          <Route path="/" element={<HomePage cart={[]} wishlist={[]} refreshCart={() => {}} refreshWishlist={() => {}} updateWishlist={() => {}} />} />
+          <Route path="/categories" element={<CategoriesPage cart={[]} wishlist={[]} />} />
+          <Route path="/brands" element={<BrandsPage cart={[]} wishlist={[]} />} />
+          <Route path="/products" element={<ProductsPage cart={[]} wishlist={[]} refreshCart={() => {}} refreshWishlist={() => {}} updateWishlist={() => {}} />} />
+          <Route path="/sale" element={<SalePage cart={[]} wishlist={[]} refreshCart={() => {}} />} />
+          <Route path="/new-arrivals" element={<NewArrivalsPage cart={[]} wishlist={[]} refreshCart={() => {}} updateWishlist={() => {}} />} />
+          <Route path="/wishlist" element={<WishlistPage cart={[]} wishlist={[]} refreshCart={() => {}} updateWishlist={() => {}} />} />
+          <Route path="/checkout" element={<CheckoutPage cart={[]} />} />
+          <Route path="/orders" element={<OrdersPage cart={[]} wishlist={[]} refreshCart={() => {}} />} />
+          <Route path="/tracking" element={<TrackingPage cart={[]} />} />
+          <Route path="/about" element={<AboutPage cart={[]} wishlist={[]} />} />
+          <Route path="/contact" element={<ContactPage cart={[]} wishlist={[]} />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage cart={[]} wishlist={[]} />} />
+          <Route path="/privacy" element={<PrivacyPage cart={[]} wishlist={[]} />} />
+          <Route path="/accessibility" element={<AccessibilityPage cart={[]} />} />
+          <Route path="/careers" element={<CareersPage cart={[]} />} />
+          <Route path="/press" element={<PressPage cart={[]} />} />
+          <Route path="/blog" element={<BlogPage cart={[]} />} />
+          <Route path="/affiliate-program" element={<AffiliateProgramPage cart={[]} />} />
+          <Route path="/wholesale" element={<WholesalePage cart={[]} />} />
+          <Route path="/shipping-info" element={<ShippingInfoPage cart={[]} />} />
+          <Route path="/returns-exchanges" element={<ReturnsExchangesPage cart={[]} />} />
+          <Route path="/size-guide" element={<SizeGuidePage cart={[]} />} />
+          <Route path="/track-order" element={<TrackOrderPage cart={[]} />} />
+          <Route path="/gift-cards" element={<GiftCardsPage cart={[]} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -106,6 +95,21 @@ const App = () => {
           <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </div>
+
+      {/* Profile Completion Modal - appears after 1 second delay */}
+      <ProfileCompletionModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onComplete={handleProfileComplete}
+      />
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 };
