@@ -228,19 +228,33 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
     }
   };
 
-  const handleWishlistToggle = (product) => {
+  const handleWishlistToggle = async (product) => {
     const isInWishlist = wishlist.some(item => item.productId === product.id);
 
     if (isInWishlist) {
-      const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
-      updateWishlist(updatedWishlist);
+      try {
+        await axios.delete(`/api/wishlist/${product.id}`);
+        const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
+        updateWishlist(updatedWishlist);
+      } catch (error) {
+        console.error("Error removing from wishlist:", error);
+        alert("Failed to remove from wishlist.");
+      }
     } else {
-      const newWishlistItem = {
-        productId: product.id,
-        dateAdded: new Date().toISOString()
-      };
-      const updatedWishlist = [...wishlist, newWishlistItem];
-      updateWishlist(updatedWishlist);
+      try {
+        await axios.post("/api/wishlist", {
+          productId: product.id,
+        });
+        const newWishlistItem = {
+          productId: product.id,
+          dateAdded: new Date().toISOString()
+        };
+        const updatedWishlist = [...wishlist, newWishlistItem];
+        updateWishlist(updatedWishlist);
+      } catch (error) {
+        console.error("Error adding to wishlist:", error);
+        alert("Failed to add to wishlist.");
+      }
     }
   };
 

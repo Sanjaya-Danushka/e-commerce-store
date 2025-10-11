@@ -11,7 +11,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('authToken'));
@@ -109,6 +109,11 @@ export const AuthProvider = ({ children }) => {
         console.error('Failed to sync profile:', profileError);
       }
 
+      // Notify parent component that user logged in
+      if (onUserLogin) {
+        onUserLogin(userData);
+      }
+
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
@@ -128,6 +133,11 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       localStorage.setItem('authToken', newToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+      // Notify parent component that user logged in
+      if (onUserLogin) {
+        onUserLogin(userData);
+      }
 
       return { success: true };
     } catch (error) {
@@ -166,6 +176,11 @@ export const AuthProvider = ({ children }) => {
         console.error('Failed to create basic profile:', profileError);
       }
 
+      // Notify parent component that user logged in (registration counts as login)
+      if (onUserLogin) {
+        onUserLogin(userData);
+      }
+
       return { success: true };
     } catch (error) {
       console.error('Registration error:', error);
@@ -185,6 +200,11 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       localStorage.removeItem('authToken');
       delete axios.defaults.headers.common['Authorization'];
+
+      // Notify parent component that user logged out
+      if (onUserLogout) {
+        onUserLogout();
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -192,6 +212,11 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       localStorage.removeItem('authToken');
       delete axios.defaults.headers.common['Authorization'];
+
+      // Ensure logout callback is called even if API call fails
+      if (onUserLogout) {
+        onUserLogout();
+      }
     }
   };
 

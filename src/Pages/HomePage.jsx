@@ -420,28 +420,42 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
                       {/* Favorite button */}
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const isInWishlist = wishlist.some(
                             (item) => item.productId === product.id
                           );
 
                           if (isInWishlist) {
-                            // Remove from wishlist
-                            const updatedWishlist = wishlist.filter(
-                              (item) => item.productId !== product.id
-                            );
-                            updateWishlist(updatedWishlist);
+                            // Remove from wishlist via API
+                            try {
+                              await axios.delete(`/api/wishlist/${product.id}`);
+                              const updatedWishlist = wishlist.filter(
+                                (item) => item.productId !== product.id
+                              );
+                              updateWishlist(updatedWishlist);
+                            } catch (error) {
+                              console.error("Error removing from wishlist:", error);
+                              alert("Failed to remove from wishlist.");
+                            }
                           } else {
-                            // Add to wishlist
-                            const newWishlistItem = {
-                              productId: product.id,
-                              dateAdded: new Date().toISOString(),
-                            };
-                            const updatedWishlist = [
-                              ...wishlist,
-                              newWishlistItem,
-                            ];
-                            updateWishlist(updatedWishlist);
+                            // Add to wishlist via API
+                            try {
+                              await axios.post("/api/wishlist", {
+                                productId: product.id,
+                              });
+                              const newWishlistItem = {
+                                productId: product.id,
+                                dateAdded: new Date().toISOString(),
+                              };
+                              const updatedWishlist = [
+                                ...wishlist,
+                                newWishlistItem,
+                              ];
+                              updateWishlist(updatedWishlist);
+                            } catch (error) {
+                              console.error("Error adding to wishlist:", error);
+                              alert("Failed to add to wishlist.");
+                            }
                           }
                         }}
                         className={`absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg ${

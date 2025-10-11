@@ -79,7 +79,7 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
     });
   };
 
-  const toggleWishlist = (productId) => {
+  const toggleWishlist = async (productId) => {
     console.log('Toggle wishlist called for product:', productId);
     console.log('Current wishlist:', wishlist);
     console.log('Wishlist length:', wishlist?.length);
@@ -88,19 +88,33 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
     console.log('Is in wishlist:', isInWishlist);
 
     if (isInWishlist) {
-      // Remove from wishlist
-      const updatedWishlist = wishlist.filter((item) => item.productId !== productId);
-      console.log('Removing from wishlist, new wishlist:', updatedWishlist);
-      updateWishlist(updatedWishlist);
+      // Remove from wishlist via API
+      try {
+        await axios.delete(`/api/wishlist/${productId}`);
+        const updatedWishlist = wishlist.filter((item) => item.productId !== productId);
+        console.log('Removing from wishlist, new wishlist:', updatedWishlist);
+        updateWishlist(updatedWishlist);
+      } catch (error) {
+        console.error("Error removing from wishlist:", error);
+        alert("Failed to remove from wishlist.");
+      }
     } else {
-      // Add to wishlist
-      const newWishlistItem = {
-        productId: productId,
-        dateAdded: new Date().toISOString(),
-      };
-      const updatedWishlist = [...wishlist, newWishlistItem];
-      console.log('Adding to wishlist, new wishlist:', updatedWishlist);
-      updateWishlist(updatedWishlist);
+      // Add to wishlist via API
+      try {
+        await axios.post("/api/wishlist", {
+          productId: productId,
+        });
+        const newWishlistItem = {
+          productId: productId,
+          dateAdded: new Date().toISOString(),
+        };
+        const updatedWishlist = [...wishlist, newWishlistItem];
+        console.log('Adding to wishlist, new wishlist:', updatedWishlist);
+        updateWishlist(updatedWishlist);
+      } catch (error) {
+        console.error("Error adding to wishlist:", error);
+        alert("Failed to add to wishlist.");
+      }
     }
   };
 

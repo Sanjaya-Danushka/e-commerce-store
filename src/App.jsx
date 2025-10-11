@@ -35,68 +35,9 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Routes, Route } from "react-router-dom";
 
 // AppContent component to handle profile completion modal and cart state management
-const AppContent = () => {
+const AppContent = ({ cart, wishlist, refreshCart, refreshWishlist, updateWishlist }) => {
   const { needsProfileCompletion, user, isAuthenticated } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
-
-  // Cart and Wishlist state management
-  const [cart, setCart] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
-  const [cartLoading, setCartLoading] = useState(true);
-  const [wishlistLoading, setWishlistLoading] = useState(true);
-
-  // Fetch cart items from API
-  const fetchCart = useCallback(async () => {
-    try {
-      setCartLoading(true);
-      const response = await axios.get('/api/cart-items?expand=product');
-      setCart(response.data);
-      console.log('Cart fetched:', response.data);
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-      setCart([]);
-    } finally {
-      setCartLoading(false);
-    }
-  }, []);
-
-  // Fetch wishlist items from API
-  const fetchWishlist = useCallback(async () => {
-    try {
-      setWishlistLoading(true);
-      // For now, we'll use a simple approach - in a real app you'd have a wishlist API
-      setWishlist([]);
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-      setWishlist([]);
-    } finally {
-      setWishlistLoading(false);
-    }
-  }, []);
-
-  // Refresh cart after adding/removing items
-  const refreshCart = useCallback(() => {
-    console.log('Refreshing cart...');
-    fetchCart();
-  }, [fetchCart]);
-
-  // Update wishlist
-  const updateWishlist = useCallback((newWishlist) => {
-    console.log('Updating wishlist:', newWishlist);
-    setWishlist(newWishlist);
-  }, []);
-
-  // Refresh wishlist
-  const refreshWishlist = useCallback(() => {
-    console.log('Refreshing wishlist...');
-    fetchWishlist();
-  }, [fetchWishlist]);
-
-  // Load cart and wishlist on component mount
-  useEffect(() => {
-    fetchCart();
-    fetchWishlist();
-  }, [fetchCart, fetchWishlist]);
 
   useEffect(() => {
     console.log('AppContent: Auth state check - user:', !!user, 'needsProfileCompletion:', needsProfileCompletion(), 'isAuthenticated:', isAuthenticated);
@@ -167,9 +108,99 @@ const AppContent = () => {
 };
 
 const App = () => {
+  // Cart and Wishlist state management (moved to App level)
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [cartLoading, setCartLoading] = useState(true);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
+
+  // Fetch cart items from API
+  const fetchCart = useCallback(async () => {
+    try {
+      setCartLoading(true);
+      const response = await axios.get('/api/cart-items?expand=product');
+      setCart(response.data);
+      console.log('Cart fetched:', response.data);
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      setCart([]);
+    } finally {
+      setCartLoading(false);
+    }
+  }, []);
+
+  // Fetch wishlist items from API
+  const fetchWishlist = useCallback(async () => {
+    try {
+      setWishlistLoading(true);
+      const response = await axios.get('/api/wishlist?expand=product');
+      // Convert API response to the format expected by the UI
+      const wishlistItems = response.data.map(item => ({
+        productId: item.productId,
+        dateAdded: item.dateAdded,
+        product: item.product
+      }));
+      setWishlist(wishlistItems);
+      console.log('Wishlist fetched:', wishlistItems);
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      setWishlist([]);
+    } finally {
+      setWishlistLoading(false);
+    }
+  }, []);
+
+  // Refresh cart after adding/removing items
+  const refreshCart = useCallback(() => {
+    console.log('Refreshing cart...');
+    fetchCart();
+  }, [fetchCart]);
+
+  // Update wishlist
+  const updateWishlist = useCallback(async (newWishlist) => {
+    console.log('Updating wishlist:', newWishlist);
+    // For now, we'll use the API approach - this function is mainly for UI updates
+    // The actual persistence happens via API calls in individual components
+    setWishlist(newWishlist);
+  }, []);
+
+  // Refresh wishlist
+  const refreshWishlist = useCallback(() => {
+    console.log('Refreshing wishlist...');
+    fetchWishlist();
+  }, [fetchWishlist]);
+
+  // Handle user login - fetch user's cart and wishlist data
+  const handleUserLogin = useCallback((userData) => {
+    console.log('User logged in, fetching user data for:', userData.email);
+    fetchCart();
+    fetchWishlist();
+  }, [fetchCart, fetchWishlist]);
+
+  // Handle user logout - clear user's cart and wishlist data
+  const handleUserLogout = useCallback(() => {
+    console.log('User logged out, clearing user data');
+    setCart([]);
+    setWishlist([]);
+    setCartLoading(false);
+    setWishlistLoading(false);
+  }, []);
+
+  // Load cart and wishlist on component mount
+  useEffect(() => {
+    fetchCart();
+    fetchWishlist();
+  }, [fetchCart, fetchWishlist]);
+
   return (
-    <AuthProvider>
-      <AppContent />
+    <AuthProvider onUserLogin={handleUserLogin} onUserLogout={handleUserLogout}>
+      <AppContent
+        cart={cart}
+        wishlist={wishlist}
+        refreshCart={refreshCart}
+        refreshWishlist={refreshWishlist}
+        updateWishlist={updateWishlist}
+      />
     </AuthProvider>
   );
 };
