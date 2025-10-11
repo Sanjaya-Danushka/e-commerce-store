@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
 import HomePage from "./Pages/HomePage";
 import CategoriesPage from "./Pages/CategoriesPage";
 import BrandsPage from "./Pages/BrandsPage";
@@ -33,10 +34,69 @@ import ProfileCompletionModal from "./components/ProfileCompletionModal";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Routes, Route } from "react-router-dom";
 
-// AppContent component to handle profile completion modal
+// AppContent component to handle profile completion modal and cart state management
 const AppContent = () => {
   const { needsProfileCompletion, user, isAuthenticated } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
+
+  // Cart and Wishlist state management
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [cartLoading, setCartLoading] = useState(true);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
+
+  // Fetch cart items from API
+  const fetchCart = useCallback(async () => {
+    try {
+      setCartLoading(true);
+      const response = await axios.get('/api/cart-items?expand=product');
+      setCart(response.data);
+      console.log('Cart fetched:', response.data);
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      setCart([]);
+    } finally {
+      setCartLoading(false);
+    }
+  }, []);
+
+  // Fetch wishlist items from API
+  const fetchWishlist = useCallback(async () => {
+    try {
+      setWishlistLoading(true);
+      // For now, we'll use a simple approach - in a real app you'd have a wishlist API
+      setWishlist([]);
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      setWishlist([]);
+    } finally {
+      setWishlistLoading(false);
+    }
+  }, []);
+
+  // Refresh cart after adding/removing items
+  const refreshCart = useCallback(() => {
+    console.log('Refreshing cart...');
+    fetchCart();
+  }, [fetchCart]);
+
+  // Update wishlist
+  const updateWishlist = useCallback((newWishlist) => {
+    console.log('Updating wishlist:', newWishlist);
+    setWishlist(newWishlist);
+  }, []);
+
+  // Refresh wishlist
+  const refreshWishlist = useCallback(() => {
+    console.log('Refreshing wishlist...');
+    fetchWishlist();
+  }, [fetchWishlist]);
+
+  // Load cart and wishlist on component mount
+  useEffect(() => {
+    fetchCart();
+    fetchWishlist();
+  }, [fetchCart, fetchWishlist]);
 
   useEffect(() => {
     console.log('AppContent: Auth state check - user:', !!user, 'needsProfileCompletion:', needsProfileCompletion(), 'isAuthenticated:', isAuthenticated);
@@ -63,31 +123,31 @@ const AppContent = () => {
     <>
       <div className="App">
         <Routes>
-          <Route path="/" element={<HomePage cart={[]} wishlist={[]} refreshCart={() => {}} refreshWishlist={() => {}} updateWishlist={() => {}} />} />
-          <Route path="/categories" element={<CategoriesPage cart={[]} wishlist={[]} />} />
-          <Route path="/brands" element={<BrandsPage cart={[]} wishlist={[]} />} />
-          <Route path="/products" element={<ProductsPage cart={[]} wishlist={[]} refreshCart={() => {}} refreshWishlist={() => {}} updateWishlist={() => {}} />} />
-          <Route path="/sale" element={<SalePage cart={[]} wishlist={[]} refreshCart={() => {}} />} />
-          <Route path="/new-arrivals" element={<NewArrivalsPage cart={[]} wishlist={[]} refreshCart={() => {}} updateWishlist={() => {}} />} />
-          <Route path="/wishlist" element={<WishlistPage cart={[]} wishlist={[]} refreshCart={() => {}} updateWishlist={() => {}} />} />
-          <Route path="/checkout" element={<CheckoutPage cart={[]} />} />
-          <Route path="/orders" element={<OrdersPage cart={[]} wishlist={[]} refreshCart={() => {}} />} />
-          <Route path="/tracking" element={<TrackingPage cart={[]} />} />
-          <Route path="/about" element={<AboutPage cart={[]} wishlist={[]} />} />
-          <Route path="/contact" element={<ContactPage cart={[]} wishlist={[]} />} />
-          <Route path="/terms-of-service" element={<TermsOfServicePage cart={[]} wishlist={[]} />} />
-          <Route path="/privacy" element={<PrivacyPage cart={[]} wishlist={[]} />} />
-          <Route path="/accessibility" element={<AccessibilityPage cart={[]} />} />
-          <Route path="/careers" element={<CareersPage cart={[]} />} />
-          <Route path="/press" element={<PressPage cart={[]} />} />
-          <Route path="/blog" element={<BlogPage cart={[]} />} />
-          <Route path="/affiliate-program" element={<AffiliateProgramPage cart={[]} />} />
-          <Route path="/wholesale" element={<WholesalePage cart={[]} />} />
-          <Route path="/shipping-info" element={<ShippingInfoPage cart={[]} />} />
-          <Route path="/returns-exchanges" element={<ReturnsExchangesPage cart={[]} />} />
-          <Route path="/size-guide" element={<SizeGuidePage cart={[]} />} />
-          <Route path="/track-order" element={<TrackOrderPage cart={[]} />} />
-          <Route path="/gift-cards" element={<GiftCardsPage cart={[]} />} />
+          <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
+          <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/brands" element={<BrandsPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/products" element={<ProductsPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
+          <Route path="/sale" element={<SalePage cart={cart} wishlist={wishlist} refreshCart={refreshCart} />} />
+          <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
+          <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
+          <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
+          <Route path="/orders" element={<OrdersPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} />} />
+          <Route path="/tracking" element={<TrackingPage cart={cart} />} />
+          <Route path="/about" element={<AboutPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={wishlist} />} />
+          <Route path="/privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/accessibility" element={<AccessibilityPage cart={cart} />} />
+          <Route path="/careers" element={<CareersPage cart={cart} />} />
+          <Route path="/press" element={<PressPage cart={cart} />} />
+          <Route path="/blog" element={<BlogPage cart={cart} />} />
+          <Route path="/affiliate-program" element={<AffiliateProgramPage cart={cart} />} />
+          <Route path="/wholesale" element={<WholesalePage cart={cart} />} />
+          <Route path="/shipping-info" element={<ShippingInfoPage cart={cart} />} />
+          <Route path="/returns-exchanges" element={<ReturnsExchangesPage cart={cart} />} />
+          <Route path="/size-guide" element={<SizeGuidePage cart={cart} />} />
+          <Route path="/track-order" element={<TrackOrderPage cart={cart} />} />
+          <Route path="/gift-cards" element={<GiftCardsPage cart={cart} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
