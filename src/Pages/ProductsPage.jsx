@@ -17,12 +17,22 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [sortBy, setSortBy] = useState("name");
   const [quantities, setQuantities] = useState({});
   const [addedToCart, setAddedToCart] = useState({});
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get("/api/products");
         const productsData = response.data;
+
+        // Debug: Log first few products to see data structure
+        console.log("=== PRODUCT DATA DEBUG ===");
+        console.log("First 3 products:", productsData.slice(0, 3));
+        console.log("Sample product keys:", Object.keys(productsData[0] || {}));
+        console.log("Sample product category:", productsData[0]?.category);
+
         setProducts(productsData);
         setFilteredProducts(productsData);
 
@@ -33,11 +43,14 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
         });
         setQuantities(initialQuantities);
 
-        // Set max price for filter
-        if (productsData.length > 0) {
-          const maxPrice = Math.max(...productsData.map(p => p.priceCents));
-          setPriceRange(prev => ({ ...prev, max: Math.ceil(maxPrice / 100) * 100 }));
-        }
+        // Debug: Show available categories
+        const availableCategories = [...new Set(productsData.map(p => p.category).filter(Boolean))];
+        console.log("=== AVAILABLE CATEGORIES ===");
+        console.log("Categories found:", availableCategories);
+        console.log("Category counts:", availableCategories.reduce((acc, cat) => {
+          acc[cat] = productsData.filter(p => p.category === cat).length;
+          return acc;
+        }, {}));
       } catch (error) {
         console.error("Error fetching products:", error);
         setProducts([]);
@@ -62,7 +75,79 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
     // Category filter
     if (selectedCategory !== "all") {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+      console.log("Filtering by category:", selectedCategory);
+      console.log("Total products:", products.length);
+
+      filtered = filtered.filter(product => {
+        // Check if product has category data
+        if (!product.category) {
+          console.log("Product missing category:", product.id, product.name);
+          return false;
+        }
+
+        // Handle different category data structures
+        let productCategory = "";
+
+        // If category is an object with name property
+        if (typeof product.category === 'object' && product.category.name) {
+          productCategory = product.category.name.toLowerCase();
+        }
+        // If category is a string
+        else if (typeof product.category === 'string') {
+          productCategory = product.category.toLowerCase();
+        }
+        // If category is nested in another property
+        else if (product.categoryName) {
+          productCategory = product.categoryName.toLowerCase();
+        }
+        else {
+          console.log("Unknown category format for product:", product.id, product.category);
+          return false;
+        }
+
+        console.log(`Product ${product.id}: ${productCategory}`);
+
+        // Match category based on selected filter
+        switch (selectedCategory) {
+          case "electronics":
+            return productCategory.includes("electronics") ||
+                   productCategory.includes("tech") ||
+                   productCategory.includes("computer") ||
+                   productCategory.includes("phone") ||
+                   productCategory.includes("gadget") ||
+                   productCategory === "electronics";
+          case "fashion":
+            return productCategory.includes("fashion") ||
+                   productCategory.includes("clothing") ||
+                   productCategory.includes("apparel") ||
+                   productCategory.includes("wear") ||
+                   productCategory.includes("shoe") ||
+                   productCategory === "fashion";
+          case "home":
+            return productCategory.includes("home") ||
+                   productCategory.includes("garden") ||
+                   productCategory.includes("furniture") ||
+                   productCategory.includes("decor") ||
+                   productCategory.includes("kitchen") ||
+                   productCategory === "home";
+          case "sports":
+            return productCategory.includes("sports") ||
+                   productCategory.includes("fitness") ||
+                   productCategory.includes("outdoor") ||
+                   productCategory.includes("exercise") ||
+                   productCategory === "sports";
+          case "books":
+            return productCategory.includes("books") ||
+                   productCategory.includes("literature") ||
+                   productCategory.includes("reading") ||
+                   productCategory.includes("novel") ||
+                   productCategory === "books";
+          default:
+            return productCategory === selectedCategory;
+        }
+      });
+
+      console.log(`Filtered ${filtered.length} products for category: ${selectedCategory}`);
     }
 
     // Price range filter
@@ -156,6 +241,79 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       };
       const updatedWishlist = [...wishlist, newWishlistItem];
       updateWishlist(updatedWishlist);
+    }
+  };
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+
+    if (!email.trim()) {
+      alert("Please enter your email address");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    setIsSubscribing(true);
+
+    try {
+      console.log("Attempting to subscribe email:", email);
+
+      // Try the API call with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await axios.post("/api/subscribe", { email }, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      clearTimeout(timeoutId);
+      console.log("Subscription successful:", response.data);
+
+      setIsSubscribed(true);
+      setEmail("");
+
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setIsSubscribed(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error("Newsletter subscription error:", error);
+
+      if (error.code === 'ECONNABORTED') {
+        alert("Request timed out. Please check if your backend server is running.");
+      } else if (error.response) {
+        // Server responded with error status
+        console.error("Server error details:", {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+
+        const errorMessage = error.response.data?.message ||
+                           error.response.data?.error ||
+                           `Server error (${error.response.status})`;
+
+        alert(`Subscription failed: ${errorMessage}`);
+      } else if (error.request) {
+        // Network error
+        alert("Network error. Please check your internet connection and backend server.");
+      } else {
+        // Other error
+        alert("Failed to subscribe. Please try again or check the console for details.");
+      }
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
@@ -769,15 +927,40 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
             <input
               type="email"
               placeholder="Enter your email address"
-              className="flex-1 px-6 py-4 text-gray-900 bg-white rounded-full focus:outline-none focus:ring-4 focus:ring-white/30 shadow-lg"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubscribed || isSubscribing}
+              className="flex-1 px-6 py-4 text-gray-900 bg-white rounded-full focus:outline-none focus:ring-4 focus:ring-white/30 shadow-lg disabled:opacity-50"
             />
-            <button className="bg-white text-blue-600 font-bold py-4 px-8 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
-              Subscribe Now
+            <button
+              onClick={handleSubscribe}
+              disabled={isSubscribed || isSubscribing || !email.trim()}
+              className="bg-white text-blue-600 font-bold py-4 px-8 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubscribing ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Subscribing...
+                </div>
+              ) : isSubscribed ? (
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Subscribed!
+                </div>
+              ) : (
+                "Subscribe Now"
+              )}
             </button>
           </div>
 
           <p className="text-sm opacity-75 mt-6 animate-slide-up animation-delay-600">
-            Join 50,000+ happy customers • Unsubscribe anytime
+            {isSubscribed ? (
+              <span className="text-green-300">✓ You're now subscribed to our newsletter!</span>
+            ) : (
+              "Join 50,000+ happy customers • Unsubscribe anytime"
+            )}
           </p>
         </div>
       </div>
