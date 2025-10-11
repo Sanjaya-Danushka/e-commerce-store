@@ -129,14 +129,18 @@ const Header = ({ cart, wishlist }) => {
                         src={user.profilePicture}
                         alt="Profile"
                         className="w-8 h-8 rounded-full object-cover"
+                        onError={(e) => {
+                          // Fallback to default icon if profile picture fails to load
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
                       />
-                    ) : (
-                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                    )}
+                    ) : null}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user.profilePicture ? 'hidden' : ''}`} style={{backgroundColor: '#D1D5DB'}}>
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
                     <span className="hidden lg:block text-sm font-medium">
                       {user.firstName || user.email}
                     </span>

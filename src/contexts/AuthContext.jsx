@@ -186,6 +186,12 @@ export const AuthProvider = ({ children }) => {
   // Get user profile
   const getProfile = async () => {
     try {
+      // Ensure axios has the proper authorization header
+      const currentToken = localStorage.getItem('authToken');
+      if (currentToken) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
+      }
+
       const response = await axios.get('/api/auth/profile');
       setUser(response.data.user);
       return response.data.user;

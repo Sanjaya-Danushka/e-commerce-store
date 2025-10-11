@@ -55,6 +55,24 @@ const ProfilePage = () => {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
+            Please log in to view your profile
+          </div>
+          <Link
+            to="/login"
+            className="mt-4 inline-block bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800"
+          >
+            Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
