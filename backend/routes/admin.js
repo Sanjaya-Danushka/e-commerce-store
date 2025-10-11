@@ -115,10 +115,10 @@ router.get('/products/:id', async (req, res) => {
 // POST /api/admin/products - Create new product
 router.post('/products', async (req, res) => {
   try {
-    const { name, image, rating, priceCents, keywords } = req.body;
+    const { name, image, rating, priceCents, keywords, category } = req.body;
 
     // Validation
-    if (!name || !image || !rating || !priceCents || !keywords) {
+    if (!name || !image || !rating || !priceCents || !keywords || !category) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -131,7 +131,8 @@ router.post('/products', async (req, res) => {
       image,
       rating,
       priceCents,
-      keywords: Array.isArray(keywords) ? keywords : keywords.split(',').map(k => k.trim())
+      keywords: Array.isArray(keywords) ? keywords : keywords.split(',').map(k => k.trim()),
+      category
     });
 
     res.status(201).json(newProduct);
@@ -144,7 +145,7 @@ router.post('/products', async (req, res) => {
 // PUT /api/admin/products/:id - Update product
 router.put('/products/:id', async (req, res) => {
   try {
-    const { name, image, rating, priceCents, keywords } = req.body;
+    const { name, image, rating, priceCents, keywords, category } = req.body;
 
     const product = await Product.findByPk(req.params.id);
     if (!product) {
@@ -168,6 +169,7 @@ router.put('/products/:id', async (req, res) => {
     if (keywords !== undefined) {
       updatedData.keywords = Array.isArray(keywords) ? keywords : keywords.split(',').map(k => k.trim());
     }
+    if (category !== undefined) updatedData.category = category;
 
     await product.update(updatedData);
     res.json(product);
