@@ -20,6 +20,7 @@ const ProfilePage = () => {
 
         // If user is already loaded in context, use it
         if (user) {
+          console.log('ProfilePage: Using user from context:', user);
           setProfile(user);
           setEditFormData({
             firstName: user.firstName || '',
@@ -47,6 +48,8 @@ const ProfilePage = () => {
 
         if (response.ok) {
           const profileData = await response.json();
+          console.log('ProfilePage: Raw profile data received:', profileData);
+          console.log('ProfilePage: User createdAt field:', profileData.user?.createdAt);
           setProfile(profileData.user);
           setEditFormData({
             firstName: profileData.user.firstName || '',
@@ -504,14 +507,7 @@ const ProfilePage = () => {
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </>
-            ) : (
-              <Link
-                to="/"
-                className="bg-gray-900 text-white px-6 py-2 rounded-md hover:bg-gray-800 font-medium"
-              >
-                Go Home
-              </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

@@ -330,7 +330,8 @@ router.get('/profile', async (req, res) => {
         state: user.state,
         postalCode: user.postalCode,
         country: user.country,
-        profileCompleted: user.profileCompleted
+        profileCompleted: user.profileCompleted,
+        createdAt: user.createdAt
       }
     });
   } catch (error) {
@@ -404,7 +405,8 @@ router.put('/profile', async (req, res) => {
         state: user.state,
         postalCode: user.postalCode,
         country: user.country,
-        profileCompleted: user.profileCompleted
+        profileCompleted: user.profileCompleted,
+        createdAt: user.createdAt
       },
       message: 'Profile updated successfully'
     });
