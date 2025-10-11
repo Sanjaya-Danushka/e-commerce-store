@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import CustomDropdown from "../components/CustomDropdown";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Chatbot from "../components/Chatbot";
 import { formatMoney } from "../utils/money";
 import { Link } from "react-router-dom";
 
@@ -688,6 +689,9 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       <div className="mt-auto w-full">
         <Footer />
       </div>
+
+      {/* Chatbot - Always render for now to ensure it works */}
+      <Chatbot products={products} />
     </div>
   );
 };
