@@ -303,23 +303,15 @@ const AdminDashboard = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
-              <div className={`w-14 h-14 bg-gradient-to-br ${theme.primary} rounded-2xl flex items-center justify-center shadow-lg`}>
-                <span className="text-white font-bold text-2xl">A</span>
-              </div>
-              <div>
-                <h1 className={`text-2xl font-bold ${theme.text}`}>Admin Panel</h1>
-                <p className={`text-sm ${theme.textSecondary}`}>Management Dashboard</p>
-              </div>
-            </div>
-
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className={`w-14 h-7 rounded-full relative transition-all duration-300 ${
-                isDarkMode ? 'bg-slate-600' : 'bg-slate-300'
-              }`}
-            >
-              <div className={`w-6 h-6 rounded-full absolute top-0.5 transition-all duration-300 ${
+              <div className="flex items-center">
+                <a className="flex items-center" href="/" data-discover="true">
+                  <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z" clipRule="evenodd"></path>
+                    </svg>
+                  </div>
+                  <span className="text-xl font-bold text-gray-900">ShopEase</span>
+                </a>
                 isDarkMode ? 'right-0.5 bg-slate-800' : 'left-0.5 bg-white'
               } shadow-lg flex items-center justify-center`}>
                 {isDarkMode ? '🌙' : '☀️'}

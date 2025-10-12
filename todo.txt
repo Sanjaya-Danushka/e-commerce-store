@@ -1,0 +1,2 @@
+1.shop owners add page
+2.home page item more load problem need to divide pages or panel
