@@ -186,10 +186,18 @@ const App = () => {
     setWishlistLoading(false);
   }, []);
 
-  // Load cart and wishlist on component mount
+  // Load cart and wishlist on component mount - only if user is authenticated
   useEffect(() => {
-    fetchCart();
-    fetchWishlist();
+    if (localStorage.getItem('authToken')) {
+      fetchCart();
+      fetchWishlist();
+    } else {
+      // For non-logged-in users, set empty arrays
+      setCart([]);
+      setWishlist([]);
+      setCartLoading(false);
+      setWishlistLoading(false);
+    }
   }, [fetchCart, fetchWishlist]);
 
   return (

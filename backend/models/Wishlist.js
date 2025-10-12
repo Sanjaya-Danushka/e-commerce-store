@@ -7,6 +7,14 @@ export const Wishlist = sequelize.define('Wishlist', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
   productId: {
     type: DataTypes.UUID,
     allowNull: false,
@@ -29,7 +37,7 @@ export const Wishlist = sequelize.define('Wishlist', {
   indexes: [
     {
       unique: true,
-      fields: ['productId']
+      fields: ['userId', 'productId'] // Ensure one wishlist item per user per product
     }
   ]
 });

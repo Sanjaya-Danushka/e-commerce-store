@@ -1,13 +1,18 @@
 import express from 'express';
 import { Wishlist } from '../models/Wishlist.js';
 import { Product } from '../models/Product.js';
+import { authenticateUser } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all wishlist items for the user
+// Apply authentication middleware to all routes
+router.use(authenticateUser);
+
+// Get all wishlist items for the authenticated user
 router.get('/', async (req, res) => {
   try {
     let wishlistItems = await Wishlist.findAll({
+      where: { userId: req.user.id },
       order: [['dateAdded', 'DESC']]
     });
 
@@ -44,14 +49,20 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Product not found' });
     }
 
-    // Check if item already exists in wishlist
-    const existingItem = await Wishlist.findOne({ where: { productId } });
+    // Check if item already exists in user's wishlist
+    const existingItem = await Wishlist.findOne({
+      where: {
+        userId: req.user.id,
+        productId
+      }
+    });
     if (existingItem) {
       return res.status(409).json({ error: 'Product already in wishlist' });
     }
 
     // Add to wishlist
     const wishlistItem = await Wishlist.create({
+      userId: req.user.id,
       productId,
       dateAdded: new Date()
     });
@@ -68,7 +79,12 @@ router.delete('/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const wishlistItem = await Wishlist.findOne({ where: { productId } });
+    const wishlistItem = await Wishlist.findOne({
+      where: {
+        userId: req.user.id,
+        productId
+      }
+    });
     if (!wishlistItem) {
       return res.status(404).json({ error: 'Wishlist item not found' });
     }
@@ -86,7 +102,12 @@ router.get('/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const wishlistItem = await Wishlist.findOne({ where: { productId } });
+    const wishlistItem = await Wishlist.findOne({
+      where: {
+        userId: req.user.id,
+        productId
+      }
+    });
     res.json({ inWishlist: !!wishlistItem });
   } catch (error) {
     console.error('Error checking wishlist:', error);

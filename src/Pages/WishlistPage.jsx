@@ -29,10 +29,19 @@ const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
     wishlist.some(wishlistItem => wishlistItem.productId === product.id)
   );
 
-  const removeFromWishlist = (productId) => {
-    const updatedWishlist = wishlist.filter(item => item.productId !== productId);
-    if (updateWishlist) {
-      updateWishlist(updatedWishlist);
+  const removeFromWishlist = async (productId) => {
+    try {
+      // Make API call to remove from backend
+      await axios.delete(`/api/wishlist/${productId}`);
+
+      // Update local state after successful API call
+      const updatedWishlist = wishlist.filter(item => item.productId !== productId);
+      if (updateWishlist) {
+        updateWishlist(updatedWishlist);
+      }
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      alert("Failed to remove from wishlist.");
     }
   };
 
