@@ -29,31 +29,48 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
 
     // Refresh wishlist data from source of truth
     const refreshWishlistData = () => {
+      console.log('Refreshing wishlist data...');
       if (localStorage.getItem('authToken')) {
         // For authenticated users, refresh from API
         if (refreshWishlist) {
+          console.log('Calling refreshWishlist for authenticated user');
           refreshWishlist();
         }
       } else {
         // For guest users, refresh from localStorage
         const guestWishlist = localStorage.getItem('guestWishlist');
+        console.log('Loading guest wishlist from localStorage:', guestWishlist);
         if (guestWishlist) {
           try {
             const wishlistData = JSON.parse(guestWishlist);
+            console.log('Parsed guest wishlist data:', wishlistData?.length || 0, 'items');
             if (updateWishlist) {
               updateWishlist(wishlistData);
+              console.log('Updated wishlist state with guest data');
             }
           } catch (error) {
             console.error('Error parsing guest wishlist:', error);
           }
-        } else if (updateWishlist) {
-          updateWishlist([]);
+        } else {
+          console.log('No guest wishlist found in localStorage');
+          if (updateWishlist) {
+            updateWishlist([]);
+            console.log('Updated wishlist state with empty array');
+          }
         }
       }
     };
 
     refreshWishlistData();
   }, [updateWishlist, refreshWishlist]);
+
+  const [renderKey, setRenderKey] = useState(0);
+
+  // Force complete component re-render when wishlist changes
+  useEffect(() => {
+    console.log('WishlistPage: wishlist prop changed, forcing re-render');
+    setRenderKey(prev => prev + 1);
+  }, [wishlist]);
 
   // Get wishlist products by matching product IDs
   const wishlistProducts = products.filter(product =>
@@ -65,7 +82,8 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
     wishlistLength: wishlist?.length || 0,
     productsLength: products?.length || 0,
     wishlistProductsLength: wishlistProducts?.length || 0,
-    wishlistItems: wishlist?.map(item => item.productId) || []
+    wishlistItems: wishlist?.map(item => item.productId) || [],
+    renderKey
   });
 
   const removeFromWishlist = async (productId) => {
@@ -87,10 +105,18 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
       const guestWishlist = localStorage.getItem('guestWishlist');
       if (guestWishlist) {
         const guestItems = JSON.parse(guestWishlist);
+        console.log('Before removal - guest items:', guestItems.length, guestItems.map(item => item.productId));
         const filteredItems = guestItems.filter(item => item.productId !== productId);
         if (filteredItems.length < guestItems.length) {
           localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
           console.log('✅ Immediately removed from guest storage:', productId);
+          console.log('After removal - guest items:', filteredItems.length, filteredItems.map(item => item.productId));
+          // Verify the update worked
+          const verifyStorage = localStorage.getItem('guestWishlist');
+          if (verifyStorage) {
+            const verifyItems = JSON.parse(verifyStorage);
+            console.log('Verification - localStorage now has:', verifyItems.length, 'items');
+          }
         }
       }
     }
@@ -99,6 +125,9 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
       updateWishlist(updatedWishlist);
       console.log('updateWishlist called with:', updatedWishlist?.length || 0, 'items');
     }
+
+    // Force component re-render to ensure UI updates
+    setRenderKey(prev => prev + 1);
 
     // Try to remove from backend in background (silent)
     try {
@@ -112,12 +141,21 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
           // API failed - try localStorage cleanup for guest items
           if (apiError.response?.status === 404) {
             const guestWishlist = localStorage.getItem('guestWishlist');
+            console.log('API 404 - checking guest storage:', guestWishlist);
             if (guestWishlist) {
               const guestItems = JSON.parse(guestWishlist);
+              console.log('Guest items before cleanup:', guestItems.length, guestItems.map(item => item.productId));
               const filteredItems = guestItems.filter(item => item.productId !== productId);
               if (filteredItems.length < guestItems.length) {
                 localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
                 console.log('✅ Removed guest item from localStorage after API 404');
+                console.log('Guest items after cleanup:', filteredItems.length, filteredItems.map(item => item.productId));
+                // Verify the update worked
+                const verifyStorage = localStorage.getItem('guestWishlist');
+                if (verifyStorage) {
+                  const verifyItems = JSON.parse(verifyStorage);
+                  console.log('Verification - localStorage now has:', verifyItems.length, 'items after API 404 cleanup');
+                }
               }
             }
           }
@@ -216,7 +254,7 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div key={renderKey} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlistProducts.map((product) => {
               return (
                 <div key={product.id} className="group product-card bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 transform hover:-translate-y-3 border border-gray-100 hover:border-red-200 max-w-sm mx-auto">

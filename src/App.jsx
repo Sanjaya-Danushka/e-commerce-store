@@ -199,9 +199,13 @@ const App = () => {
     console.log('updateWishlist called with:', newWishlist?.length || 0, 'items');
 
     if (localStorage.getItem('authToken')) {
-      // For authenticated users, use API approach
+      // For authenticated users, update the combined state
+      // The newWishlist contains the filtered items (guest items that couldn't be removed via API)
       setWishlist(newWishlist);
-      console.log('Updated wishlist state');
+
+      // Also update guestWishlist state to trigger combinedWishlist recalculation
+      setGuestWishlist(newWishlist);
+      console.log('Updated both wishlist and guestWishlist state for authenticated user');
     } else {
       // For guest users, save to localStorage and update state
       localStorage.setItem('guestWishlist', JSON.stringify(newWishlist));
