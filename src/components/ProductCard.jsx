@@ -53,35 +53,123 @@ const ProductCard = ({
     if (isInWishlist) {
       // Remove from wishlist
       try {
-        const response = await axios.delete(`/api/wishlist/${product.id}`);
+        // First check if this is a guest item by looking in localStorage
+        const guestWishlist = localStorage.getItem('guestWishlist');
+        let isGuestItem = false;
+        let isUserItem = false;
 
-        if (response.status === 204) {
-          // Successfully removed from database (authenticated user)
-          const updatedWishlist = wishlist.filter(
-            (item) => item.productId !== product.id
-          );
-          updateWishlist(updatedWishlist);
+        if (guestWishlist) {
+          const guestItems = JSON.parse(guestWishlist);
+          isGuestItem = guestItems.some(item => item.productId === product.id);
         }
-      } catch (error) {
-        // If API call fails, try localStorage approach for guest users
-        if (error.response?.status === 401) {
-          // Guest user - remove from localStorage
-          const guestWishlist = localStorage.getItem('guestWishlist');
-          if (guestWishlist) {
-            let wishlistItems = JSON.parse(guestWishlist);
-            wishlistItems = wishlistItems.filter(item => item.productId !== product.id);
-            localStorage.setItem('guestWishlist', JSON.stringify(wishlistItems));
 
-            // Update state
+        // Check if item exists in user's account (not just guest)
+        const userWishlistItems = wishlist.filter(item =>
+          !localStorage.getItem('guestWishlist') ||
+          !JSON.parse(localStorage.getItem('guestWishlist')).some(guestItem => guestItem.productId === item.productId)
+        );
+        isUserItem = userWishlistItems.some(item => item.productId === product.id);
+
+        console.log('Item analysis:', {
+          productId: product.id,
+          isGuestItem,
+          isUserItem,
+          hasAuthToken: !!localStorage.getItem('authToken')
+        });
+
+        if (isGuestItem && !isUserItem && localStorage.getItem('authToken')) {
+          // This is ONLY a guest item and user is logged in - remove from localStorage directly
+          console.log('Removing ONLY guest item from localStorage:', product.id);
+          const guestItems = JSON.parse(guestWishlist);
+          const filteredItems = guestItems.filter(item => item.productId !== product.id);
+          localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+
+          // Update UI state
+          const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
+          updateWishlist(updatedWishlist);
+          return;
+        }
+
+        // Try API removal for user account items (including items that exist in both places)
+        if (localStorage.getItem('authToken')) {
+          const response = await axios.delete(`/api/wishlist/${product.id}`);
+
+          if (response.status === 204) {
+            // Successfully removed from database (authenticated user)
             const updatedWishlist = wishlist.filter(
               (item) => item.productId !== product.id
             );
             updateWishlist(updatedWishlist);
+
+            // Also remove from guest storage if it exists there
+            if (isGuestItem) {
+              const guestItems = JSON.parse(guestWishlist);
+              const filteredItems = guestItems.filter(item => item.productId !== product.id);
+              localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+              console.log('Also removed from guest storage after API success');
+            }
           }
         } else {
+          // Guest user - remove from localStorage only
+          if (isGuestItem) {
+            const guestItems = JSON.parse(guestWishlist);
+            const filteredItems = guestItems.filter(item => item.productId !== product.id);
+            localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+
+            const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
+            updateWishlist(updatedWishlist);
+          }
+        }
+      } catch (error) {
+        console.log('Wishlist removal error details:', {
+          status: error.response?.status,
+          message: error.message,
+          productId: product.id,
+          wishlistLength: wishlist.length,
+          guestWishlistExists: !!localStorage.getItem('guestWishlist')
+        });
+
+        // If API call fails, check if it's because item doesn't exist in user account
+        // but might exist in guest storage
+        if (error.response?.status === 401 || error.response?.status === 404 || error.response?.status === 400 || error.response?.status >= 500) {
+          // Try to remove from guest localStorage instead
+          const guestWishlist = localStorage.getItem('guestWishlist');
+          if (guestWishlist) {
+            let wishlistItems = JSON.parse(guestWishlist);
+            const originalLength = wishlistItems.length;
+            wishlistItems = wishlistItems.filter(item => item.productId !== product.id);
+
+            if (wishlistItems.length < originalLength) {
+              // Item was found and removed from guest storage
+              localStorage.setItem('guestWishlist', JSON.stringify(wishlistItems));
+
+              // Update state - need to handle both user and guest items
+              const updatedWishlist = wishlist.filter(
+                (item) => item.productId !== product.id
+              );
+              updateWishlist(updatedWishlist);
+              console.log('✅ Removed guest wishlist item after API failure:', product.id);
+              return;
+            } else {
+              console.log('❌ Guest item not found in localStorage');
+            }
+          } else {
+            console.log('❌ No guest wishlist found in localStorage');
+          }
+        }
+
+        // For other errors or if guest removal also failed
+        console.log("❌ Wishlist removal failed completely:", error.message);
+        if (error.response?.status !== 401 && error.response?.status !== 404 && error.response?.status !== 400) {
           console.error("Error removing from wishlist:", error);
           alert("Failed to remove from wishlist.");
         }
+
+        // Still update the UI state to reflect the removal attempt
+        const updatedWishlist = wishlist.filter(
+          (item) => item.productId !== product.id
+        );
+        updateWishlist(updatedWishlist);
       }
     } else {
       // Add to wishlist
@@ -129,6 +217,15 @@ const ProductCard = ({
   };
 
   const isInWishlist = wishlist.some((item) => item.productId === product.id);
+
+  // Debug logging for wishlist state
+  console.log('ProductCard render:', {
+    productId: product.id,
+    isInWishlist,
+    wishlistLength: wishlist.length,
+    guestWishlistExists: !!localStorage.getItem('guestWishlist'),
+    guestWishlistLength: localStorage.getItem('guestWishlist') ? JSON.parse(localStorage.getItem('guestWishlist')).length : 0
+  });
 
   return (
     <div

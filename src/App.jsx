@@ -241,6 +241,8 @@ const App = () => {
     console.log('User logged out, clearing user data but keeping guest wishlist');
     setCart([]);
     setWishlist([]);
+    // Clear auth token to ensure proper logout
+    localStorage.removeItem('authToken');
     // Guest wishlist remains in localStorage and state for next session
   }, []);
 
