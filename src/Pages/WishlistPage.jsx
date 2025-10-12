@@ -82,12 +82,7 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
       updatedWishlistItems: updatedWishlist?.map(item => item.productId) || []
     });
 
-    if (updateWishlist) {
-      updateWishlist(updatedWishlist);
-      console.log('updateWishlist called with:', updatedWishlist?.length || 0, 'items');
-    }
-
-    // Immediately remove from localStorage for guest items (synchronous)
+    // Immediately update both localStorage and UI state for guest items
     if (!localStorage.getItem('authToken')) {
       const guestWishlist = localStorage.getItem('guestWishlist');
       if (guestWishlist) {
@@ -100,6 +95,11 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
       }
     }
 
+    if (updateWishlist) {
+      updateWishlist(updatedWishlist);
+      console.log('updateWishlist called with:', updatedWishlist?.length || 0, 'items');
+    }
+
     // Try to remove from backend in background (silent)
     try {
       if (localStorage.getItem('authToken')) {
@@ -109,10 +109,17 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
           console.log('✅ Removed from user account:', productId);
         } catch (apiError) {
           console.log('API removal failed:', apiError.response?.status);
-          // API failed - try localStorage cleanup (should already be done above)
+          // API failed - try localStorage cleanup for guest items
           if (apiError.response?.status === 404) {
-            // Item was guest item, already removed from localStorage above
-            console.log('✅ Guest item already removed from localStorage');
+            const guestWishlist = localStorage.getItem('guestWishlist');
+            if (guestWishlist) {
+              const guestItems = JSON.parse(guestWishlist);
+              const filteredItems = guestItems.filter(item => item.productId !== productId);
+              if (filteredItems.length < guestItems.length) {
+                localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+                console.log('✅ Removed guest item from localStorage after API 404');
+              }
+            }
           }
         }
       }
