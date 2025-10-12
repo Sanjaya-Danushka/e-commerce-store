@@ -35,8 +35,33 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Routes, Route } from "react-router-dom";
 
 // AppContent component to handle profile completion modal and cart state management
-const AppContent = ({ cart, wishlist, refreshCart, refreshWishlist, updateWishlist }) => {
+const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlist, updateWishlist }) => {
   const { needsProfileCompletion, user, isAuthenticated } = useAuth();
+
+  // Get combined wishlist (user + guest) for display
+  const getCombinedWishlist = useCallback(() => {
+    if (isAuthenticated) {
+      // User is logged in - combine user wishlist with guest wishlist
+      const combined = [...wishlist, ...guestWishlist];
+      // Remove duplicates based on productId
+      const unique = combined.filter((item, index, self) =>
+        index === self.findIndex(i => i.productId === item.productId)
+      );
+      console.log('Combined wishlist:', {
+        userItems: wishlist.length,
+        guestItems: guestWishlist.length,
+        totalUnique: unique.length,
+        items: unique
+      });
+      return unique;
+    } else {
+      // Guest user - only show guest wishlist
+      console.log('Guest wishlist:', guestWishlist.length, 'items');
+      return guestWishlist;
+    }
+  }, [wishlist, guestWishlist, isAuthenticated]);
+
+  const combinedWishlist = getCombinedWishlist();
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
@@ -64,20 +89,20 @@ const AppContent = ({ cart, wishlist, refreshCart, refreshWishlist, updateWishli
     <>
       <div className="App">
         <Routes>
-          <Route path="/" element={<HomePage cart={cart} wishlist={wishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-          <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/brands" element={<BrandsPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/products" element={<ProductsPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-          <Route path="/sale" element={<SalePage cart={cart} wishlist={wishlist} refreshCart={refreshCart} />} />
-          <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
-          <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
+          <Route path="/" element={<HomePage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
+          <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={combinedWishlist} />} />
+          <Route path="/brands" element={<BrandsPage cart={cart} wishlist={combinedWishlist} />} />
+          <Route path="/products" element={<ProductsPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
+          <Route path="/sale" element={<SalePage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} />} />
+          <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
+          <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
           <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
-          <Route path="/orders" element={<OrdersPage cart={cart} wishlist={wishlist} refreshCart={refreshCart} />} />
+          <Route path="/orders" element={<OrdersPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} />} />
           <Route path="/tracking" element={<TrackingPage cart={cart} />} />
-          <Route path="/about" element={<AboutPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/contact" element={<ContactPage cart={cart} wishlist={wishlist} />} />
-          <Route path="/terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={wishlist} />} />
-          <Route path="/privacy" element={<PrivacyPage cart={cart} wishlist={wishlist} />} />
+          <Route path="/about" element={<AboutPage cart={cart} wishlist={combinedWishlist} />} />
+          <Route path="/contact" element={<ContactPage cart={cart} wishlist={combinedWishlist} />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage cart={cart} wishlist={combinedWishlist} />} />
+          <Route path="/privacy" element={<PrivacyPage cart={cart} wishlist={combinedWishlist} />} />
           <Route path="/accessibility" element={<AccessibilityPage cart={cart} />} />
           <Route path="/careers" element={<CareersPage cart={cart} />} />
           <Route path="/press" element={<PressPage cart={cart} />} />
@@ -111,6 +136,7 @@ const App = () => {
   // Cart and Wishlist state management
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [guestWishlist, setGuestWishlist] = useState([]);
 
   // Fetch cart items from API (only for authenticated users)
   const fetchCart = useCallback(async () => {
@@ -179,32 +205,51 @@ const App = () => {
     } else {
       // For guest users, save to localStorage and update state
       localStorage.setItem('guestWishlist', JSON.stringify(newWishlist));
-      setWishlist(newWishlist);
+      setGuestWishlist(newWishlist);
     }
   }, []);
 
-  // Handle user login - fetch user's cart and wishlist data and sync guest data
+  // Handle user login - fetch user's cart and wishlist data and show combined wishlist
   const handleUserLogin = useCallback(async (userData) => {
     console.log('User logged in, fetching user data for:', userData.email);
 
     try {
-      // First fetch user's existing data from API
+      // Fetch user's existing data from API
       await Promise.all([fetchCart(), fetchWishlist()]);
+
+      // Load guest wishlist data to combine with user wishlist for display
+      const guestWishlistData = localStorage.getItem('guestWishlist');
+      if (guestWishlistData) {
+        try {
+          const guestItems = JSON.parse(guestWishlistData);
+          setGuestWishlist(guestItems);
+          console.log('Loaded guest wishlist for display:', guestItems.length, 'items');
+        } catch (error) {
+          console.error('Error parsing guest wishlist:', error);
+          setGuestWishlist([]);
+        }
+      }
+
+      console.log('Login complete - showing combined wishlist');
     } catch (error) {
       console.error('Error during login data sync:', error);
     }
   }, [fetchCart, fetchWishlist]);
 
-  // Handle user logout - clear user's cart and wishlist data
+  // Handle user logout - clear user's cart and wishlist data but keep guest data separate
   const handleUserLogout = useCallback(() => {
-    console.log('User logged out, clearing user data');
+    console.log('User logged out, clearing user data but keeping guest wishlist');
     setCart([]);
     setWishlist([]);
+    // Guest wishlist remains in localStorage and state for next session
   }, []);
 
   // Load cart and wishlist on component mount - check both localStorage and API
   useEffect(() => {
     const loadUserData = async () => {
+      // Always load guest wishlist data first (for combined display)
+      loadGuestData();
+
       if (localStorage.getItem('authToken')) {
         // Authenticated user - fetch from API
         try {
@@ -212,10 +257,8 @@ const App = () => {
         } catch (error) {
           console.error('Error loading user data:', error);
         }
-      } else {
-        // Non-authenticated user - load from localStorage for wishlist only
-        loadGuestData();
       }
+      // For non-authenticated users, we already loaded guest data above
     };
 
     const loadGuestData = () => {
@@ -225,14 +268,14 @@ const App = () => {
         try {
           const wishlistData = JSON.parse(guestWishlist);
           console.log('Parsed guest wishlist:', wishlistData);
-          setWishlist(wishlistData);
+          setGuestWishlist(wishlistData);
         } catch (error) {
           console.error('Error parsing guest wishlist:', error);
-          setWishlist([]);
+          setGuestWishlist([]);
         }
       } else {
         console.log('No guest wishlist found');
-        setWishlist([]);
+        setGuestWishlist([]);
       }
     };
 
@@ -244,6 +287,7 @@ const App = () => {
       <AppContent
         cart={cart}
         wishlist={wishlist}
+        guestWishlist={guestWishlist}
         refreshCart={refreshCart}
         refreshWishlist={refreshWishlist}
         updateWishlist={updateWishlist}
