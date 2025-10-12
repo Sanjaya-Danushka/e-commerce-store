@@ -10,12 +10,15 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Get redirect path from location state or default to home
   const from = location.state?.from?.pathname || '/';
+
+  // Show custom message if provided
+  const [customMessage] = useState(location.state?.message || '');
 
   const handleChange = (e) => {
     setFormData({
@@ -74,6 +77,12 @@ const LoginPage = () => {
             create a new account
           </Link>
         </p>
+
+        {customMessage && (
+          <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-center">
+            {customMessage}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

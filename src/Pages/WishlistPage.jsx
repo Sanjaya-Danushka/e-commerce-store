@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import Header from "../components/Header";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
@@ -7,6 +9,8 @@ const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [products, setProducts] = useState([]);
   const [addedToCart, setAddedToCart] = useState({});
   const [showDescription, setShowDescription] = useState(null);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Fetch all products to match with wishlist items
@@ -31,26 +35,60 @@ const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
   const removeFromWishlist = async (productId) => {
     try {
-      // Make API call to remove from backend
+      // Try API call first
       await axios.delete(`/api/wishlist/${productId}`);
 
-      // Update local state after successful API call
+      // If API call succeeds, update local state
       const updatedWishlist = wishlist.filter(item => item.productId !== productId);
       if (updateWishlist) {
         updateWishlist(updatedWishlist);
       }
     } catch (error) {
-      console.error("Error removing from wishlist:", error);
-      alert("Failed to remove from wishlist.");
+      // If API call fails (e.g., 401 for guest users), try localStorage
+      if (error.response?.status === 401) {
+        // Guest user - remove from localStorage
+        const guestWishlist = localStorage.getItem('guestWishlist');
+        if (guestWishlist) {
+          let wishlistItems = JSON.parse(guestWishlist);
+          wishlistItems = wishlistItems.filter(item => item.productId !== productId);
+          localStorage.setItem('guestWishlist', JSON.stringify(wishlistItems));
+
+          // Update state
+          const updatedWishlist = wishlist.filter(item => item.productId !== productId);
+          if (updateWishlist) {
+            updateWishlist(updatedWishlist);
+          }
+        }
+      } else {
+        console.error("Error removing from wishlist:", error);
+        alert("Failed to remove from wishlist.");
+      }
     }
   };
 
   const handleAddToCart = async (product) => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Guest user - redirect to login page
+      navigate('/login', {
+        state: {
+          from: { pathname: window.location.pathname },
+          message: 'Please login to add items to your cart'
+        }
+      });
+      return;
+    }
+
     try {
       await axios.post("/api/cart-items", {
         productId: product.id,
         quantity: 1,
       });
+
+      // For authenticated users, refresh from API
+      if (refreshCart) {
+        refreshCart();
+      }
 
       // Show success feedback
       setAddedToCart({
@@ -64,11 +102,6 @@ const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
           [product.id]: false,
         });
       }, 2000);
-
-      // Refresh cart data after successful addition
-      if (refreshCart) {
-        refreshCart();
-      }
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Failed to add product to cart.");

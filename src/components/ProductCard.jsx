@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { formatMoney } from "../utils/money";
 
 const ProductCard = ({
   product,
-  // cart = [],
   wishlist = [],
   refreshCart = () => {},
   updateWishlist = () => {},
@@ -13,14 +14,31 @@ const ProductCard = ({
   className = "",
 }) => {
   const [addedToCart, setAddedToCart] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const handleAddToCart = async () => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Guest user - redirect to login page
+      navigate('/login', {
+        state: {
+          from: { pathname: window.location.pathname },
+          message: 'Please login to add items to your cart'
+        }
+      });
+      return;
+    }
+
     try {
       await axios.post("/api/cart-items", {
         productId: product.id,
         quantity: 1, // Default quantity
       });
+
+      // For authenticated users, refresh from API
       refreshCart();
+
       setAddedToCart(true);
       setTimeout(() => setAddedToCart(false), 2000);
     } catch (error) {
@@ -33,29 +51,76 @@ const ProductCard = ({
     const isInWishlist = wishlist.some((item) => item.productId === product.id);
 
     if (isInWishlist) {
-      // Remove from wishlist via API
+      // Remove from wishlist
       try {
-        await axios.delete(`/api/wishlist/${product.id}`);
-        const updatedWishlist = wishlist.filter(
-          (item) => item.productId !== product.id
-        );
-        updateWishlist(updatedWishlist);
+        const response = await axios.delete(`/api/wishlist/${product.id}`);
+
+        if (response.status === 204) {
+          // Successfully removed from database (authenticated user)
+          const updatedWishlist = wishlist.filter(
+            (item) => item.productId !== product.id
+          );
+          updateWishlist(updatedWishlist);
+        }
       } catch (error) {
-        console.error("Error removing from wishlist:", error);
-        alert("Failed to remove from wishlist.");
+        // If API call fails, try localStorage approach for guest users
+        if (error.response?.status === 401) {
+          // Guest user - remove from localStorage
+          const guestWishlist = localStorage.getItem('guestWishlist');
+          if (guestWishlist) {
+            let wishlistItems = JSON.parse(guestWishlist);
+            wishlistItems = wishlistItems.filter(item => item.productId !== product.id);
+            localStorage.setItem('guestWishlist', JSON.stringify(wishlistItems));
+
+            // Update state
+            const updatedWishlist = wishlist.filter(
+              (item) => item.productId !== product.id
+            );
+            updateWishlist(updatedWishlist);
+          }
+        } else {
+          console.error("Error removing from wishlist:", error);
+          alert("Failed to remove from wishlist.");
+        }
       }
     } else {
-      // Add to wishlist via API
+      // Add to wishlist
       try {
-        await axios.post("/api/wishlist", {
+        const response = await axios.post("/api/wishlist", {
           productId: product.id,
         });
-        const newWishlistItem = {
-          productId: product.id,
-          dateAdded: new Date().toISOString(),
-        };
-        const updatedWishlist = [...wishlist, newWishlistItem];
-        updateWishlist(updatedWishlist);
+
+        if (response.data.guest) {
+          // Guest user - add to localStorage
+          const guestWishlist = localStorage.getItem('guestWishlist');
+          let wishlistItems = guestWishlist ? JSON.parse(guestWishlist) : [];
+
+          // Check if already exists
+          const existingItem = wishlistItems.find(item => item.productId === product.id);
+          if (!existingItem) {
+            wishlistItems.push({
+              productId: product.id,
+              dateAdded: new Date().toISOString(),
+            });
+            localStorage.setItem('guestWishlist', JSON.stringify(wishlistItems));
+
+            // Update state
+            const newWishlistItem = {
+              productId: product.id,
+              dateAdded: new Date().toISOString(),
+            };
+            const updatedWishlist = [...wishlist, newWishlistItem];
+            updateWishlist(updatedWishlist);
+          }
+        } else {
+          // Authenticated user - API handled it
+          const newWishlistItem = {
+            productId: product.id,
+            dateAdded: new Date().toISOString(),
+          };
+          const updatedWishlist = [...wishlist, newWishlistItem];
+          updateWishlist(updatedWishlist);
+        }
       } catch (error) {
         console.error("Error adding to wishlist:", error);
         alert("Failed to add to wishlist.");

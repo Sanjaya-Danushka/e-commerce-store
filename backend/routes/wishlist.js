@@ -5,11 +5,9 @@ import { authenticateUser } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticateUser);
-
-// Get all wishlist items for the authenticated user
-router.get('/', async (req, res) => {
+// Apply authentication middleware only for GET requests (to view wishlist)
+// POST, DELETE can work without authentication for guest users
+router.get('/', authenticateUser, async (req, res) => {
   try {
     let wishlistItems = await Wishlist.findAll({
       where: { userId: req.user.id },
@@ -38,6 +36,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { productId } = req.body;
+    const authHeader = req.headers.authorization;
 
     if (!productId) {
       return res.status(400).json({ error: 'Product ID is required' });
@@ -49,25 +48,41 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Product not found' });
     }
 
-    // Check if item already exists in user's wishlist
-    const existingItem = await Wishlist.findOne({
-      where: {
-        userId: req.user.id,
-        productId
+    // If user is authenticated, save to database
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const jwt = (await import('jsonwebtoken')).default;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+
+      // Check if item already exists in user's wishlist
+      const existingItem = await Wishlist.findOne({
+        where: {
+          userId: decoded.id,
+          productId
+        }
+      });
+      if (existingItem) {
+        return res.status(409).json({ error: 'Product already in wishlist' });
       }
-    });
-    if (existingItem) {
-      return res.status(409).json({ error: 'Product already in wishlist' });
+
+      // Add to wishlist
+      const wishlistItem = await Wishlist.create({
+        userId: decoded.id,
+        productId,
+        dateAdded: new Date()
+      });
+
+      return res.status(201).json(wishlistItem);
+    } else {
+      // For guest users, return success but don't save to database
+      // The frontend will handle localStorage storage
+      return res.status(201).json({
+        productId,
+        dateAdded: new Date(),
+        guest: true,
+        message: 'Item added to guest wishlist'
+      });
     }
-
-    // Add to wishlist
-    const wishlistItem = await Wishlist.create({
-      userId: req.user.id,
-      productId,
-      dateAdded: new Date()
-    });
-
-    res.status(201).json(wishlistItem);
   } catch (error) {
     console.error('Error adding to wishlist:', error);
     res.status(500).json({ error: 'Failed to add to wishlist' });
@@ -75,7 +90,7 @@ router.post('/', async (req, res) => {
 });
 
 // Remove item from wishlist
-router.delete('/:productId', async (req, res) => {
+router.delete('/:productId', authenticateUser, async (req, res) => {
   try {
     const { productId } = req.params;
 
@@ -98,7 +113,7 @@ router.delete('/:productId', async (req, res) => {
 });
 
 // Check if product is in wishlist
-router.get('/:productId', async (req, res) => {
+router.get('/:productId', authenticateUser, async (req, res) => {
   try {
     const { productId } = req.params;
 

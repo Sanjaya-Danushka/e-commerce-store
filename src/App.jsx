@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import HomePage from "./Pages/HomePage";
 import CategoriesPage from "./Pages/CategoriesPage";
@@ -108,33 +108,34 @@ const AppContent = ({ cart, wishlist, refreshCart, refreshWishlist, updateWishli
 };
 
 const App = () => {
-  // Cart and Wishlist state management (moved to App level)
+  // Cart and Wishlist state management
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
-  const [cartLoading, setCartLoading] = useState(true);
-  const [wishlistLoading, setWishlistLoading] = useState(true);
 
-  // Fetch cart items from API
+  // Fetch cart items from API (only for authenticated users)
   const fetchCart = useCallback(async () => {
+    if (!localStorage.getItem('authToken')) {
+      return; // Don't make API calls for guest users
+    }
+
     try {
-      setCartLoading(true);
       const response = await axios.get('/api/cart-items?expand=product');
       setCart(response.data);
       console.log('Cart fetched:', response.data);
     } catch (error) {
       console.error('Error fetching cart:', error);
       setCart([]);
-    } finally {
-      setCartLoading(false);
     }
   }, []);
 
-  // Fetch wishlist items from API
+  // Fetch wishlist items from API (only for authenticated users)
   const fetchWishlist = useCallback(async () => {
+    if (!localStorage.getItem('authToken')) {
+      return; // Don't make API calls for guest users
+    }
+
     try {
-      setWishlistLoading(true);
       const response = await axios.get('/api/wishlist?expand=product');
-      // Convert API response to the format expected by the UI
       const wishlistItems = response.data.map(item => ({
         productId: item.productId,
         dateAdded: item.dateAdded,
@@ -145,36 +146,53 @@ const App = () => {
     } catch (error) {
       console.error('Error fetching wishlist:', error);
       setWishlist([]);
-    } finally {
-      setWishlistLoading(false);
     }
   }, []);
 
-  // Refresh cart after adding/removing items
+  // Refresh cart after adding/removing items (only for authenticated users)
   const refreshCart = useCallback(() => {
-    console.log('Refreshing cart...');
-    fetchCart();
+    if (localStorage.getItem('authToken')) {
+      console.log('Refreshing cart...');
+      fetchCart();
+    } else {
+      console.log('Guest user - no cart to refresh');
+    }
   }, [fetchCart]);
 
-  // Update wishlist
-  const updateWishlist = useCallback(async (newWishlist) => {
-    console.log('Updating wishlist:', newWishlist);
-    // For now, we'll use the API approach - this function is mainly for UI updates
-    // The actual persistence happens via API calls in individual components
-    setWishlist(newWishlist);
-  }, []);
-
-  // Refresh wishlist
+  // Refresh wishlist (only for authenticated users)
   const refreshWishlist = useCallback(() => {
-    console.log('Refreshing wishlist...');
-    fetchWishlist();
+    if (localStorage.getItem('authToken')) {
+      console.log('Refreshing wishlist...');
+      fetchWishlist();
+    } else {
+      console.log('Guest user - no wishlist to refresh');
+    }
   }, [fetchWishlist]);
 
-  // Handle user login - fetch user's cart and wishlist data
-  const handleUserLogin = useCallback((userData) => {
+  // Update wishlist (handles both guest and authenticated users)
+  const updateWishlist = useCallback((newWishlist) => {
+    console.log('Updating wishlist:', newWishlist);
+
+    if (localStorage.getItem('authToken')) {
+      // For authenticated users, use API approach
+      setWishlist(newWishlist);
+    } else {
+      // For guest users, save to localStorage and update state
+      localStorage.setItem('guestWishlist', JSON.stringify(newWishlist));
+      setWishlist(newWishlist);
+    }
+  }, []);
+
+  // Handle user login - fetch user's cart and wishlist data and sync guest data
+  const handleUserLogin = useCallback(async (userData) => {
     console.log('User logged in, fetching user data for:', userData.email);
-    fetchCart();
-    fetchWishlist();
+
+    try {
+      // First fetch user's existing data from API
+      await Promise.all([fetchCart(), fetchWishlist()]);
+    } catch (error) {
+      console.error('Error during login data sync:', error);
+    }
   }, [fetchCart, fetchWishlist]);
 
   // Handle user logout - clear user's cart and wishlist data
@@ -182,22 +200,43 @@ const App = () => {
     console.log('User logged out, clearing user data');
     setCart([]);
     setWishlist([]);
-    setCartLoading(false);
-    setWishlistLoading(false);
   }, []);
 
-  // Load cart and wishlist on component mount - only if user is authenticated
+  // Load cart and wishlist on component mount - check both localStorage and API
   useEffect(() => {
-    if (localStorage.getItem('authToken')) {
-      fetchCart();
-      fetchWishlist();
-    } else {
-      // For non-logged-in users, set empty arrays
-      setCart([]);
-      setWishlist([]);
-      setCartLoading(false);
-      setWishlistLoading(false);
-    }
+    const loadUserData = async () => {
+      if (localStorage.getItem('authToken')) {
+        // Authenticated user - fetch from API
+        try {
+          await Promise.all([fetchCart(), fetchWishlist()]);
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      } else {
+        // Non-authenticated user - load from localStorage for wishlist only
+        loadGuestData();
+      }
+    };
+
+    const loadGuestData = () => {
+      const guestWishlist = localStorage.getItem('guestWishlist');
+
+      if (guestWishlist) {
+        try {
+          const wishlistData = JSON.parse(guestWishlist);
+          console.log('Parsed guest wishlist:', wishlistData);
+          setWishlist(wishlistData);
+        } catch (error) {
+          console.error('Error parsing guest wishlist:', error);
+          setWishlist([]);
+        }
+      } else {
+        console.log('No guest wishlist found');
+        setWishlist([]);
+      }
+    };
+
+    loadUserData();
   }, [fetchCart, fetchWishlist]);
 
   return (

@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import ProductCard from "../components/ProductCard";
 import { Link } from "react-router";
-import { formatMoney } from "../utils/money";
-import axios from "axios";
 import CustomDropdown from "../components/CustomDropdown";
 
 const SalePage = ({ cart, wishlist, refreshCart }) => {
   const [saleProducts, setSaleProducts] = useState([]);
   const [allSaleProducts, setAllSaleProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [quantities, setQuantities] = useState({});
-  const [addedToCart, setAddedToCart] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -23,12 +20,6 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
         // For demo purposes, we'll take all products and mark them as sale products
         setSaleProducts(products);
         setAllSaleProducts(products);
-        // Initialize quantities to 1 for each product
-        const initialQuantities = {};
-        products.forEach((product) => {
-          initialQuantities[product.id] = 1;
-        });
-        setQuantities(initialQuantities);
       } catch (error) {
         console.error("Error fetching sale products:", error);
         setSaleProducts([]);
@@ -57,13 +48,6 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
       setSaleProducts(filtered);
     }
   }, [searchQuery, allSaleProducts]);
-
-  const handleQuantityChange = (productId, quantity) => {
-    setQuantities({
-      ...quantities,
-      [productId]: parseInt(quantity),
-    });
-  };
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -413,145 +397,15 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {saleProducts.map((product, index) => (
-                <div
+              {saleProducts.map((product) => (
+                <ProductCard
                   key={product.id}
-                  className="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-6 transform hover:-translate-y-3 border border-gray-100 hover:border-red-200 animate-slide-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}>
-                  <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
-                    <img
-                      className="product-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                      src={`/${product.image}`}
-                      alt={product.name}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    {/* Sale badge */}
-                    <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                      🔥 SALE
-                    </div>
-
-                    {/* Favorite button */}
-                    <button className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg">
-                      <svg
-                        className="w-6 h-6 text-gray-600 hover:text-red-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="space-y-5">
-                    <div className="product-name h-16">
-                      <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-3 group-hover:text-red-600 transition-colors duration-200">
-                        {product.name}
-                      </h3>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <div className="product-price text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                        {formatMoney(product.priceCents)}
-                      </div>
-                      <span className="text-xl text-gray-500 line-through">
-                        {formatMoney(Math.round(product.priceCents * 1.3))}
-                      </span>
-                      <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
-                        Save {Math.round(30)}%
-                      </span>
-                    </div>
-
-                    {/* Quantity Selector */}
-                    <div className="product-quantity-container">
-                      <CustomDropdown
-                        options={[
-                          { value: 1, label: "Qty: 1" },
-                          { value: 2, label: "Qty: 2" },
-                          { value: 3, label: "Qty: 3" },
-                          { value: 4, label: "Qty: 4" },
-                          { value: 5, label: "Qty: 5" },
-                        ]}
-                        value={quantities[product.id] || 1}
-                        onChange={(value) =>
-                          handleQuantityChange(product.id, value)
-                        }
-                        placeholder="Select quantity"
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Success message */}
-                    <div
-                      className={`added-to-cart flex items-center justify-center text-green-600 text-base font-medium bg-green-50 rounded-xl py-3 transition-all duration-300 ${
-                        addedToCart[product.id]
-                          ? "opacity-100 translate-y-0"
-                          : "opacity-0 translate-y-2"
-                      }`}>
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      Added to cart!
-                    </div>
-
-                    <button
-                      className="add-to-cart-button w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
-                      onClick={() => {
-                        axios
-                          .post("/api/cart-items", {
-                            productId: product.id,
-                            quantity: quantities[product.id] || 1,
-                          })
-                          .then(() => {
-                            refreshCart();
-                            setAddedToCart({
-                              ...addedToCart,
-                              [product.id]: true,
-                            });
-                            setTimeout(() => {
-                              setAddedToCart({
-                                ...addedToCart,
-                                [product.id]: false,
-                              });
-                            }, 2000);
-                          })
-                          .catch((error) => {
-                            console.error("Error adding to cart:", error);
-                            alert("Failed to add product to cart.");
-                          });
-                      }}>
-                      <span className="flex items-center">
-                        Add to Cart
-                        <svg
-                          className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-200"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                          />
-                        </svg>
-                      </span>
-                    </button>
-                  </div>
-                </div>
+                  product={product}
+                  wishlist={wishlist}
+                  refreshCart={refreshCart}
+                  showAddToCart={true}
+                  showWishlist={true}
+                />
               ))}
             </div>
           )}

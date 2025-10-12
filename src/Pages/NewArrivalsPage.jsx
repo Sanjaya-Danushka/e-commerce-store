@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CustomDropdown from '../components/CustomDropdown';
-import { formatMoney } from '../utils/money';
+import ProductCard from '../components/ProductCard';
 import axios from 'axios';
 
 const imageCategories = {
@@ -19,8 +19,6 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [allNewArrivals, setAllNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [quantities, setQuantities] = useState({});
-  const [addedToCart, setAddedToCart] = useState({});
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState(false);
   const [isNewsletterSubscribing, setIsNewsletterSubscribing] = useState(false);
@@ -39,13 +37,6 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
         setNewArrivals(enhancedProducts);
         setAllNewArrivals(enhancedProducts);
-
-        // Initialize quantities to 1 for each product
-        const initialQuantities = {};
-        enhancedProducts.forEach((product) => {
-          initialQuantities[product.id] = 1;
-        });
-        setQuantities(initialQuantities);
       } catch (error) {
         console.error('Error fetching new arrivals:', error);
         setNewArrivals([]);
@@ -71,52 +62,6 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       setNewArrivals(filtered);
     }
   }, [searchQuery, allNewArrivals]);
-
-  const handleQuantityChange = (productId, quantity) => {
-    setQuantities({
-      ...quantities,
-      [productId]: parseInt(quantity),
-    });
-  };
-
-  const toggleWishlist = async (productId) => {
-    console.log('Toggle wishlist called for product:', productId);
-    console.log('Current wishlist:', wishlist);
-    console.log('Wishlist length:', wishlist?.length);
-
-    const isInWishlist = wishlist?.some((item) => item.productId === productId);
-    console.log('Is in wishlist:', isInWishlist);
-
-    if (isInWishlist) {
-      // Remove from wishlist via API
-      try {
-        await axios.delete(`/api/wishlist/${productId}`);
-        const updatedWishlist = wishlist.filter((item) => item.productId !== productId);
-        console.log('Removing from wishlist, new wishlist:', updatedWishlist);
-        updateWishlist(updatedWishlist);
-      } catch (error) {
-        console.error("Error removing from wishlist:", error);
-        alert("Failed to remove from wishlist.");
-      }
-    } else {
-      // Add to wishlist via API
-      try {
-        await axios.post("/api/wishlist", {
-          productId: productId,
-        });
-        const newWishlistItem = {
-          productId: productId,
-          dateAdded: new Date().toISOString(),
-        };
-        const updatedWishlist = [...wishlist, newWishlistItem];
-        console.log('Adding to wishlist, new wishlist:', updatedWishlist);
-        updateWishlist(updatedWishlist);
-      } catch (error) {
-        console.error("Error adding to wishlist:", error);
-        alert("Failed to add to wishlist.");
-      }
-    }
-  };
 
   const handleNewsletterSubscribe = async (e) => {
     e.preventDefault();
@@ -391,165 +336,16 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {newArrivals.map((product, index) => (
-              <div
+            {newArrivals.map((product) => (
+              <ProductCard
                 key={product.id}
-                className="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 p-5 transform hover:-translate-y-3 border border-gray-100 hover:border-green-200 animate-slide-up relative overflow-hidden"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {/* Background pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-100 to-emerald-100 transform rotate-12 scale-150"></div>
-                </div>
-
-                {/* Floating decorative elements */}
-                <div className="absolute top-2 right-2 w-6 h-6 bg-green-500/10 rounded-full animate-pulse"></div>
-                <div className="absolute bottom-2 left-2 w-4 h-4 bg-emerald-500/10 rounded-full animate-pulse animation-delay-1000"></div>
-
-                <div className="relative">
-                  <div className="relative aspect-[4/3] mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
-                    <img
-                      className="product-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                      src={`/${product.image}`}
-                      alt={product.name}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    {/* Enhanced NEW badge */}
-                    <div className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                      ✨ NEW
-                    </div>
-
-                    {/* Favorite button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Wishlist button clicked for product:', product.id);
-                        toggleWishlist(product.id);
-                      }}
-                      className={`absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hover:scale-110 shadow-lg z-10 ${
-                        wishlist.some((item) => item.productId === product.id) ? 'bg-red-100' : ''
-                      }`}
-                    >
-                      <svg
-                        className={`w-6 h-6 transition-colors duration-200 ${
-                          wishlist.some((item) => item.productId === product.id) ? 'text-red-500 fill-current' : 'text-gray-600 hover:text-green-500'
-                        }`}
-                        fill={wishlist.some((item) => item.productId === product.id) ? 'currentColor' : 'none'}
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 mb-3">
-                        🆕 New Arrival
-                      </span>
-                    </div>
-
-                    <div className="product-name h-16">
-                      <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-3 group-hover:text-green-600 transition-colors duration-200">
-                        {product.name}
-                      </h3>
-                    </div>
-
-                    {/* Enhanced rating */}
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-1">
-                        {[...Array(5)].map((_, i) => (
-                          <svg key={i} className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-500">(4.8)</span>
-                    </div>
-
-                    <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                      {formatMoney(product.priceCents)}
-                    </div>
-
-                    {/* Quantity Selector */}
-                    <div className="product-quantity-container relative z-10">
-                      <CustomDropdown
-                        options={[
-                          { value: 1, label: "Qty: 1" },
-                          { value: 2, label: "Qty: 2" },
-                          { value: 3, label: "Qty: 3" },
-                          { value: 4, label: "Qty: 4" },
-                          { value: 5, label: "Qty: 5" }
-                        ]}
-                        value={quantities[product.id] || 1}
-                        onChange={(value) => handleQuantityChange(product.id, value)}
-                        placeholder="Select quantity"
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Success message */}
-                    <div
-                      className={`added-to-cart flex items-center justify-center text-green-600 text-base font-medium bg-green-50 rounded-xl py-3 transition-all duration-300 relative z-10 ${
-                        addedToCart[product.id] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-                      }`}>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      Added to cart!
-                    </div>
-
-                    <button
-                      className="add-to-cart-button w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-lg shadow-lg hover:shadow-xl transform hover:scale-105 relative z-10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        axios
-                          .post("/api/cart-items", {
-                            productId: product.id,
-                            quantity: quantities[product.id] || 1,
-                          })
-                          .then(() => {
-                            refreshCart();
-                            setAddedToCart({
-                              ...addedToCart,
-                              [product.id]: true,
-                            });
-                            setTimeout(() => {
-                              setAddedToCart({
-                                ...addedToCart,
-                                [product.id]: false,
-                              });
-                            }, 2000);
-                          })
-                          .catch((error) => {
-                            console.error("Error adding to cart:", error);
-                            alert("Failed to add product to cart.");
-                          });
-                      }}>
-                      <span className="flex items-center">
-                        Add to Cart
-                        <svg
-                          className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-200"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                          />
-                        </svg>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl pointer-events-none"></div>
-              </div>
+                product={product}
+                wishlist={wishlist}
+                refreshCart={refreshCart}
+                updateWishlist={updateWishlist}
+                showAddToCart={true}
+                showWishlist={true}
+              />
             ))}
           </div>
         )}

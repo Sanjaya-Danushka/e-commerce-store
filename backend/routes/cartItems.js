@@ -6,10 +6,9 @@ import { authenticateUser } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticateUser);
-
-router.get('/', async (req, res) => {
+// Apply authentication middleware only for GET requests (to view cart)
+// POST, PUT, DELETE can work without authentication for guest users
+router.get('/', authenticateUser, async (req, res) => {
   try {
     const expand = req.query.expand;
     let cartItems = await CartItem.findAll({
@@ -37,6 +36,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { productId, quantity } = req.body;
+    const authHeader = req.headers.authorization;
 
     const product = await Product.findByPk(productId);
     if (!product) {
@@ -47,34 +47,50 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Quantity must be a number between 1 and 10' });
     }
 
-    // Check if item already exists in user's cart
-    let cartItem = await CartItem.findOne({
-      where: {
-        userId: req.user.id,
-        productId
-      }
-    });
+    // If user is authenticated, save to database
+    if (authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 7) {
+      const token = authHeader.substring(7);
+      const jwt = (await import('jsonwebtoken')).default;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
 
-    if (cartItem) {
-      cartItem.quantity += quantity;
-      await cartItem.save();
+      // Check if item already exists in user's cart
+      let cartItem = await CartItem.findOne({
+        where: {
+          userId: decoded.id,
+          productId
+        }
+      });
+
+      if (cartItem) {
+        cartItem.quantity += quantity;
+        await cartItem.save();
+      } else {
+        cartItem = await CartItem.create({
+          userId: decoded.id,
+          productId,
+          quantity,
+          deliveryOptionId: "1"
+        });
+      }
+
+      return res.status(201).json(cartItem);
     } else {
-      cartItem = await CartItem.create({
-        userId: req.user.id,
+      // For guest users, return success but don't save to database
+      // The frontend will handle localStorage storage
+      return res.status(201).json({
         productId,
         quantity,
-        deliveryOptionId: "1"
+        guest: true,
+        message: 'Item added to guest cart'
       });
     }
-
-    res.status(201).json(cartItem);
   } catch (error) {
     console.error('Error adding to cart:', error);
     res.status(500).json({ error: 'Failed to add to cart' });
   }
 });
 
-router.put('/:productId', async (req, res) => {
+router.put('/:productId', authenticateUser, async (req, res) => {
   try {
     const { productId } = req.params;
     const { quantity, deliveryOptionId } = req.body;
@@ -109,7 +125,7 @@ router.put('/:productId', async (req, res) => {
   }
 });
 
-router.delete('/:productId', async (req, res) => {
+router.delete('/:productId', authenticateUser, async (req, res) => {
   try {
     const { productId } = req.params;
 
