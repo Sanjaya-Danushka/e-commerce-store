@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
 
-const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
+const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWishlist }) => {
   const [products, setProducts] = useState([]);
   const [addedToCart, setAddedToCart] = useState({});
   const [showDescription, setShowDescription] = useState(null);
@@ -26,7 +26,34 @@ const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       }
     };
     fetchProducts();
-  }, []);
+
+    // Refresh wishlist data from source of truth
+    const refreshWishlistData = () => {
+      if (localStorage.getItem('authToken')) {
+        // For authenticated users, refresh from API
+        if (refreshWishlist) {
+          refreshWishlist();
+        }
+      } else {
+        // For guest users, refresh from localStorage
+        const guestWishlist = localStorage.getItem('guestWishlist');
+        if (guestWishlist) {
+          try {
+            const wishlistData = JSON.parse(guestWishlist);
+            if (updateWishlist) {
+              updateWishlist(wishlistData);
+            }
+          } catch (error) {
+            console.error('Error parsing guest wishlist:', error);
+          }
+        } else if (updateWishlist) {
+          updateWishlist([]);
+        }
+      }
+    };
+
+    refreshWishlistData();
+  }, [updateWishlist, refreshWishlist]);
 
   // Get wishlist products by matching product IDs
   const wishlistProducts = products.filter(product =>
@@ -34,35 +61,49 @@ const WishlistPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   );
 
   const removeFromWishlist = async (productId) => {
+    // Optimistic UI update - hide item immediately
+    const updatedWishlist = wishlist.filter(item => item.productId !== productId);
+    if (updateWishlist) {
+      updateWishlist(updatedWishlist);
+    }
+
+    // Try to remove from backend in background (silent)
     try {
-      // Try API call first
-      await axios.delete(`/api/wishlist/${productId}`);
-
-      // If API call succeeds, update local state
-      const updatedWishlist = wishlist.filter(item => item.productId !== productId);
-      if (updateWishlist) {
-        updateWishlist(updatedWishlist);
-      }
-    } catch (error) {
-      // If API call fails (e.g., 401 for guest users), try localStorage
-      if (error.response?.status === 401) {
-        // Guest user - remove from localStorage
-        const guestWishlist = localStorage.getItem('guestWishlist');
-        if (guestWishlist) {
-          let wishlistItems = JSON.parse(guestWishlist);
-          wishlistItems = wishlistItems.filter(item => item.productId !== productId);
-          localStorage.setItem('guestWishlist', JSON.stringify(wishlistItems));
-
-          // Update state
-          const updatedWishlist = wishlist.filter(item => item.productId !== productId);
-          if (updateWishlist) {
-            updateWishlist(updatedWishlist);
+      if (localStorage.getItem('authToken')) {
+        // Try API removal first
+        try {
+          await axios.delete(`/api/wishlist/${productId}`);
+          console.log('✅ Removed from user account:', productId);
+        } catch (apiError) {
+          console.log('API removal failed:', apiError.response?.status);
+          // API failed - try localStorage cleanup
+          if (apiError.response?.status === 404) {
+            const guestWishlist = localStorage.getItem('guestWishlist');
+            if (guestWishlist) {
+              const guestItems = JSON.parse(guestWishlist);
+              const filteredItems = guestItems.filter(item => item.productId !== productId);
+              if (filteredItems.length < guestItems.length) {
+                localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+                console.log('✅ Cleaned up guest storage after API 404');
+              }
+            }
           }
         }
       } else {
-        console.error("Error removing from wishlist:", error);
-        alert("Failed to remove from wishlist.");
+        // Guest user - remove from localStorage
+        const guestWishlist = localStorage.getItem('guestWishlist');
+        if (guestWishlist) {
+          const guestItems = JSON.parse(guestWishlist);
+          const filteredItems = guestItems.filter(item => item.productId !== productId);
+          if (filteredItems.length < guestItems.length) {
+            localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+            console.log('✅ Removed from guest storage');
+          }
+        }
       }
+    } catch (error) {
+      // Silent failure - UI already updated optimistically
+      console.log('Background removal failed, but UI updated:', error.message);
     }
   };
 
