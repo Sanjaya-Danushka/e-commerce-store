@@ -3,6 +3,8 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Product } from '../models/Product.js';
+import { User } from '../models/User.js';
+import { Order } from '../models/Order.js';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { Op } from 'sequelize';
 
@@ -58,6 +60,159 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error uploading image:', error);
     res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// GET /api/admin/users - Get all users with pagination and search
+router.get('/users', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    let whereClause = {};
+    if (search) {
+      whereClause = {
+        [Op.or]: [
+          { email: { [Op.iLike]: `%${search}%` } },
+          { firstName: { [Op.iLike]: `%${search}%` } },
+          { lastName: { [Op.iLike]: `%${search}%` } }
+        ]
+      };
+    }
+
+    const { count, rows: users } = await User.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
+
+    res.json({
+      users,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        pages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// GET /api/admin/users/:id - Get single user
+router.get('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+// PUT /api/admin/users/:id - Update user
+router.put('/users/:id', async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      postalCode,
+      country,
+      profileCompleted,
+      isEmailVerified
+    } = req.body;
+
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const updatedData = {};
+    if (firstName !== undefined) updatedData.firstName = firstName;
+    if (lastName !== undefined) updatedData.lastName = lastName;
+    if (phoneNumber !== undefined) updatedData.phoneNumber = phoneNumber;
+    if (addressLine1 !== undefined) updatedData.addressLine1 = addressLine1;
+    if (addressLine2 !== undefined) updatedData.addressLine2 = addressLine2;
+    if (city !== undefined) updatedData.city = city;
+    if (state !== undefined) updatedData.state = state;
+    if (postalCode !== undefined) updatedData.postalCode = postalCode;
+    if (country !== undefined) updatedData.country = country;
+    if (profileCompleted !== undefined) updatedData.profileCompleted = profileCompleted;
+    if (isEmailVerified !== undefined) updatedData.isEmailVerified = isEmailVerified;
+
+    await user.update(updatedData);
+    res.json(user);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+// DELETE /api/admin/users/:id - Delete user
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await user.destroy();
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// GET /api/admin/stats - Get admin dashboard stats
+router.get('/stats', async (req, res) => {
+  try {
+    const totalProducts = await Product.count();
+    const totalUsers = await User.count();
+    const totalOrders = await Order.count();
+
+    // Calculate total revenue from orders
+    const ordersWithCost = await Order.findAll({
+      attributes: ['totalCostCents'],
+      where: { totalCostCents: { [Op.ne]: null } }
+    });
+    const totalRevenue = ordersWithCost.reduce((sum, order) => sum + order.totalCostCents, 0);
+
+    const recentProducts = await Product.count({
+      where: {
+        createdAt: {
+          [Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        }
+      }
+    });
+
+    res.json({
+      totalProducts,
+      totalUsers,
+      totalOrders,
+      totalRevenue,
+      recentProducts,
+      // Add more stats as needed
+    });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
@@ -195,29 +350,6 @@ router.delete('/products/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Failed to delete product' });
-  }
-});
-
-// GET /api/admin/stats - Get admin dashboard stats
-router.get('/stats', async (req, res) => {
-  try {
-    const totalProducts = await Product.count();
-    const recentProducts = await Product.count({
-      where: {
-        createdAt: {
-          [Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
-        }
-      }
-    });
-
-    res.json({
-      totalProducts,
-      recentProducts,
-      // Add more stats as needed
-    });
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
