@@ -5,7 +5,7 @@ import ProductCard from "../components/ProductCard";
 import { Link } from "react-router";
 import CustomDropdown from "../components/CustomDropdown";
 
-const SalePage = ({ cart, wishlist, refreshCart }) => {
+const SalePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [saleProducts, setSaleProducts] = useState([]);
   const [allSaleProducts, setAllSaleProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -403,6 +403,7 @@ const SalePage = ({ cart, wishlist, refreshCart }) => {
                   product={product}
                   wishlist={wishlist}
                   refreshCart={refreshCart}
+                  updateWishlist={updateWishlist}
                   showAddToCart={true}
                   showWishlist={true}
                 />

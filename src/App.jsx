@@ -92,7 +92,7 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
           <Route path="/categories" element={<CategoriesPage cart={cart} wishlist={combinedWishlist} />} />
           <Route path="/brands" element={<BrandsPage cart={cart} wishlist={combinedWishlist} />} />
           <Route path="/products" element={<ProductsPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
-          <Route path="/sale" element={<SalePage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} />} />
+          <Route path="/sale" element={<SalePage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
           <Route path="/new-arrivals" element={<NewArrivalsPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} updateWishlist={updateWishlist} />} />
           <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
           <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
