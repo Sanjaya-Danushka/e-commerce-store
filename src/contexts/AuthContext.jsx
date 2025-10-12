@@ -56,6 +56,7 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
           });
           const response = await axiosInstance.get('/api/auth/profile');
           console.log('OAuth user profile fetched successfully:', response.data.user);
+          console.log('Profile picture URL:', response.data.user.profilePicture);
           setUser(response.data.user);
         } catch (error) {
           console.error('OAuth token verification failed:', error.response?.data || error.message);
@@ -71,6 +72,7 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
           axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           const response = await axios.get('/api/auth/profile');
           console.log('Token verification successful for user:', response.data.user.email);
+          console.log('Profile picture URL:', response.data.user.profilePicture);
           setUser(response.data.user);
           setToken(storedToken);
         } catch (error) {

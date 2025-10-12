@@ -71,7 +71,17 @@ router.get('/google/callback', async (req, res) => {
       return res.status(400).json({ error: 'Failed to get user info from Google' });
     }
 
+    console.log('=== GOOGLE OAUTH PAYLOAD DEBUG ===');
+    console.log('Full payload:', JSON.stringify(payload, null, 2));
+    console.log('Available fields:', Object.keys(payload));
+    console.log('Picture field:', payload.picture);
+    console.log('Image field:', payload.image);
+    console.log('Avatar field:', payload.avatar);
+
     const { sub: googleId, email, given_name: firstName, family_name: lastName, picture: profilePicture } = payload;
+
+    // Handle different profile picture field names from Google
+    const profilePictureUrl = profilePicture || payload.picture || payload.image || payload.avatar || payload.photo;
 
     // Check if user exists with this Google ID
     let user = await User.findOne({ where: { googleId } });
@@ -83,7 +93,7 @@ router.get('/google/callback', async (req, res) => {
       if (user) {
         // Link Google account to existing user
         user.googleId = googleId;
-        user.profilePicture = profilePicture || user.profilePicture;
+        user.profilePicture = profilePictureUrl || user.profilePicture;
         await user.save();
       } else {
         // Create new user with Google data
@@ -92,7 +102,7 @@ router.get('/google/callback', async (req, res) => {
           email,
           firstName,
           lastName,
-          profilePicture,
+          profilePicture: profilePictureUrl,
           isEmailVerified: true
         });
       }
@@ -100,7 +110,7 @@ router.get('/google/callback', async (req, res) => {
       // Update user info if it has changed
       if (firstName && user.firstName !== firstName) user.firstName = firstName;
       if (lastName && user.lastName !== lastName) user.lastName = lastName;
-      if (profilePicture && user.profilePicture !== profilePicture) user.profilePicture = profilePicture;
+      if (profilePictureUrl && user.profilePicture !== profilePictureUrl) user.profilePicture = profilePictureUrl;
       await user.save();
     }
 

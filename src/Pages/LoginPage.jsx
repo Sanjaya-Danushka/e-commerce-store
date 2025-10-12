@@ -46,7 +46,8 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = async () => {
-    // Redirect to Google OAuth endpoint
+    // Redirect to Google OAuth endpoint - the backend will handle the OAuth flow
+    // and redirect back with a token parameter that AuthContext will handle
     window.location.href = 'http://localhost:3000/api/auth/google';
   };
 
