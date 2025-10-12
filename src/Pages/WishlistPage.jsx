@@ -60,11 +60,44 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
     wishlist.some(wishlistItem => wishlistItem.productId === product.id)
   );
 
+  // Debug logging
+  console.log('WishlistPage render:', {
+    wishlistLength: wishlist?.length || 0,
+    productsLength: products?.length || 0,
+    wishlistProductsLength: wishlistProducts?.length || 0,
+    wishlistItems: wishlist?.map(item => item.productId) || []
+  });
+
   const removeFromWishlist = async (productId) => {
+    console.log('removeFromWishlist called:', {
+      productId,
+      currentWishlistLength: wishlist?.length || 0,
+      currentWishlistItems: wishlist?.map(item => item.productId) || []
+    });
+
     // Optimistic UI update - hide item immediately
     const updatedWishlist = wishlist.filter(item => item.productId !== productId);
+    console.log('After filter:', {
+      updatedWishlistLength: updatedWishlist?.length || 0,
+      updatedWishlistItems: updatedWishlist?.map(item => item.productId) || []
+    });
+
     if (updateWishlist) {
       updateWishlist(updatedWishlist);
+      console.log('updateWishlist called with:', updatedWishlist?.length || 0, 'items');
+    }
+
+    // Immediately remove from localStorage for guest items (synchronous)
+    if (!localStorage.getItem('authToken')) {
+      const guestWishlist = localStorage.getItem('guestWishlist');
+      if (guestWishlist) {
+        const guestItems = JSON.parse(guestWishlist);
+        const filteredItems = guestItems.filter(item => item.productId !== productId);
+        if (filteredItems.length < guestItems.length) {
+          localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+          console.log('✅ Immediately removed from guest storage:', productId);
+        }
+      }
     }
 
     // Try to remove from backend in background (silent)
@@ -76,34 +109,16 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
           console.log('✅ Removed from user account:', productId);
         } catch (apiError) {
           console.log('API removal failed:', apiError.response?.status);
-          // API failed - try localStorage cleanup
+          // API failed - try localStorage cleanup (should already be done above)
           if (apiError.response?.status === 404) {
-            const guestWishlist = localStorage.getItem('guestWishlist');
-            if (guestWishlist) {
-              const guestItems = JSON.parse(guestWishlist);
-              const filteredItems = guestItems.filter(item => item.productId !== productId);
-              if (filteredItems.length < guestItems.length) {
-                localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
-                console.log('✅ Cleaned up guest storage after API 404');
-              }
-            }
-          }
-        }
-      } else {
-        // Guest user - remove from localStorage
-        const guestWishlist = localStorage.getItem('guestWishlist');
-        if (guestWishlist) {
-          const guestItems = JSON.parse(guestWishlist);
-          const filteredItems = guestItems.filter(item => item.productId !== productId);
-          if (filteredItems.length < guestItems.length) {
-            localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
-            console.log('✅ Removed from guest storage');
+            // Item was guest item, already removed from localStorage above
+            console.log('✅ Guest item already removed from localStorage');
           }
         }
       }
     } catch (error) {
-      // Silent failure - UI already updated optimistically
-      console.log('Background removal failed, but UI updated:', error.message);
+      // Silent failure - UI already updated optimistically and localStorage cleaned
+      console.log('Background removal failed, but UI and localStorage updated:', error.message);
     }
   };
 

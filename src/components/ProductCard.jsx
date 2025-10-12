@@ -55,7 +55,20 @@ const ProductCard = ({
       const updatedWishlist = wishlist.filter(item => item.productId !== product.id);
       updateWishlist(updatedWishlist);
 
-      // Try to remove from backend in background
+      // Immediately remove from localStorage for guest items (synchronous)
+      if (!localStorage.getItem('authToken')) {
+        const guestWishlist = localStorage.getItem('guestWishlist');
+        if (guestWishlist) {
+          const guestItems = JSON.parse(guestWishlist);
+          const filteredItems = guestItems.filter(item => item.productId !== product.id);
+          if (filteredItems.length < guestItems.length) {
+            localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
+            console.log('✅ Immediately removed from guest storage:', product.id);
+          }
+        }
+      }
+
+      // Try to remove from backend in background (silent)
       try {
         if (localStorage.getItem('authToken')) {
           // Try API removal first
@@ -64,28 +77,9 @@ const ProductCard = ({
             console.log('✅ Removed from user account:', product.id);
           } catch (apiError) {
             console.log('API removal failed:', apiError.response?.status);
-            // API failed - try localStorage cleanup
+            // API failed - item was guest item, already removed from localStorage above
             if (apiError.response?.status === 404) {
-              const guestWishlist = localStorage.getItem('guestWishlist');
-              if (guestWishlist) {
-                const guestItems = JSON.parse(guestWishlist);
-                const filteredItems = guestItems.filter(item => item.productId !== product.id);
-                if (filteredItems.length < guestItems.length) {
-                  localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
-                  console.log('✅ Cleaned up guest storage after API 404');
-                }
-              }
-            }
-          }
-        } else {
-          // Guest user - remove from localStorage
-          const guestWishlist = localStorage.getItem('guestWishlist');
-          if (guestWishlist) {
-            const guestItems = JSON.parse(guestWishlist);
-            const filteredItems = guestItems.filter(item => item.productId !== product.id);
-            if (filteredItems.length < guestItems.length) {
-              localStorage.setItem('guestWishlist', JSON.stringify(filteredItems));
-              console.log('✅ Removed from guest storage');
+              console.log('✅ Guest item already removed from localStorage');
             }
           }
         }

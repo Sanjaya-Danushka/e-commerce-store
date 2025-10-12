@@ -33,13 +33,14 @@ import ProfilePage from "./Pages/ProfilePage";
 import ProfileCompletionModal from "./components/ProfileCompletionModal";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Routes, Route } from "react-router-dom";
+import { useMemo } from "react";
 
-// AppContent component to handle profile completion modal and cart state management
+// AppContent handles the main app layout and data management
 const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlist, updateWishlist }) => {
   const { needsProfileCompletion, user, isAuthenticated } = useAuth();
 
   // Get combined wishlist (user + guest) for display
-  const getCombinedWishlist = useCallback(() => {
+  const combinedWishlist = useMemo(() => {
     if (isAuthenticated) {
       // User is logged in - combine user wishlist with guest wishlist
       const combined = [...wishlist, ...guestWishlist];
@@ -60,8 +61,6 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
       return guestWishlist;
     }
   }, [wishlist, guestWishlist, isAuthenticated]);
-
-  const combinedWishlist = getCombinedWishlist();
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
@@ -197,15 +196,17 @@ const App = () => {
 
   // Update wishlist (handles both guest and authenticated users)
   const updateWishlist = useCallback((newWishlist) => {
-    console.log('Updating wishlist:', newWishlist);
+    console.log('updateWishlist called with:', newWishlist?.length || 0, 'items');
 
     if (localStorage.getItem('authToken')) {
       // For authenticated users, use API approach
       setWishlist(newWishlist);
+      console.log('Updated wishlist state');
     } else {
       // For guest users, save to localStorage and update state
       localStorage.setItem('guestWishlist', JSON.stringify(newWishlist));
       setGuestWishlist(newWishlist);
+      console.log('Updated guestWishlist state');
     }
   }, []);
 

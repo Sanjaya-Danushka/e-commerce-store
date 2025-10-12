@@ -12,11 +12,7 @@ const Header = ({ cart, wishlist }) => {
     return quantity;
   }, [cart]);
 
-  const wishlistCount = useMemo(() => {
-    const count = wishlist ? wishlist.length : 0;
-    console.log('Header - Wishlist count calculated:', count, 'wishlist:', wishlist);
-    return count;
-  }, [wishlist]);
+  const wishlistCount = wishlist && Array.isArray(wishlist) ? wishlist.length : 0;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
