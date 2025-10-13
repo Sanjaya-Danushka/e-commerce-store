@@ -10,7 +10,8 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3000',
       },
-      '/images': {
+      // Only proxy product images to backend, let Vite serve other static images
+      '/images/products': {
         target: 'http://localhost:3000',
       },
     },
