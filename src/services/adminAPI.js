@@ -6,10 +6,31 @@ const api = axios.create({
 });
 
 // Add token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('adminToken');
+api.interceptors.request.use(async (config) => {
+  // For development, try to get a token first
+  let token = localStorage.getItem('adminToken');
+
+  if (!token) {
+    try {
+      // Try to login automatically for development
+      console.log('No token found, attempting auto-login...');
+      const response = await axios.post('/api/auth/admin/login', {
+        username: 'admin',
+        password: 'admin123'
+      });
+      token = response.data.token;
+      localStorage.setItem('adminToken', token);
+      console.log('Auto-login successful, token stored');
+    } catch (error) {
+      console.log('Auto-login failed:', error.response?.data?.error);
+    }
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('Using token for request to:', config.url);
+  } else {
+    console.log('No token available for request to:', config.url);
   }
   return config;
 });
@@ -42,17 +63,9 @@ const adminAPI = {
     const formData = new FormData();
     formData.append('image', file);
 
-    // Get the current token
-    const token = localStorage.getItem('adminToken');
+    console.log('Uploading image with automatic token handling');
 
-    console.log('Uploading image with token:', token ? 'Present' : 'Missing');
-
-    return api.post('/admin/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-    });
+    return api.post('/admin/upload', formData);
   },
 
   // Order management

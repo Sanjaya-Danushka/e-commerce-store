@@ -1,5 +1,9 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, Filler } from 'chart.js';
+
+// Register the Filler plugin
+ChartJS.register(Filler);
 
 const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme }) => {
   const pendingTasks = todoItems.filter(item => !item.completed).length;

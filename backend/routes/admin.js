@@ -273,17 +273,21 @@ router.get('/products/:id', async (req, res) => {
 // POST /api/admin/products - Create new product
 router.post('/products', async (req, res) => {
   try {
+    console.log('POST /admin/products - Request body:', JSON.stringify(req.body, null, 2));
     const { name, image, rating, priceCents, keywords, category } = req.body;
 
     // Validation
     if (!name || !image || !rating || !priceCents || !keywords || !category) {
+      console.log('Validation failed:', { name, image, rating, priceCents, keywords, category });
       return res.status(400).json({ error: 'All fields are required' });
     }
 
     if (typeof priceCents !== 'number' || priceCents < 0) {
+      console.log('Price validation failed:', priceCents);
       return res.status(400).json({ error: 'Price must be a positive number' });
     }
 
+    console.log('Creating product with data:', { name, image, rating, priceCents, keywords, category });
     const newProduct = await Product.create({
       name,
       image,
@@ -293,29 +297,35 @@ router.post('/products', async (req, res) => {
       category
     });
 
+    console.log('Product created successfully:', newProduct.id);
     res.status(201).json(newProduct);
   } catch (error) {
     console.error('Error creating product:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to create product' });
   }
 });
 
-// PUT /api/admin/products/:id - Update product
+//# PUT /api/admin/products/:id - Update product
 router.put('/products/:id', async (req, res) => {
   try {
+    console.log('PUT /admin/products/:id - Request body:', JSON.stringify(req.body, null, 2));
     const { name, image, rating, priceCents, keywords, category } = req.body;
 
     const product = await Product.findByPk(req.params.id);
     if (!product) {
+      console.log('Product not found:', req.params.id);
       return res.status(404).json({ error: 'Product not found' });
     }
 
     // Validation
     if (name !== undefined && !name) {
+      console.log('Name validation failed:', name);
       return res.status(400).json({ error: 'Product name cannot be empty' });
     }
 
     if (priceCents !== undefined && (typeof priceCents !== 'number' || priceCents < 0)) {
+      console.log('Price validation failed:', priceCents);
       return res.status(400).json({ error: 'Price must be a positive number' });
     }
 
@@ -329,10 +339,13 @@ router.put('/products/:id', async (req, res) => {
     }
     if (category !== undefined) updatedData.category = category;
 
+    console.log('Updating product with data:', updatedData);
     await product.update(updatedData);
+    console.log('Product updated successfully:', product.id);
     res.json(product);
   } catch (error) {
     console.error('Error updating product:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to update product' });
   }
 });

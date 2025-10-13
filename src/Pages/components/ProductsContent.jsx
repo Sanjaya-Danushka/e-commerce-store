@@ -101,6 +101,20 @@ const ProductsContent = ({ theme }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Only image files are allowed');
+        return;
+      }
+
       setImageFile(file);
       // Create preview URL
       const reader = new FileReader();
@@ -120,11 +134,21 @@ const ProductsContent = ({ theme }) => {
 
     try {
       setUploading(true);
+      console.log('Starting image upload for file:', imageFile.name, 'Size:', imageFile.size);
+
       const response = await adminAPI.uploadImage(imageFile);
-      return response.imagePath;
+      console.log('Upload response:', response);
+      console.log('Upload response data:', response.data);
+
+      // The response structure is: { data: { imagePath: '...', ... }, status: 200, ... }
+      const imagePath = response.data?.imagePath;
+      console.log('Extracted imagePath:', imagePath);
+
+      return imagePath;
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Failed to upload image');
+      console.error('Error response:', error.response?.data);
+      alert('Failed to upload image: ' + (error.response?.data?.error || error.message));
       return null;
     } finally {
       setUploading(false);
@@ -136,14 +160,25 @@ const ProductsContent = ({ theme }) => {
     e.preventDefault();
 
     try {
-      let imagePath = formData.image;
+      let imagePath = null;
 
-      // Upload new image if provided
+      // Upload image first if provided
       if (imageFile) {
         const uploadedPath = await uploadImage();
-        if (uploadedPath) {
-          imagePath = uploadedPath;
+        if (!uploadedPath) {
+          alert('Failed to upload image. Please try again.');
+          return;
         }
+        imagePath = uploadedPath;
+      } else if (editingProduct) {
+        // For editing, keep the existing image if no new file is provided
+        imagePath = formData.image;
+      }
+
+      // Don't proceed if we have no image path
+      if (!imagePath) {
+        alert('Please select an image for the product.');
+        return;
       }
 
       const productData = {
@@ -195,8 +230,9 @@ const ProductsContent = ({ theme }) => {
       rating: typeof product.rating === 'object' ? product.rating.stars : product.rating,
       category: product.category,
       keywords: Array.isArray(product.keywords) ? product.keywords.join(', ') : product.keywords,
-      image: product.image
+      image: product.image  // This should be a file path, not base64 data
     });
+    setImageFile(null);  // Clear any selected file when editing
     setShowModal(true);
   };
 
@@ -293,7 +329,7 @@ const ProductsContent = ({ theme }) => {
                   <tr key={product.id} className={`${theme.border} border-b hover:bg-opacity-50 transition-colors`}>
                     <td className="px-6 py-4">
                       <img
-                        src={`/${product.image}`}
+                        src={product.image.startsWith('data:') ? '/images/products/placeholder.jpg' : `/${product.image}`}
                         alt={product.name}
                         className="w-16 h-16 object-cover rounded-lg"
                         onError={(e) => {
@@ -468,7 +504,7 @@ const ProductsContent = ({ theme }) => {
                 {formData.image && (
                   <div className="mt-4">
                     <img
-                      src={formData.image}
+                      src={formData.image.startsWith('data:') ? formData.image : `/${formData.image}`}
                       alt="Preview"
                       className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
                     />
