@@ -24,17 +24,44 @@ const ProductsContent = ({ theme }) => {
   const fetchProducts = useCallback(async (page = 1, search = '') => {
     try {
       setLoading(true);
+      console.log('Calling adminAPI.getProducts with params:', { page, limit: 10, search });
+
       const response = await adminAPI.getProducts({
         page,
         limit: 10,
         search
       });
 
-      setProducts(response.products || []);
-      setTotalPages(response.pagination?.pages || 1);
-      setCurrentPage(page);
+      console.log('Products API response received');
+
+      if (response && response.data && response.data.products) {
+        console.log('Setting products:', response.data.products.length, 'products');
+        setProducts(response.data.products || []);
+        setTotalPages(response.data.pagination?.pages || 1);
+        setCurrentPage(page);
+      } else {
+        console.log('No products in response data');
+        setProducts([]);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      console.error('Error response:', error.response);
+      if (error.response?.status === 401) {
+        console.log('401 error - redirecting to admin page');
+        // Redirect to login if not authenticated
+        window.location.href = '/admin';
+        return;
+      }
+      // If we get any other error, try again after a short delay (in case token is being set)
+      const currentToken = localStorage.getItem('adminToken');
+      if (!currentToken) {
+        console.log('No token and error occurred, waiting and retrying...');
+        setTimeout(() => {
+          fetchProducts(page, search);
+        }, 1000);
+        return;
+      }
       setProducts([]);
     } finally {
       setLoading(false);
@@ -42,6 +69,16 @@ const ProductsContent = ({ theme }) => {
   }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    console.log('Admin token in ProductsContent:', token ? 'Present' : 'Missing');
+
+    if (!token) {
+      console.log('No admin token found, redirecting to admin page');
+      window.location.href = '/admin';
+      return;
+    }
+
+    console.log('Fetching products...');
     fetchProducts(currentPage, searchTerm);
   }, [currentPage, searchTerm, fetchProducts]);
 
@@ -112,7 +149,12 @@ const ProductsContent = ({ theme }) => {
       const productData = {
         name: formData.name,
         priceCents: parseInt(formData.priceCents),
-        rating: parseFloat(formData.rating),
+        rating: {
+          stars: parseFloat(formData.rating),
+          count: editingProduct && typeof editingProduct.rating === 'object' 
+            ? editingProduct.rating.count 
+            : 100  // Default count for new products or if no count exists
+        },
         category: formData.category,
         keywords: formData.keywords.split(',').map(k => k.trim()),
         image: imagePath
@@ -150,7 +192,7 @@ const ProductsContent = ({ theme }) => {
     setFormData({
       name: product.name,
       priceCents: product.priceCents,
-      rating: product.rating,
+      rating: typeof product.rating === 'object' ? product.rating.stars : product.rating,
       category: product.category,
       keywords: Array.isArray(product.keywords) ? product.keywords.join(', ') : product.keywords,
       image: product.image
@@ -265,7 +307,7 @@ const ProductsContent = ({ theme }) => {
                       ${(product.priceCents / 100).toFixed(2)}
                     </td>
                     <td className={`px-6 py-4 ${theme.textSecondary}`}>
-                      ⭐ {product.rating}/5
+                      ⭐ {typeof product.rating === 'object' ? product.rating.stars : product.rating}/5
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center gap-2">
