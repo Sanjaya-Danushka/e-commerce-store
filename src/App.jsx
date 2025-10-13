@@ -25,8 +25,9 @@ import ReturnsExchangesPage from "./Pages/ReturnsExchangesPage";
 import SizeGuidePage from "./Pages/SizeGuidePage";
 import TrackOrderPage from "./Pages/TrackOrderPage";
 import GiftCardsPage from "./Pages/GiftCardsPage";
-import AdminPage from "./Pages/AdminPage";
 import AdminLoginPage from "./Pages/AdminLoginPage";
+import AdminPage from "./Pages/AdminPage";
+import NotFoundPage from "./Pages/NotFoundPage";
 import LoginPage from "./Pages/LoginPage";
 import SignupPage from "./Pages/SignupPage";
 import ProfilePage from "./Pages/ProfilePage";
@@ -118,6 +119,7 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="*" element={<NotFoundPage cart={cart} wishlist={combinedWishlist} />} />
         </Routes>
       </div>
 
