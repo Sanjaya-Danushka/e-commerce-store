@@ -26,7 +26,7 @@ api.interceptors.response.use(
   }
 );
 
-export const adminAPI = {
+const adminAPI = {
   // Admin authentication
   login: (credentials) => api.post('/auth/admin/login', credentials),
 
@@ -54,6 +54,13 @@ export const adminAPI = {
       }
     });
   },
+
+  // Order management
+  getOrders: (params = {}) => api.get('/admin/orders', { params }),
+  getOrder: (id) => api.get(`/admin/orders/${id}`),
+  updateOrder: (id, orderData) => api.put(`/admin/orders/${id}`, orderData),
+  deleteOrder: (id) => api.delete(`/admin/orders/${id}`),
+  getOrderStats: () => api.get('/admin/orders/stats'),
 
   // Stats
   getStats: () => api.get('/admin/stats')

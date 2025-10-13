@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
@@ -350,6 +350,179 @@ router.delete('/products/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+// GET /api/admin/orders - Get all orders with pagination and filters
+router.get('/orders', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const status = req.query.status;
+    const sortBy = req.query.sortBy || 'orderTimeMs';
+    const sortOrder = req.query.sortOrder || 'DESC';
+
+    let whereClause = {};
+    if (search) {
+      whereClause = {
+        [Op.or]: [
+          { id: { [Op.iLike]: `%${search}%` } },
+          { '$user.firstName$': { [Op.iLike]: `%${search}%` } },
+          { '$user.lastName$': { [Op.iLike]: `%${search}%` } },
+          { '$user.email$': { [Op.iLike]: `%${search}%` } }
+        ]
+      };
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const { count, rows: orders } = await Order.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
+      order: [[sortBy, sortOrder]],
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'firstName', 'lastName', 'email']
+      }]
+    });
+
+    res.json({
+      orders,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        pages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
+// GET /api/admin/orders/:id - Get single order with details
+router.get('/orders/:id', async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.id, {
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode', 'country']
+      }]
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Get product details for each product in the order
+    const productsWithDetails = await Promise.all(order.products.map(async (product) => {
+      const productDetails = await Product.findByPk(product.productId);
+      return {
+        ...product,
+        product: productDetails
+      };
+    }));
+
+    res.json({
+      ...order.toJSON(),
+      products: productsWithDetails
+    });
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({ error: 'Failed to fetch order' });
+  }
+});
+
+// PUT /api/admin/orders/:id - Update order status
+router.put('/orders/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const order = await Order.findByPk(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    await order.update({ status });
+    res.json(order);
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ error: 'Failed to update order' });
+  }
+});
+
+// DELETE /api/admin/orders/:id - Delete order (admin only)
+router.delete('/orders/:id', async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    await order.destroy();
+    res.json({ message: 'Order deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({ error: 'Failed to delete order' });
+  }
+});
+
+// GET /api/admin/orders/stats - Get order statistics
+router.get('/orders/stats', async (req, res) => {
+  try {
+    const totalOrders = await Order.count();
+
+    const ordersByStatus = await Order.findAll({
+      attributes: [
+        'status',
+        [Order.sequelize.fn('COUNT', Order.sequelize.col('id')), 'count']
+      ],
+      group: ['status'],
+      raw: true
+    });
+
+    const recentOrders = await Order.count({
+      where: {
+        createdAt: {
+          [Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        }
+      }
+    });
+
+    // Calculate total revenue
+    const ordersWithCost = await Order.findAll({
+      attributes: ['totalCostCents'],
+      where: { totalCostCents: { [Op.ne]: null } }
+    });
+    const totalRevenue = ordersWithCost.reduce((sum, order) => sum + order.totalCostCents, 0);
+
+    res.json({
+      totalOrders,
+      ordersByStatus,
+      recentOrders,
+      totalRevenue,
+      averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0
+    });
+  } catch (error) {
+    console.error('Error fetching order stats:', error);
+    res.status(500).json({ error: 'Failed to fetch order statistics' });
   }
 });
 
