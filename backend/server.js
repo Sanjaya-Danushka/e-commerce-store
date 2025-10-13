@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -65,6 +66,7 @@ app.use('/api/auth/admin', adminAuthRoutes);
 app.use('/api/auth', authRoutes);
 
 // Error handling middleware
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
@@ -72,6 +74,19 @@ app.use((err, req, res, next) => {
 
 // Sync database and load default data if none exist
 await sequelize.sync();
+
+const userCount = await User.count();
+if (userCount === 0) {
+  // Create a default user for the cart items
+  const defaultUser = await User.create({
+    email: 'default@example.com',
+    password: 'defaultpassword',
+    firstName: 'Default',
+    lastName: 'User',
+    isEmailVerified: true
+  });
+  console.log('Default user created:', defaultUser.id);
+}
 
 const productCount = await Product.count();
 if (productCount === 0) {
@@ -89,24 +104,32 @@ if (productCount === 0) {
     updatedAt: new Date(timestamp + index)
   }));
 
-  const cartItemsWithTimestamps = defaultCart.map((item, index) => ({
-    ...item,
-    createdAt: new Date(timestamp + index),
-    updatedAt: new Date(timestamp + index)
-  }));
+  const defaultUser = await User.findOne({ where: { email: 'default@example.com' } });
+  const defaultUserId = defaultUser ? defaultUser.id : null;
 
-  const ordersWithTimestamps = defaultOrders.map((order, index) => ({
-    ...order,
-    createdAt: new Date(timestamp + index),
-    updatedAt: new Date(timestamp + index)
-  }));
+  if (!defaultUserId) {
+    console.error('No default user found and could not create one. Cart items cannot be inserted.');
+  } else {
+    const cartItemsWithTimestamps = defaultCart.map((item, index) => ({
+      ...item,
+      userId: defaultUserId,
+      createdAt: new Date(timestamp + index),
+      updatedAt: new Date(timestamp + index)
+    }));
 
-  await Product.bulkCreate(productsWithTimestamps);
-  await DeliveryOption.bulkCreate(deliveryOptionsWithTimestamps);
-  await CartItem.bulkCreate(cartItemsWithTimestamps);
-  await Order.bulkCreate(ordersWithTimestamps);
+    const ordersWithTimestamps = defaultOrders.map((order, index) => ({
+      ...order,
+      createdAt: new Date(timestamp + index),
+      updatedAt: new Date(timestamp + index)
+    }));
 
-  console.log('Default data added to the database.');
+    await Product.bulkCreate(productsWithTimestamps);
+    await DeliveryOption.bulkCreate(deliveryOptionsWithTimestamps);
+    await CartItem.bulkCreate(cartItemsWithTimestamps);
+    await Order.bulkCreate(ordersWithTimestamps);
+
+    console.log('Default data added to the database.');
+  }
 }
 
 // Start server
