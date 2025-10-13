@@ -5,7 +5,7 @@ import { Chart as ChartJS, Filler } from 'chart.js';
 // Register the Filler plugin
 ChartJS.register(Filler);
 
-const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme }) => {
+const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme, onAddProduct }) => {
   const pendingTasks = todoItems.filter(item => !item.completed).length;
   const completedTasks = todoItems.filter(item => item.completed).length;
 
@@ -118,7 +118,15 @@ const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme }) =>
               { label: 'Manage Users', icon: '👥', color: 'from-purple-500 to-purple-600' },
               { label: 'Schedule Event', icon: '📅', color: 'from-orange-500 to-orange-600' },
             ].map((action, index) => (
-              <button key={index} className={`p-6 bg-gradient-to-br ${action.color} text-white rounded-2xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl font-medium`}>
+              <button
+                key={index}
+                onClick={() => {
+                  if (action.label === 'Add Product' && onAddProduct) {
+                    onAddProduct();
+                  }
+                }}
+                className={`p-6 bg-gradient-to-br ${action.color} text-white rounded-2xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl font-medium`}
+              >
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">{action.icon}</span>
                   <span>{action.label}</span>

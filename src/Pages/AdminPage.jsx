@@ -301,7 +301,7 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardContent stats={stats} loading={loading} todoItems={todoItems} onToggleTodo={toggleTodo} theme={theme} />;
+        return <DashboardContent stats={stats} loading={loading} todoItems={todoItems} onToggleTodo={toggleTodo} theme={theme} onAddProduct={() => setActiveTab('products')} />;
       case 'analytics':
         return <AnalyticsContent chartData={chartData} loading={loading} theme={theme} />;
       case 'calendar':
