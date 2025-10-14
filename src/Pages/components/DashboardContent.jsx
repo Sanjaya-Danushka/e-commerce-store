@@ -5,7 +5,7 @@ import { Chart as ChartJS, Filler } from 'chart.js';
 // Register the Filler plugin
 ChartJS.register(Filler);
 
-const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme, onAddProduct }) => {
+const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme, onAddProduct, onNavigate }) => {
   const pendingTasks = todoItems.filter(item => !item.completed).length;
   const completedTasks = todoItems.filter(item => item.completed).length;
 
@@ -325,6 +325,12 @@ const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme, onAd
                 onClick={() => {
                   if (action.label === 'Add Product' && onAddProduct) {
                     onAddProduct();
+                  } else if (action.label === 'View Reports' && onNavigate) {
+                    onNavigate('analytics');
+                  } else if (action.label === 'Manage Users' && onNavigate) {
+                    onNavigate('customers');
+                  } else if (action.label === 'Schedule Event' && onNavigate) {
+                    onNavigate('calendar');
                   }
                 }}
                 className={`p-6 bg-gradient-to-br ${action.color} text-white rounded-2xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl font-medium`}

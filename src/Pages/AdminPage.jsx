@@ -262,7 +262,7 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardContent stats={stats} loading={loading} todoItems={todoItems} onToggleTodo={toggleTodo} theme={theme} onAddProduct={() => setActiveTab('products')} />;
+        return <DashboardContent stats={stats} loading={loading} todoItems={todoItems} onToggleTodo={toggleTodo} theme={theme} onAddProduct={() => setActiveTab('products')} onNavigate={setActiveTab} />;
       case 'analytics':
         return <div className={`p-8 ${theme.card} rounded-3xl ${theme.shadow}`}>
           <h3 className={`text-xl font-semibold ${theme.text} mb-4`}>Analytics</h3>
