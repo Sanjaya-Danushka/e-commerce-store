@@ -139,13 +139,201 @@ router.get('/google/callback', async (req, res) => {
 
   } catch (error) {
     console.error('Admin Google OAuth error:', error);
-    res.redirect('http://localhost:5173/admin/login?error=google_auth_failed');
   }
 });
 
 // Test route
 router.get('/test', (req, res) => {
   res.json({ message: 'Admin auth routes working' });
+});
+
+// POST /api/auth/admin/signup - Start admin signup process (send verification code)
+router.post('/signup', async (req, res) => {
+  try {
+    console.log('Admin signup request received:', req.body);
+    const { email } = req.body;
+
+    if (!email) {
+      console.log('No email provided');
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Check if user already exists (admin or regular user)
+    console.log('Checking if admin user already exists:', email);
+    const existingUser = await User.findOne({
+      where: { email }
+    });
+
+    if (existingUser) {
+      console.log('User already exists with email:', email);
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+
+    console.log('Creating temporary signup record for:', email);
+    // Generate verification code
+    const verificationCode = generateVerificationCode();
+    console.log('Generated verification code:', verificationCode);
+
+    // Store verification code in database (expires in 10 minutes)
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Create a temporary user record for signup process
+    const tempUser = await User.create({
+      email,
+      emailVerificationToken: verificationCode,
+      emailVerificationExpires: verificationExpires,
+      role: 'admin', // Set as admin by default for signup
+      isEmailVerified: false
+    });
+
+    console.log('Created temporary admin user for signup');
+
+    // Send verification email
+    const emailResult = await sendVerificationEmail(email, verificationCode);
+    console.log('Email result:', emailResult);
+
+    if (!emailResult.success) {
+      // Clean up the temporary user if email sending fails
+      await tempUser.destroy();
+      return res.status(500).json({ error: 'Failed to send verification email' });
+    }
+
+    res.json({
+      message: 'Verification code sent to your email',
+      email: email.replace(/(.{2}).*(@.*)/, '$1***$2') // Mask email for security
+    });
+  } catch (error) {
+    console.error('Error during admin signup:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/auth/admin/signup/verify - Verify email for signup
+router.post('/signup/verify', async (req, res) => {
+  try {
+    const { email, verificationCode } = req.body;
+
+    if (!email || !verificationCode) {
+      return res.status(400).json({ error: 'Email and verification code are required' });
+    }
+
+    // Find user by email (should be the temporary signup record)
+    const user = await User.findOne({
+      where: { email, role: 'admin' }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Signup session not found. Please start the signup process again.' });
+    }
+
+    // Check if verification code is valid and not expired
+    if (user.emailVerificationToken !== verificationCode) {
+      return res.status(401).json({ error: 'Invalid verification code' });
+    }
+
+    if (new Date() > user.emailVerificationExpires) {
+      return res.status(401).json({ error: 'Verification code has expired. Please request a new one.' });
+    }
+
+    // Mark as verified and prepare for password setup
+    await user.update({
+      isEmailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    });
+
+    // Generate temporary token for password setup (expires in 15 minutes)
+    const tempToken = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        purpose: 'admin_signup_password_setup'
+      },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '15m' }
+    );
+
+    res.json({
+      message: 'Email verified successfully. You can now set your password.',
+      tempToken: tempToken,
+      email: user.email
+    });
+  } catch (error) {
+    console.error('Error verifying admin signup email:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/auth/admin/signup/complete - Complete signup by setting password
+router.post('/signup/complete', async (req, res) => {
+  try {
+    const { tempToken, password, firstName, lastName } = req.body;
+
+    if (!tempToken || !password) {
+      return res.status(400).json({ error: 'Temporary token and password are required' });
+    }
+
+    // Verify the temporary token
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET || 'fallback-secret-key');
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid or expired temporary token' });
+    }
+
+    if (decoded.purpose !== 'admin_signup_password_setup') {
+      return res.status(401).json({ error: 'Invalid token purpose' });
+    }
+
+    // Find the user
+    const user = await User.scope('withPassword').findByPk(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.isEmailVerified !== true) {
+      return res.status(400).json({ error: 'Email verification required' });
+    }
+
+    // Update user with password and additional info
+    await user.update({
+      password: password, // This will be hashed by the model hook
+      firstName: firstName || null,
+      lastName: lastName || null,
+      profileCompleted: !!(firstName || lastName) // Mark profile as completed if name provided
+    });
+
+    // Generate final JWT token for admin
+    const finalToken = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      token: finalToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        profileCompleted: user.profileCompleted
+      },
+      message: 'Admin account created successfully'
+    });
+  } catch (error) {
+    console.error('Error completing admin signup:', error);
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // POST /api/auth/admin/send-verification - Send verification code to admin email

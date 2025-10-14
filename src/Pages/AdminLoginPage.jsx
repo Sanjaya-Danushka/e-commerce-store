@@ -12,6 +12,18 @@ const AdminLoginPage = () => {
   const [error, setError] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
+  // Signup states
+  const [showSignup, setShowSignup] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
+  const [tempToken, setTempToken] = useState('');
+  const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [passwordSetup, setPasswordSetup] = useState({
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: ''
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'email') {
@@ -26,6 +38,14 @@ const AdminLoginPage = () => {
       });
     } else if (name === 'verificationCode') {
       setVerificationCode(value);
+    } else if (name === 'signupEmail') {
+      setSignupEmail(value);
+    } else if (name.startsWith('passwordSetup.')) {
+      const field = name.split('.')[1];
+      setPasswordSetup({
+        ...passwordSetup,
+        [field]: value
+      });
     }
   };
 
@@ -139,6 +159,249 @@ const AdminLoginPage = () => {
     }
   };
 
+  // Signup handlers
+  const handleSignupStart = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      await axios.post('/api/auth/admin/signup', {
+        email: signupEmail
+      });
+
+      setUserEmail(signupEmail);
+      setShowSignup(false);
+      setShowVerification(true);
+    } catch (error) {
+      console.error('Signup start error:', error);
+      setError(error.response?.data?.error || 'Failed to start signup process');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignupVerification = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post('/api/auth/admin/signup/verify', {
+        email: userEmail,
+        verificationCode: verificationCode
+      });
+
+      setTempToken(response.data.tempToken);
+      setShowVerification(false);
+      setShowPasswordSetup(true);
+    } catch (error) {
+      console.error('Signup verification error:', error);
+      setError(error.response?.data?.error || 'Email verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordSetup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (passwordSetup.password !== passwordSetup.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/auth/admin/signup/complete', {
+        tempToken: tempToken,
+        password: passwordSetup.password,
+        firstName: passwordSetup.firstName,
+        lastName: passwordSetup.lastName
+      });
+
+      // Store token and redirect
+      localStorage.setItem('adminToken', response.data.token);
+      window.location.href = '/admin';
+    } catch (error) {
+      console.error('Password setup error:', error);
+      setError(error.response?.data?.error || 'Failed to complete signup');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showSignup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800">Create Admin Account</h1>
+            <p className="text-gray-600 mt-2">Enter your email to start the signup process</p>
+          </div>
+
+          <form onSubmit={handleSignupStart} className="space-y-6">
+            <div>
+              <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                Email:
+              </label>
+              <input
+                type="email"
+                id="signupEmail"
+                name="signupEmail"
+                value={signupEmail}
+                onChange={handleChange}
+                required
+                placeholder="Enter your email address"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? 'Starting signup...' : 'Start Signup Process'}
+            </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSignup(false);
+                  setError('');
+                  setSignupEmail('');
+                }}
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+              >
+                Back to login
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (showPasswordSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800">Complete Your Account</h1>
+            <p className="text-gray-600 mt-2">Set up your password and profile information</p>
+          </div>
+
+          <form onSubmit={handlePasswordSetup} className="space-y-6">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                First Name (Optional):
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="passwordSetup.firstName"
+                value={passwordSetup.firstName}
+                onChange={handleChange}
+                placeholder="Enter your first name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                Last Name (Optional):
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="passwordSetup.lastName"
+                value={passwordSetup.lastName}
+                onChange={handleChange}
+                placeholder="Enter your last name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password:
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="passwordSetup.password"
+                value={passwordSetup.password}
+                onChange={handleChange}
+                required
+                placeholder="Enter your password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Confirm Password:
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="passwordSetup.confirmPassword"
+                value={passwordSetup.confirmPassword}
+                onChange={handleChange}
+                required
+                placeholder="Confirm your password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? 'Creating account...' : 'Create Admin Account'}
+            </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPasswordSetup(false);
+                  setError('');
+                  setPasswordSetup({
+                    password: '',
+                    confirmPassword: '',
+                    firstName: '',
+                    lastName: ''
+                  });
+                }}
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+              >
+                Back to login
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (showVerification) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
@@ -148,7 +411,7 @@ const AdminLoginPage = () => {
             <p className="text-gray-600 mt-2">Enter the verification code sent to {userEmail}</p>
           </div>
 
-          <form onSubmit={handleVerificationSubmit} className="space-y-6">
+          <form onSubmit={showSignup ? handleSignupVerification : handleVerificationSubmit} className="space-y-6">
             <div>
               <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
                 Verification Code:
@@ -177,7 +440,7 @@ const AdminLoginPage = () => {
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              {loading ? 'Verifying...' : 'Verify & Login'}
+              {loading ? 'Verifying...' : showSignup ? 'Verify & Continue' : 'Verify & Login'}
             </button>
 
             <div className="text-center space-y-2">
@@ -196,10 +459,13 @@ const AdminLoginPage = () => {
                   setShowVerification(false);
                   setError('');
                   setVerificationCode('');
+                  if (showSignup) {
+                    setShowSignup(true);
+                  }
                 }}
                 className="text-gray-600 hover:text-gray-800 text-sm font-medium"
               >
-                Back to login
+                Back to {showSignup ? 'signup' : 'login'}
               </button>
             </div>
           </form>
@@ -293,6 +559,23 @@ const AdminLoginPage = () => {
         <div className="mt-8 p-4 bg-gray-50 rounded-lg border">
           <p className="text-sm font-semibold text-gray-800 mb-2">Need Help?</p>
           <p className="text-sm text-gray-600">Contact your system administrator if you need access to the admin panel.</p>
+        </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            New to admin panel?{' '}
+            <button
+              type="button"
+              onClick={() => {
+                setShowSignup(true);
+                setError('');
+                setCredentials({ email: '', password: '' });
+              }}
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Create Admin Account
+            </button>
+          </p>
         </div>
       </div>
     </div>
