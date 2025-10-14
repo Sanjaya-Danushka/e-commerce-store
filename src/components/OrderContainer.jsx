@@ -1,6 +1,7 @@
 import React from "react";
 import OrderHeader from "./OrderHeader";
 import OrderProduct from "./OrderProduct";
+import OrderTracking from "./OrderTracking";
 
 const OrderContainer = ({ order, onAddToCart }) => {
   return (
@@ -18,6 +19,9 @@ const OrderContainer = ({ order, onAddToCart }) => {
             />
           ))}
       </div>
+
+      {/* Show order tracking for non-pending orders */}
+      <OrderTracking order={order} />
     </div>
   );
 };
