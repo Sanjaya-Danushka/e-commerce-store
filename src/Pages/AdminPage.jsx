@@ -195,7 +195,7 @@ const AdminDashboard = () => {
       const loginAdmin = async () => {
         try {
           const response = await adminAPI.login({
-            username: 'admin',
+            username: 'admin@example.com',
             password: 'admin123'
           });
           localStorage.setItem('adminToken', response.data.token);

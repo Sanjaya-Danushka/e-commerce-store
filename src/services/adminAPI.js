@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 
 // Create axios instance with auth headers
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api'
+  baseURL: '/api'
 });
 
 // Add token to requests
@@ -16,7 +16,7 @@ api.interceptors.request.use(async (config) => {
       // Try to login automatically for development
       logger.log('No token found, attempting auto-login...');
       const response = await axios.post('/api/auth/admin/login', {
-        username: 'admin',
+        email: 'admin@example.com',
         password: 'admin123'
       });
       token = response.data.token;

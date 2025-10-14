@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import process from 'process';
 import dotenv from 'dotenv';
 import { User } from '../models/User.js';
 import { OAuth2Client } from 'google-auth-library';
@@ -96,14 +97,15 @@ router.get('/google/callback', async (req, res) => {
         user.profilePicture = profilePictureUrl || user.profilePicture;
         await user.save();
       } else {
-        // Create new user with Google data
+        // Create new user with Google data - mark as verified since Google emails are verified
         user = await User.create({
           googleId,
           email,
           firstName,
           lastName,
           profilePicture: profilePictureUrl,
-          isEmailVerified: true
+          isEmailVerified: true, // Google emails are verified
+          role: 'user' // Default role, can be upgraded to admin later if needed
         });
       }
     } else {
@@ -261,7 +263,8 @@ router.post('/google', async (req, res) => {
           firstName,
           lastName,
           profilePicture,
-          isEmailVerified: true
+          isEmailVerified: true, // Google emails are verified
+          role: 'user' // Default role
         });
       }
     } else {

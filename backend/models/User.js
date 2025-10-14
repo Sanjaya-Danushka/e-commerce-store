@@ -85,6 +85,19 @@ export const User = sequelize.define('User', {
     type: DataTypes.DATE,
     allowNull: true
   },
+  // Email verification fields
+  emailVerificationToken: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  emailVerificationExpires: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  isEmailVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },
@@ -93,7 +106,7 @@ export const User = sequelize.define('User', {
   }
 }, {
   defaultScope: {
-    attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires', 'emailVerificationToken', 'emailVerificationExpires'] }
   },
   scopes: {
     withPassword: {
