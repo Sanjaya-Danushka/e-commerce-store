@@ -374,6 +374,11 @@ router.get('/orders', async (req, res) => {
 
     // Simple query without any complex filtering
     const orders = await Order.findAll({
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode', 'country']
+      }],
       limit: 10,
       order: [['createdAt', 'DESC']]
     });

@@ -14,6 +14,7 @@ const OrdersContent = ({ theme }) => {
     totalOrders: 0,
     totalRevenue: 0,
     averageOrderValue: 0,
+    recentOrders: 0,
     ordersByStatus: []
   });
 
@@ -31,9 +32,19 @@ const OrdersContent = ({ theme }) => {
       if (search) params.search = search;
       if (status) params.status = status;
 
+      console.log('Fetching orders with params:', params);
       const response = await adminAPI.getOrders(params);
-      setOrders(response.orders || []);
-      setTotalPages(response.pagination?.pages || 1);
+      console.log('Orders response received:', response);
+
+      // Extract the actual data from the axios response
+      const ordersData = response?.data?.orders || [];
+      const paginationData = response?.data?.pagination || { total: 0, page: 1, limit: 10, pages: 1 };
+
+      console.log('Setting orders:', ordersData.length, 'orders');
+      console.log('Setting pagination:', paginationData);
+
+      setOrders(ordersData);
+      setTotalPages(paginationData.pages);
       setCurrentPage(page);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -46,10 +57,31 @@ const OrdersContent = ({ theme }) => {
   // Fetch order statistics
   const fetchOrderStats = useCallback(async () => {
     try {
+      console.log('Fetching order stats...');
       const response = await adminAPI.getOrderStats();
-      setOrderStats(response);
+      console.log('Order stats response received:', response);
+
+      // Extract the actual data from the axios response
+      const statsData = response?.data || {
+        totalOrders: 0,
+        totalRevenue: 0,
+        averageOrderValue: 0,
+        recentOrders: 0,
+        ordersByStatus: []
+      };
+
+      console.log('Setting order stats:', statsData);
+      setOrderStats(statsData);
     } catch (error) {
       console.error('Error fetching order stats:', error);
+      // Set default values on error
+      setOrderStats({
+        totalOrders: 0,
+        totalRevenue: 0,
+        averageOrderValue: 0,
+        recentOrders: 0,
+        ordersByStatus: []
+      });
     }
   }, []);
 
