@@ -71,7 +71,6 @@ const AdminDashboard = () => {
     recentOrders: []
   });
   const [loading, setLoading] = useState(true);
-  const [chartData, setChartData] = useState(null);
   const [todoItems, setTodoItems] = useState(() => {
     // Load tasks from localStorage or use default tasks
     const savedTasks = localStorage.getItem('adminTasks');
@@ -162,111 +161,31 @@ const AdminDashboard = () => {
   const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('Fetching stats...');
       const response = await adminAPI.getStats();
+      console.log('Stats response:', response);
+      console.log('Stats response data:', response.data);
       setStats(prev => ({
         ...prev,
-        totalProducts: response.totalProducts || 0,
-        totalUsers: response.totalUsers || 0,
-        totalOrders: response.totalOrders || 0,
-        totalRevenue: response.totalRevenue || 0,
-        recentProducts: response.recentProducts || 0
+        totalProducts: response.data.totalProducts || 0,
+        totalUsers: response.data.totalUsers || 0,
+        totalOrders: response.data.totalOrders || 0,
+        totalRevenue: response.data.totalRevenue || 0,
+        recentProducts: response.data.recentProducts || 0
       }));
-
-      // Enhanced chart data with gradients and animations
-      setChartData({
-        revenue: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          datasets: [{
-            label: 'Revenue ($)',
-            data: [12000, 19000, 15000, 25000, 22000, 30000, 35000],
-            borderColor: isDarkMode ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 1)',
-            backgroundColor: isDarkMode
-              ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 197, 253, 0.1))'
-              : 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 197, 253, 0.05))',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 3,
-            pointRadius: 6,
-            pointHoverRadius: 10,
-            animation: {
-              duration: 2000,
-              easing: 'easeInOutQuart'
-            }
-          }]
-        },
-        users: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-          datasets: [{
-            label: 'New Users',
-            data: [120, 150, 180, 200, 240, 280, 320],
-            borderColor: isDarkMode ? 'rgba(16, 185, 129, 0.8)' : 'rgba(16, 185, 129, 1)',
-            backgroundColor: isDarkMode
-              ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(110, 231, 183, 0.1))'
-              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(110, 231, 183, 0.05))',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 3,
-            pointRadius: 6,
-            pointHoverRadius: 10,
-          }]
-        },
-        orders: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [{
-            label: 'Orders',
-            data: [45, 52, 38, 67, 49, 23, 31],
-            backgroundColor: isDarkMode
-              ? 'rgba(168, 85, 247, 0.7)'
-              : 'rgba(168, 85, 247, 0.8)',
-            borderRadius: 12,
-            borderSkipped: false,
-            hoverBackgroundColor: isDarkMode
-              ? 'rgba(168, 85, 247, 0.9)'
-              : 'rgba(168, 85, 247, 1)',
-          }]
-        },
-        categories: {
-          labels: ['Electronics', 'Fashion', 'Home & Garden', 'Sports', 'Books', 'Beauty'],
-          datasets: [{
-            data: [35, 25, 20, 15, 4, 1],
-            backgroundColor: [
-              'rgba(59, 130, 246, 0.9)',
-              'rgba(16, 185, 129, 0.9)',
-              'rgba(245, 158, 11, 0.9)',
-              'rgba(239, 68, 68, 0.9)',
-              'rgba(139, 92, 246, 0.9)',
-              'rgba(236, 72, 153, 0.9)',
-            ],
-            borderWidth: 0,
-            hoverOffset: 12,
-            cutout: '60%',
-          }]
-        },
-        conversion: {
-          labels: ['Visitors', 'Leads', 'Customers', 'Repeat Customers'],
-          datasets: [{
-            data: [10000, 2500, 800, 320],
-            backgroundColor: [
-              'rgba(59, 130, 246, 0.8)',
-              'rgba(16, 185, 129, 0.8)',
-              'rgba(245, 158, 11, 0.8)',
-              'rgba(236, 72, 153, 0.8)',
-            ],
-            borderWidth: 0,
-            hoverOffset: 8,
-          }]
-        }
+      console.log('Stats updated:', {
+        totalProducts: response.data.totalProducts || 0,
+        totalUsers: response.data.totalUsers || 0,
+        totalOrders: response.data.totalOrders || 0,
+        totalRevenue: response.data.totalRevenue || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      console.error('Error response:', error.response?.data);
     } finally {
       setLoading(false);
     }
-  }, [isDarkMode]);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -345,7 +264,10 @@ const AdminDashboard = () => {
       case 'dashboard':
         return <DashboardContent stats={stats} loading={loading} todoItems={todoItems} onToggleTodo={toggleTodo} theme={theme} onAddProduct={() => setActiveTab('products')} />;
       case 'analytics':
-        return <AnalyticsContent chartData={chartData} loading={loading} theme={theme} />;
+        return <div className={`p-8 ${theme.card} rounded-3xl ${theme.shadow}`}>
+          <h3 className={`text-xl font-semibold ${theme.text} mb-4`}>Analytics</h3>
+          <p className={`${theme.textSecondary}`}>Analytics content coming soon...</p>
+        </div>;
       case 'calendar':
         return <CalendarContent theme={theme} isDarkMode={isDarkMode} />;
       case 'tasks':

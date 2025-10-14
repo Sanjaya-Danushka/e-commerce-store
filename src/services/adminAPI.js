@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 
 // Create axios instance with auth headers
 const api = axios.create({
-  baseURL: '/api'
+  baseURL: 'http://localhost:3000/api'
 });
 
 // Add token to requests
