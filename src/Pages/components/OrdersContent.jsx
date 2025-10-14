@@ -295,10 +295,15 @@ const OrdersContent = ({ theme }) => {
           </div>
           <div className="flex items-end">
             <button
-              onClick={() => fetchOrders(currentPage, searchTerm, statusFilter)}
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('');
+                setCurrentPage(1);
+                fetchOrders(1, '', '');
+              }}
               className={`${theme.button} w-full text-white py-3 px-6 rounded-lg font-semibold`}
             >
-              🔍 Apply Filters
+              🧹 Clear Filters
             </button>
           </div>
         </div>
