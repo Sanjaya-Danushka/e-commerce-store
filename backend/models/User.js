@@ -41,9 +41,10 @@ export const User = sequelize.define('User', {
     allowNull: true,
     unique: true
   },
-  isEmailVerified: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+  role: {
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user',
+    allowNull: false
   },
   // Address fields for e-commerce functionality
   addressLine1: {

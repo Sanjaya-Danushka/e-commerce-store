@@ -119,7 +119,7 @@ router.get('/google/callback', async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        role: 'user'
+        role: user.role
       },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '24h' }
@@ -165,7 +165,7 @@ router.post('/register', async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        role: 'user'
+        role: user.role
       },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '24h' }
@@ -214,7 +214,7 @@ router.post('/login', async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        role: 'user'
+        role: user.role
       },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '24h' }
@@ -275,7 +275,7 @@ router.post('/google', async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        role: 'user'
+        role: user.role
       },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '24h' }

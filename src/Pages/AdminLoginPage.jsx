@@ -98,7 +98,7 @@ const AdminLoginPage = () => {
 
         <div className="mt-8 p-4 bg-gray-50 rounded-lg border">
           <p className="text-sm font-semibold text-gray-800 mb-2">Demo Credentials:</p>
-          <p className="text-sm text-gray-600">Username: admin</p>
+          <p className="text-sm text-gray-600">Email: admin@example.com</p>
           <p className="text-sm text-gray-600">Password: admin123</p>
         </div>
       </div>
