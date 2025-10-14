@@ -7,6 +7,7 @@ import { User } from '../models/User.js';
 import { Order } from '../models/Order.js';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { Op } from 'sequelize';
+import { sequelize } from '../models/index.js';
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -394,6 +395,60 @@ router.get('/orders', async (req, res) => {
   }
 });
 
+// GET /api/admin/orders/stats - Get order statistics
+router.get('/orders/stats', async (req, res) => {
+  try {
+    console.log('Fetching order stats...');
+
+    // Calculate total orders
+    const totalOrders = await Order.count();
+
+    // Calculate orders by status
+    const ordersByStatus = await Order.findAll({
+      attributes: [
+        'status',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: ['status'],
+      raw: true
+    });
+
+    // Calculate total revenue
+    const ordersWithCost = await Order.findAll({
+      attributes: ['totalCostCents'],
+      where: { totalCostCents: { [Op.ne]: null } }
+    });
+    const totalRevenue = ordersWithCost.reduce((sum, order) => sum + order.totalCostCents, 0);
+
+    // Calculate average order value
+    const averageOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
+    // Calculate recent orders (last 30 days)
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentOrders = await Order.count({
+      where: {
+        createdAt: {
+          [Op.gte]: thirtyDaysAgo
+        }
+      }
+    });
+
+    const stats = {
+      totalOrders,
+      ordersByStatus,
+      recentOrders,
+      totalRevenue,
+      averageOrderValue
+    };
+
+    console.log('Order stats calculated:', stats);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching order stats:', error);
+    res.status(500).json({ error: 'Failed to fetch order statistics' });
+  }
+});
+
 // GET /api/admin/orders/:id - Get single order with details
 router.get('/orders/:id', async (req, res) => {
   try {
@@ -427,8 +482,6 @@ router.get('/orders/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
-
-// PUT /api/admin/orders/:id - Update order status
 router.put('/orders/:id', async (req, res) => {
   try {
     const { status } = req.body;
@@ -468,24 +521,6 @@ router.delete('/orders/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting order:', error);
     res.status(500).json({ error: 'Failed to delete order' });
-  }
-});
-
-// GET /api/admin/orders/stats - Get order statistics
-router.get('/orders/stats', async (req, res) => {
-  try {
-    console.log('Fetching order stats...');
-
-    res.json({
-      totalOrders: 0,
-      ordersByStatus: [],
-      recentOrders: 0,
-      totalRevenue: 0,
-      averageOrderValue: 0
-    });
-  } catch (error) {
-    console.error('Error fetching order stats:', error);
-    res.status(500).json({ error: 'Failed to fetch order statistics' });
   }
 });
 
