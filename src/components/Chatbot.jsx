@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatbotModel } from '../services/chatbot_model.js';
 import ProductCard from './ProductCard.jsx';
+import { logger } from '../utils/logger';
 
 const Chatbot = ({ products = [], cart = [], wishlist = [], refreshCart = () => {}, updateWishlist = () => {} }) => {
   const navigate = useNavigate();
@@ -33,17 +34,17 @@ const Chatbot = ({ products = [], cart = [], wishlist = [], refreshCart = () => 
   useEffect(() => {
     const initializeModel = async () => {
       try {
-        console.log('🚀 Initializing trained chatbot model...');
+        logger.log('🚀 Initializing trained chatbot model...');
         setIsModelLoading(true);
 
         // Initialize the trained model with actual store products
         const model = new ChatbotModel(products);
         setChatbotModel(model);
 
-        console.log('✅ Trained model initialized successfully with store data');
+        logger.log('✅ Trained model initialized successfully with store data');
         setIsModelLoading(false);
       } catch (error) {
-        console.error('❌ Failed to initialize model:', error);
+        logger.error('❌ Failed to initialize model:', error);
         setIsModelLoading(false);
       }
     };
@@ -119,7 +120,7 @@ const Chatbot = ({ products = [], cart = [], wishlist = [], refreshCart = () => 
       }, 1000 + Math.random() * 1000);
 
     } catch (error) {
-      console.error('❌ AI prediction failed:', error);
+      logger.error('❌ AI prediction failed:', error);
 
       // Fallback response
       setTimeout(() => {
@@ -152,7 +153,7 @@ const Chatbot = ({ products = [], cart = [], wishlist = [], refreshCart = () => 
   };
 
   const handleToggleChat = () => {
-    console.log('🎯 Chatbot clicked! Opening chat...');
+    logger.log('🎯 Chatbot clicked! Opening chat...');
     setIsOpen(!isOpen);
     if (!isOpen) {
       setShowQuickActions(false);

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { formatMoney } from "../utils/money";
+import { logger } from "../utils/logger";
 
 const ProductCard = ({
   product,
@@ -42,7 +43,7 @@ const ProductCard = ({
       setAddedToCart(true);
       setTimeout(() => setAddedToCart(false), 2000);
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      logger.error("Error adding to cart:", error);
       alert("Failed to add product to cart.");
     }
   };
@@ -126,7 +127,7 @@ const ProductCard = ({
           updateWishlist(updatedWishlist);
         }
       } catch (error) {
-        console.error("Error adding to wishlist:", error);
+        logger.error("Error adding to wishlist:", error);
         alert("Failed to add to wishlist.");
       }
     }
@@ -134,14 +135,14 @@ const ProductCard = ({
 
   const isInWishlist = wishlist.some((item) => item.productId === product.id);
 
-  // Debug logging for wishlist state
-  console.log('ProductCard render:', {
-    productId: product.id,
-    isInWishlist,
-    wishlistLength: wishlist.length,
-    guestWishlistExists: !!localStorage.getItem('guestWishlist'),
-    guestWishlistLength: localStorage.getItem('guestWishlist') ? JSON.parse(localStorage.getItem('guestWishlist')).length : 0
-  });
+  // Debug logging for wishlist state (only for debugging, can be removed for cleaner console)
+  // logger.log('ProductCard render:', {
+  //   productId: product.id,
+  //   isInWishlist,
+  //   wishlistLength: wishlist.length,
+  //   guestWishlistExists: !!localStorage.getItem('guestWishlist'),
+  //   guestWishlistLength: localStorage.getItem('guestWishlist') ? JSON.parse(localStorage.getItem('guestWishlist')).length : 0
+  // });
 
   return (
     <div

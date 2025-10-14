@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import CustomDropdown from "../components/CustomDropdown";
 import ProductCard from "../components/ProductCard";
 import axios from "axios";
+import { logger } from "../utils/logger";
 
 const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [products, setProducts] = useState([]);
@@ -25,25 +26,9 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
         const response = await axios.get("/api/products");
         const productsData = response.data;
 
-        // Debug: Log first few products to see data structure
-        console.log("=== PRODUCT DATA DEBUG ===");
-        console.log("First 3 products:", productsData.slice(0, 3));
-        console.log("Sample product keys:", Object.keys(productsData[0] || {}));
-        console.log("Sample product category:", productsData[0]?.category);
-
+        // Load products data (remove verbose debug logging for cleaner console)
         setProducts(productsData);
         setFilteredProducts(productsData);
-
-        // Debug: Show available categories
-        const availableCategories = [...new Set(productsData.map(p => p.category).filter(Boolean))];
-        console.log("=== AVAILABLE CATEGORIES ===");
-        console.log("Categories found:", availableCategories);
-        console.log("Category counts:", availableCategories.reduce((acc, cat) => {
-          acc[cat] = productsData.filter(p => p.category === cat).length;
-          return acc;
-        }, {}));
-      } catch (error) {
-        console.error("Error fetching products:", error);
         setProducts([]);
         setFilteredProducts([]);
       } finally {
@@ -66,13 +51,9 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
     // Category filter
     if (selectedCategory !== "all") {
-      console.log("Filtering by category:", selectedCategory);
-      console.log("Total products:", products.length);
-
       filtered = filtered.filter(product => {
         // Check if product has category data
         if (!product.category) {
-          console.log("Product missing category:", product.id, product.name);
           return false;
         }
 
@@ -92,11 +73,8 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
           productCategory = product.categoryName.toLowerCase();
         }
         else {
-          console.log("Unknown category format for product:", product.id, product.category);
           return false;
         }
-
-        console.log(`Product ${product.id}: ${productCategory}`);
 
         // Match category based on selected filter
         switch (selectedCategory) {
@@ -137,8 +115,6 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
             return productCategory === selectedCategory;
         }
       });
-
-      console.log(`Filtered ${filtered.length} products for category: ${selectedCategory}`);
     }
 
     // Price range filter
@@ -204,13 +180,11 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
     setIsSubscribing(true);
 
     try {
-      console.log("Attempting to subscribe email:", email);
-
       // Try the API call with timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await axios.post("/api/subscribe", { email }, {
+      await axios.post("/api/subscribe", { email }, {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +192,6 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       });
 
       clearTimeout(timeoutId);
-      console.log("Subscription successful:", response.data);
 
       setIsSubscribed(true);
       setEmail("");
@@ -229,19 +202,10 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
       }, 3000);
 
     } catch (error) {
-      console.error("Newsletter subscription error:", error);
-
       if (error.code === 'ECONNABORTED') {
         alert("Request timed out. Please check if your backend server is running.");
       } else if (error.response) {
         // Server responded with error status
-        console.error("Server error details:", {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          headers: error.response.headers
-        });
-
         const errorMessage = error.response.data?.message ||
                            error.response.data?.error ||
                            `Server error (${error.response.status})`;

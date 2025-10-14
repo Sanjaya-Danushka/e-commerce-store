@@ -50,24 +50,15 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
       const unique = combined.filter((item, index, self) =>
         index === self.findIndex(i => i.productId === item.productId)
       );
-      logger.log('Combined wishlist:', {
-        userItems: wishlist.length,
-        guestItems: guestWishlist.length,
-        totalUnique: unique.length,
-        items: unique
-      });
       return unique;
     } else {
       // Guest user - only show guest wishlist
-      logger.log('Guest wishlist:', guestWishlist.length, 'items');
       return guestWishlist;
     }
   }, [wishlist, guestWishlist, isAuthenticated]);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    logger.log('AppContent: Auth state check - user:', !!user, 'needsProfileCompletion:', needsProfileCompletion(), 'isAuthenticated:', isAuthenticated);
-
     // Show profile completion modal after 1 second delay for new users who need to complete their profile
     if (needsProfileCompletion() && user && !user.profileCompleted && isAuthenticated) {
       logger.log('AppContent: Scheduling profile modal to appear in 1 second');

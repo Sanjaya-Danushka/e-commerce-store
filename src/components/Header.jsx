@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
+import { logger } from "../utils/logger";
 
 const Header = ({ cart, wishlist }) => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -8,7 +9,7 @@ const Header = ({ cart, wishlist }) => {
 
   const totalQuantity = useMemo(() => {
     const quantity = cart ? cart.reduce((total, cartItem) => total + cartItem.quantity, 0) : 0;
-    console.log('Header - Cart quantity calculated:', quantity);
+    logger.log('Header - Cart quantity calculated:', quantity);
     return quantity;
   }, [cart]);
 
@@ -115,9 +116,9 @@ const Header = ({ cart, wishlist }) => {
             {isAuthenticated && user ? (
               <>
                 {/* Debug logging */}
-                {console.log('Header - User data:', user)}
-                {console.log('Header - Profile picture:', user.profilePicture)}
-                {console.log('Header - Is authenticated:', isAuthenticated)}
+                {logger.log('Header - User data:', user)}
+                {logger.log('Header - Profile picture:', user.profilePicture)}
+                {logger.log('Header - Is authenticated:', isAuthenticated)}
                 {/* User Profile Dropdown */}
                 <div className="relative">
                   <button
@@ -132,7 +133,7 @@ const Header = ({ cart, wishlist }) => {
                           className="w-8 h-8 rounded-full object-cover"
                           onError={(e) => {
                             // Fallback to default icon if profile picture fails to load
-                            console.error('Profile picture failed to load:', user.profilePicture);
+                            logger.error('Profile picture failed to load:', user.profilePicture);
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'flex';
                           }}
