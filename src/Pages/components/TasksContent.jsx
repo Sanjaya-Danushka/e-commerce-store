@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, onDeleteTodo, theme }) => {
+const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, onDeleteTodo, onClearAllTasks, theme }) => {
   const [newTask, setNewTask] = useState('');
   const [priority, setPriority] = useState('medium');
   const [category, setCategory] = useState('general');
@@ -188,6 +188,17 @@ const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, onDeleteTodo, theme 
               <div className="flex justify-between items-center">
                 <span className={`${theme.textSecondary}`}>High Priority</span>
                 <span className={`text-2xl font-bold text-red-600`}>{highPriorityTasks.length}</span>
+              </div>
+              <div className="pt-4">
+                <button
+                  onClick={onClearAllTasks}
+                  className={`w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-2xl transition-all duration-200 font-semibold ${
+                    todoItems.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+                  }`}
+                  disabled={todoItems.length === 0}
+                >
+                  Clear All Tasks
+                </button>
               </div>
             </div>
           </div>

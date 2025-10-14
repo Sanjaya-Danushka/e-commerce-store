@@ -68,13 +68,31 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
-  const [todoItems, setTodoItems] = useState([
-    { id: 1, title: 'Review new product submissions', completed: false, priority: 'high', category: 'product' },
-    { id: 2, title: 'Check customer support tickets', completed: false, priority: 'medium', category: 'support' },
-    { id: 3, title: 'Update inventory levels', completed: true, priority: 'low', category: 'inventory' },
-    { id: 4, title: 'Generate monthly sales report', completed: false, priority: 'high', category: 'analytics' },
-    { id: 5, title: 'Schedule social media posts', completed: false, priority: 'medium', category: 'marketing' },
-  ]);
+  const [todoItems, setTodoItems] = useState(() => {
+    // Load tasks from localStorage or use default tasks
+    const savedTasks = localStorage.getItem('adminTasks');
+    if (savedTasks) {
+      try {
+        return JSON.parse(savedTasks);
+      } catch (error) {
+        console.error('Error parsing saved tasks:', error);
+        return [
+          { id: 1, title: 'Review new product submissions', completed: false, priority: 'high', category: 'product' },
+          { id: 2, title: 'Check customer support tickets', completed: false, priority: 'medium', category: 'support' },
+          { id: 3, title: 'Update inventory levels', completed: true, priority: 'low', category: 'inventory' },
+          { id: 4, title: 'Generate monthly sales report', completed: false, priority: 'high', category: 'analytics' },
+          { id: 5, title: 'Schedule social media posts', completed: false, priority: 'medium', category: 'marketing' },
+        ];
+      }
+    }
+    return [
+      { id: 1, title: 'Review new product submissions', completed: false, priority: 'high', category: 'product' },
+      { id: 2, title: 'Check customer support tickets', completed: false, priority: 'medium', category: 'support' },
+      { id: 3, title: 'Update inventory levels', completed: true, priority: 'low', category: 'inventory' },
+      { id: 4, title: 'Generate monthly sales report', completed: false, priority: 'high', category: 'analytics' },
+      { id: 5, title: 'Schedule social media posts', completed: false, priority: 'medium', category: 'marketing' },
+    ];
+  });
 
   // Enhanced color schemes with glass morphism
   const themes = {
@@ -274,6 +292,7 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminDarkMode');
+    localStorage.removeItem('adminTasks'); // Clear tasks on logout
     window.location.href = '/admin/login';
   };
 
@@ -294,12 +313,21 @@ const AdminDashboard = () => {
       priority,
       category
     };
-    setTodoItems([...todoItems, newTodo]);
+    setTodoItems(items => [...items, newTodo]);
   };
 
   const deleteTodo = (id) => {
     setTodoItems(items => items.filter(item => item.id !== id));
   };
+
+  const clearAllTasks = () => {
+    setTodoItems([]);
+  };
+
+  // Save tasks to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem('adminTasks', JSON.stringify(todoItems));
+  }, [todoItems]);
 
   // Render content based on active tab
   const renderContent = () => {
@@ -311,7 +339,7 @@ const AdminDashboard = () => {
       case 'calendar':
         return <CalendarContent theme={theme} isDarkMode={isDarkMode} />;
       case 'tasks':
-        return <TasksContent todoItems={todoItems} onToggleTodo={toggleTodo} onAddTodo={addTodo} onDeleteTodo={deleteTodo} theme={theme} />;
+        return <TasksContent todoItems={todoItems} onToggleTodo={toggleTodo} onAddTodo={addTodo} onDeleteTodo={deleteTodo} onClearAllTasks={clearAllTasks} theme={theme} />;
       case 'products':
         return <ProductsContent theme={theme} />;
       case 'customers':
