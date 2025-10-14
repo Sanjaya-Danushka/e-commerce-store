@@ -57,8 +57,20 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const cartItems = await CartItem.findAll();
   const userId = getUserIdFromToken(req);
+
+  // Use cart items from request body if provided, otherwise get all from database
+  let cartItems;
+  if (req.body.cartItems && req.body.cartItems.length > 0) {
+    // Convert the frontend cart items to match the database model structure
+    cartItems = req.body.cartItems.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      deliveryOptionId: item.deliveryOptionId
+    }));
+  } else {
+    cartItems = await CartItem.findAll();
+  }
 
   if (cartItems.length === 0) {
     return res.status(400).json({ error: 'Cart is empty' });
@@ -94,7 +106,18 @@ router.post('/', async (req, res) => {
     products
   });
 
-  await CartItem.destroy({ where: {} });
+  // Only clear cart items if we're processing all items from database
+  if (!req.body.cartItems) {
+    await CartItem.destroy({ where: {} });
+  } else {
+    // Remove only the specific cart items that were ordered
+    const orderedProductIds = cartItems.map(item => item.productId);
+    await CartItem.destroy({
+      where: {
+        productId: orderedProductIds
+      }
+    });
+  }
 
   res.status(201).json(order);
 });

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const CheckutPage = () => {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [cartItems, setCartItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState({});
 
   useEffect(() => {
     // Fetch cart items directly
@@ -14,6 +15,12 @@ const CheckutPage = () => {
       try {
         const response = await axios.get("/api/cart-items?expand=product");
         setCartItems(response.data);
+        // Initialize all items as selected
+        const initialSelectedItems = {};
+        response.data.forEach(item => {
+          initialSelectedItems[item.productId] = true;
+        });
+        setSelectedItems(initialSelectedItems);
       } catch (error) {
         console.error("Error fetching cart items:", error);
       }
@@ -67,6 +74,11 @@ const CheckutPage = () => {
           setCartItems(
             cartItems.filter((item) => item.productId !== productId)
           );
+          setSelectedItems(prev => {
+            const newSelectedItems = { ...prev };
+            delete newSelectedItems[productId];
+            return newSelectedItems;
+          });
         })
         .catch((error) => {
           console.error("Error deleting item:", error);
@@ -91,12 +103,50 @@ const CheckutPage = () => {
       });
   };
 
+  const handleItemSelectionChange = (productId, isSelected) => {
+    setSelectedItems(prev => ({
+      ...prev,
+      [productId]: isSelected
+    }));
+  };
+
   const handlePlaceOrder = () => {
+    const selectedCartItems = cartItems.filter(item => selectedItems[item.productId]);
+
+    if (selectedCartItems.length === 0) {
+      alert("Please select at least one item to place your order.");
+      return;
+    }
+
+    // Send only the necessary data to backend
+    const itemsToOrder = selectedCartItems.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      deliveryOptionId: item.deliveryOptionId
+    }));
+
     axios
-      .post("/api/orders", {})
+      .post("/api/orders", { cartItems: itemsToOrder })
       .then(() => {
         alert("Order placed successfully!");
-        setCartItems([]);
+        // Re-fetch cart items to get updated cart state
+        const fetchCartItems = async () => {
+          try {
+            const response = await axios.get("/api/cart-items?expand=product");
+            setCartItems(response.data);
+            // Re-initialize selected items for remaining items
+            const initialSelectedItems = {};
+            response.data.forEach(item => {
+              initialSelectedItems[item.productId] = true;
+            });
+            setSelectedItems(initialSelectedItems);
+          } catch (error) {
+            console.error("Error fetching cart items:", error);
+            setCartItems([]);
+            setSelectedItems({});
+          }
+        };
+        fetchCartItems();
         window.location.href = "/orders";
       })
       .catch((error) => {
@@ -107,13 +157,19 @@ const CheckutPage = () => {
 
   const calculateItemsCount = () => {
     if (!cartItems || cartItems.length === 0) return 0;
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return cartItems.reduce((total, item) => {
+      return selectedItems[item.productId] ? total + item.quantity : total;
+    }, 0);
   };
 
   const calculateItemsTotal = () => {
     if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce(
-      (total, item) => total + item.product.priceCents * item.quantity,
+      (total, item) => {
+        return selectedItems[item.productId]
+          ? total + item.product.priceCents * item.quantity
+          : total;
+      },
       0
     );
   };
@@ -127,6 +183,7 @@ const CheckutPage = () => {
     )
       return 0;
     return cartItems.reduce((total, item) => {
+      if (!selectedItems[item.productId]) return total;
       const deliveryOption = deliveryOptions.find(
         (opt) => opt.id === item.deliveryOptionId
       );
@@ -199,17 +256,28 @@ const CheckutPage = () => {
                   }
                 );
                 return (
-                  <div key={cartItem.productId} className="bg-white rounded-xl shadow-sm p-6">
+                  <div key={cartItem.productId} className={`bg-white rounded-xl shadow-sm p-6 ${!selectedItems[cartItem.productId] ? 'opacity-60' : ''}`}>
                     <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm font-medium text-blue-900">
-                        Delivery date:{" "}
-                        <span className="font-semibold">
-                          {selectedDeliveryOption &&
-                            calculateDeliveryDate(
-                              selectedDeliveryOption.deliveryDays
-                            ).format("dddd, MMMM D")}
-                        </span>
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-blue-900">
+                          Delivery date:{" "}
+                          <span className="font-semibold">
+                            {selectedDeliveryOption &&
+                              calculateDeliveryDate(
+                                selectedDeliveryOption.deliveryDays
+                              ).format("dddd, MMMM D")}
+                          </span>
+                        </p>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems[cartItem.productId] || false}
+                            onChange={(e) => handleItemSelectionChange(cartItem.productId, e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <span className="ml-2 text-sm font-medium text-blue-900">Buy this item</span>
+                        </label>
+                      </div>
                     </div>
 
                     <div className="flex gap-4">
@@ -255,7 +323,7 @@ const CheckutPage = () => {
                       </div>
                     </div>
 
-                    <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className={`mt-6 pt-6 border-t border-gray-200 ${!selectedItems[cartItem.productId] ? 'opacity-40 pointer-events-none' : ''}`}>
                       <h4 className="text-sm font-medium text-gray-900 mb-3">
                         Choose a delivery option:
                       </h4>
@@ -343,12 +411,12 @@ const CheckutPage = () => {
 
               <button
                 className={`w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors duration-200 ${
-                  cartItems.length === 0
+                  cartItems.length === 0 || Object.values(selectedItems).every(selected => !selected)
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700 text-white'
                 }`}
                 onClick={handlePlaceOrder}
-                disabled={cartItems.length === 0}>
+                disabled={cartItems.length === 0 || Object.values(selectedItems).every(selected => !selected)}>
                 Place your order
               </button>
             </div>
