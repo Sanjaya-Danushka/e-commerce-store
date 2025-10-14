@@ -162,7 +162,7 @@ const AdminLoginPage = () => {
                 required
                 placeholder="Enter 6-digit code"
                 maxLength="6"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-center text-2xl tracking-widest"
               />
             </div>
 
@@ -184,10 +184,10 @@ const AdminLoginPage = () => {
               <button
                 type="button"
                 onClick={sendVerificationCode}
-                className="text-blue-600 hover:text-blue-800 text-sm"
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 disabled={loading}
               >
-                Resend verification code
+                {loading ? 'Sending...' : 'Resend verification code'}
               </button>
               <br />
               <button
@@ -195,8 +195,9 @@ const AdminLoginPage = () => {
                 onClick={() => {
                   setShowVerification(false);
                   setError('');
+                  setVerificationCode('');
                 }}
-                className="text-gray-600 hover:text-gray-800 text-sm"
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium"
               >
                 Back to login
               </button>
@@ -262,6 +263,16 @@ const AdminLoginPage = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
 
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
           {/* Google Login Button */}
           <button
             type="button"
@@ -280,9 +291,8 @@ const AdminLoginPage = () => {
         </form>
 
         <div className="mt-8 p-4 bg-gray-50 rounded-lg border">
-          <p className="text-sm font-semibold text-gray-800 mb-2">Demo Credentials:</p>
-          <p className="text-sm text-gray-600">Email: admin@example.com</p>
-          <p className="text-sm text-gray-600">Password: admin123</p>
+          <p className="text-sm font-semibold text-gray-800 mb-2">Need Help?</p>
+          <p className="text-sm text-gray-600">Contact your system administrator if you need access to the admin panel.</p>
         </div>
       </div>
     </div>

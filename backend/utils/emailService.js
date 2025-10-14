@@ -25,19 +25,42 @@ export const generateVerificationCode = () => {
 // Send verification email
 export const sendVerificationEmail = async (email, verificationCode) => {
   try {
-    // For development/demo purposes, just log the verification code
+    // Create email options (currently disabled for development)
+    // eslint-disable-next-line no-unused-vars
+    const mailOptions = {
+      from: process.env.FROM_EMAIL || process.env.SMTP_USER || 'your-email@gmail.com',
+      to: email,
+      subject: 'Admin Login Verification Code',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h1 style="color: #333; text-align: center; margin-bottom: 30px;">Admin Login Verification</h1>
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              You have requested to log in to the admin panel. Please use the verification code below:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <div style="background-color: #f0f8ff; border: 2px dashed #4CAF50; padding: 20px; border-radius: 5px; display: inline-block;">
+                <h2 style="color: #4CAF50; margin: 0; font-size: 32px; letter-spacing: 3px;">${verificationCode}</h2>
+              </div>
+            </div>
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              This verification code will expire in 10 minutes for security reasons.
+            </p>
+            <p style="color: #999; font-size: 14px; margin-top: 30px;">
+              If you didn't request this verification code, please ignore this email.
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    // For development/demo purposes, log the verification code
     console.log(`=== VERIFICATION CODE FOR ${email} ===`);
     console.log(`Code: ${verificationCode}`);
     console.log(`Expires: ${new Date(Date.now() + 10 * 60 * 1000)}`);
     console.log('=====================================');
 
-    // In production, you would send actual email here
-    // const mailOptions = {
-    //   from: process.env.FROM_EMAIL || process.env.SMTP_USER || 'your-email@gmail.com',
-    //   to: email,
-    //   subject: 'Admin Login Verification Code',
-    //   html: `...`
-    // };
+    // In production, uncomment this line to actually send email
     // await transporter.sendMail(mailOptions);
 
     return { success: true };

@@ -8,24 +8,8 @@ const api = axios.create({
 
 // Add token to requests
 api.interceptors.request.use(async (config) => {
-  // For development, try to get a token first
+  // Get token from localStorage
   let token = localStorage.getItem('adminToken');
-
-  if (!token) {
-    try {
-      // Try to login automatically for development
-      logger.log('No token found, attempting auto-login...');
-      const response = await axios.post('/api/auth/admin/login', {
-        email: 'admin@example.com',
-        password: 'admin123'
-      });
-      token = response.data.token;
-      localStorage.setItem('adminToken', token);
-      logger.log('Auto-login successful, token stored');
-    } catch (error) {
-      logger.log('Auto-login failed:', error.response?.data?.error);
-    }
-  }
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

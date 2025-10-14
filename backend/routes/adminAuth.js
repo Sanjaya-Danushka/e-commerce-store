@@ -3,8 +3,145 @@ import jwt from 'jsonwebtoken';
 import process from 'process';
 import { User } from '../models/User.js';
 import { generateVerificationCode, sendVerificationEmail } from '../utils/emailService.js';
+import { OAuth2Client } from 'google-auth-library';
 
 const router = express.Router();
+
+// Initialize Google OAuth client for admin
+const adminGoogleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  `${process.env.GOOGLE_REDIRECT_URI}/admin`
+);
+
+// GET /api/auth/google - Initiate Google OAuth for admin
+router.get('/google', (req, res) => {
+  const authUrl = adminGoogleClient.generateAuthUrl({
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ],
+    state: '/admin'
+  });
+
+  res.redirect(authUrl);
+});
+
+// GET /api/auth/google/callback - Handle Google OAuth callback for admin
+router.get('/google/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    if (!code) {
+      return res.status(400).json({ error: 'Authorization code not provided' });
+    }
+
+    // Exchange authorization code for tokens
+    const axios = (await import('axios')).default;
+
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: `${process.env.GOOGLE_REDIRECT_URI}/admin`,
+      grant_type: 'authorization_code'
+    });
+
+    const tokens = tokenResponse.data;
+
+    if (!tokens || !tokens.id_token) {
+      throw new Error('No ID token received from Google');
+    }
+
+    // Set credentials for the OAuth client
+    adminGoogleClient.setCredentials(tokens);
+
+    // Get user info from Google
+    const ticket = await adminGoogleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      return res.status(400).json({ error: 'Failed to get user info from Google' });
+    }
+
+    const { sub: googleId, email, given_name: firstName, family_name: lastName, picture: profilePicture } = payload;
+
+    // Handle different profile picture field names from Google
+    const profilePictureUrl = profilePicture || payload.picture || payload.image || payload.avatar || payload.photo;
+
+    // Check if admin user exists with this Google ID
+    let adminUser = await User.findOne({
+      where: { googleId, role: 'admin' }
+    });
+
+    if (!adminUser) {
+      // Check if admin user exists with this email (for linking accounts)
+      adminUser = await User.findOne({
+        where: { email, role: 'admin' }
+      });
+
+      if (adminUser) {
+        // Link Google account to existing admin user
+        adminUser.googleId = googleId;
+        adminUser.profilePicture = profilePictureUrl || adminUser.profilePicture;
+        await adminUser.save();
+      } else {
+        // Check if regular user exists with this email - promote to admin
+        let existingUser = await User.findOne({ where: { email } });
+
+        if (existingUser) {
+          // Promote existing user to admin
+          existingUser.googleId = googleId;
+          existingUser.role = 'admin';
+          existingUser.profilePicture = profilePictureUrl || existingUser.profilePicture;
+          existingUser.isEmailVerified = true; // Google emails are verified
+          await existingUser.save();
+          adminUser = existingUser;
+        } else {
+          // Create new admin user with Google data
+          adminUser = await User.create({
+            googleId,
+            email,
+            firstName,
+            lastName,
+            profilePicture: profilePictureUrl,
+            isEmailVerified: true, // Google emails are verified
+            role: 'admin'
+          });
+        }
+      }
+    } else {
+      // Update admin user info if it has changed
+      if (firstName && adminUser.firstName !== firstName) adminUser.firstName = firstName;
+      if (lastName && adminUser.lastName !== lastName) adminUser.lastName = lastName;
+      if (profilePictureUrl && adminUser.profilePicture !== profilePictureUrl) adminUser.profilePicture = profilePictureUrl;
+      await adminUser.save();
+    }
+
+    // Generate JWT token for admin
+    const token = jwt.sign(
+      {
+        id: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role
+      },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    // Redirect to admin panel with token
+    res.redirect(`http://localhost:5173/admin?token=${token}`);
+
+  } catch (error) {
+    console.error('Admin Google OAuth error:', error);
+    res.redirect('http://localhost:5173/admin/login?error=google_auth_failed');
+  }
+});
 
 // Test route
 router.get('/test', (req, res) => {
