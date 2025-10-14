@@ -61,7 +61,7 @@ export const sendVerificationEmail = async (email, verificationCode) => {
     console.log('=====================================');
 
     // In production, uncomment this line to actually send email
-    // await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
     return { success: true };
   } catch (error) {
