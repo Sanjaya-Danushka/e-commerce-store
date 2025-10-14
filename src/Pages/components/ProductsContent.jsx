@@ -20,6 +20,18 @@ const ProductsContent = ({ theme }) => {
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm !== undefined) {
+        setCurrentPage(1);
+        fetchProducts(1, searchTerm);
+      }
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
   // Fetch products
   const fetchProducts = useCallback(async (page = 1, search = '') => {
     try {
@@ -80,15 +92,19 @@ const ProductsContent = ({ theme }) => {
 
     console.log('Fetching products...');
     fetchProducts(currentPage, searchTerm);
-  }, [currentPage, searchTerm, fetchProducts]);
+  }, [currentPage, fetchProducts]); // Removed searchTerm from dependencies since it's handled by debounced effect
 
-  // Handle search
-  const handleSearch = (e) => {
+  // Handle search input
+  const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
   };
 
-  // Handle form input changes
+  // Handle search button click (for explicit search)
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchProducts(1, searchTerm);
+  };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -283,21 +299,21 @@ const ProductsContent = ({ theme }) => {
 
       {/* Search Bar */}
       <div className={`${theme.card} ${theme.border} rounded-3xl p-6 ${theme.shadow}`}>
-        <div className="flex gap-4">
+        <form onSubmit={handleSearchSubmit} className="flex gap-4">
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search products by name, category, or keywords..."
             value={searchTerm}
-            onChange={handleSearch}
+            onChange={handleSearchChange}
             className={`flex-1 ${theme.input} rounded-lg px-4 py-3 text-lg`}
           />
           <button
-            onClick={() => fetchProducts(currentPage, searchTerm)}
-            className={`${theme.button} px-6 py-3 text-white rounded-lg font-semibold`}
+            type="submit"
+            className={`${theme.button} px-6 py-3 text-white rounded-lg font-semibold hover:scale-105 transition-all duration-200`}
           >
             🔍 Search
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Products Table */}

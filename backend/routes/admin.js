@@ -225,12 +225,34 @@ router.get('/products', async (req, res) => {
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
 
+    console.log('Products search query:', {
+      page,
+      limit,
+      search: search || ''
+    });
+
     let whereClause = {};
-    if (search) {
+    if (search && search.trim()) {
+      const searchTerm = search.trim().toLowerCase();
+
       whereClause = {
         [Op.or]: [
-          { name: { [Op.iLike]: `%${search}%` } },
-          { keywords: { [Op.iLike]: `%${search}%` } }
+          // Search in product name (case-insensitive using LIKE)
+          sequelize.where(
+            sequelize.fn('lower', sequelize.col('name')),
+            { [Op.like]: `%${searchTerm}%` }
+          ),
+          // Search in category (case-insensitive using LIKE)
+          sequelize.where(
+            sequelize.fn('lower', sequelize.col('category')),
+            { [Op.like]: `%${searchTerm}%` }
+          ),
+          // Search in keywords array - find arrays that contain the search term
+          {
+            keywords: {
+              [Op.like]: `%${searchTerm}%`
+            }
+          }
         ]
       };
     }
@@ -241,6 +263,8 @@ router.get('/products', async (req, res) => {
       offset,
       order: [['createdAt', 'DESC']]
     });
+
+    console.log(`Found ${products.length} products out of ${count} total`);
 
     res.json({
       products,
