@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '../utils/logger';
 
 // Create axios instance with auth headers
 const api = axios.create({
@@ -13,24 +14,24 @@ api.interceptors.request.use(async (config) => {
   if (!token) {
     try {
       // Try to login automatically for development
-      console.log('No token found, attempting auto-login...');
+      logger.log('No token found, attempting auto-login...');
       const response = await axios.post('/api/auth/admin/login', {
         username: 'admin',
         password: 'admin123'
       });
       token = response.data.token;
       localStorage.setItem('adminToken', token);
-      console.log('Auto-login successful, token stored');
+      logger.log('Auto-login successful, token stored');
     } catch (error) {
-      console.log('Auto-login failed:', error.response?.data?.error);
+      logger.log('Auto-login failed:', error.response?.data?.error);
     }
   }
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log('Using token for request to:', config.url);
+    logger.log('Using token for request to:', config.url);
   } else {
-    console.log('No token available for request to:', config.url);
+    logger.log('No token available for request to:', config.url);
   }
   return config;
 });
@@ -63,7 +64,7 @@ const adminAPI = {
     const formData = new FormData();
     formData.append('image', file);
 
-    console.log('Uploading image with automatic token handling');
+    logger.log('Uploading image with automatic token handling');
 
     return api.post('/admin/upload', formData);
   },

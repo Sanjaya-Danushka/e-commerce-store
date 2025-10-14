@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { logger } from '../utils/logger';
 
 const AuthContext = createContext();
 
@@ -32,21 +33,21 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
       const error = urlParams.get('error');
 
       if (error) {
-        console.error('OAuth error:', error);
+        logger.error('OAuth error:', error);
         window.history.replaceState({}, document.title, window.location.pathname);
         setLoading(false);
         return;
       }
 
       if (urlToken && urlToken !== storedToken) {
-        console.log('Processing OAuth callback token:', urlToken.substring(0, 20) + '...');
+        logger.log('Processing OAuth callback token:', urlToken.substring(0, 20) + '...');
         localStorage.setItem('authToken', urlToken);
         setToken(urlToken);
         axios.defaults.headers.common['Authorization'] = `Bearer ${urlToken}`;
         window.history.replaceState({}, document.title, window.location.pathname);
 
         try {
-          console.log('Fetching user profile with OAuth token...');
+          logger.log('Fetching user profile with OAuth token...');
           const axiosInstance = (await import('axios')).default.create({
             baseURL: 'http://localhost:3000',
             headers: {
@@ -55,28 +56,28 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
             }
           });
           const response = await axiosInstance.get('/api/auth/profile');
-          console.log('OAuth user profile fetched successfully:', response.data.user);
-          console.log('Profile picture URL:', response.data.user.profilePicture);
+          logger.log('OAuth user profile fetched successfully:', response.data.user);
+          logger.log('Profile picture URL:', response.data.user.profilePicture);
           setUser(response.data.user);
         } catch (error) {
-          console.error('OAuth token verification failed:', error.response?.data || error.message);
+          logger.error('OAuth token verification failed:', error.response?.data || error.message);
           localStorage.removeItem('authToken');
           setToken(null);
           delete axios.defaults.headers.common['Authorization'];
           setUser(null);
         }
       } else if (storedToken) {
-        console.log('Checking existing token:', storedToken.substring(0, 20) + '...');
+        logger.log('Checking existing token:', storedToken.substring(0, 20) + '...');
         try {
           // Ensure axios has the correct authorization header
           axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           const response = await axios.get('/api/auth/profile');
-          console.log('Token verification successful for user:', response.data.user.email);
-          console.log('Profile picture URL:', response.data.user.profilePicture);
+          logger.log('Token verification successful for user:', response.data.user.email);
+          logger.log('Profile picture URL:', response.data.user.profilePicture);
           setUser(response.data.user);
           setToken(storedToken);
         } catch (error) {
-          console.error('Token verification failed:', error.response?.data || error.message);
+          logger.error('Token verification failed:', error.response?.data || error.message);
           localStorage.removeItem('authToken');
           setToken(null);
           delete axios.defaults.headers.common['Authorization'];
@@ -91,11 +92,11 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
 
   const login = async (email, password) => {
     try {
-      console.log('Attempting login for:', email);
+      logger.log('Attempting login for:', email);
       const response = await axios.post('/api/auth/login', { email, password });
       const { token: newToken, user: userData } = response.data;
 
-      console.log('Login successful, setting user:', userData.email);
+      logger.log('Login successful, setting user:', userData.email);
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('authToken', newToken);

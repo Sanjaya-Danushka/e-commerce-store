@@ -35,6 +35,7 @@ import ProfileCompletionModal from "./components/ProfileCompletionModal";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Routes, Route } from "react-router-dom";
 import { useMemo } from "react";
+import { logger } from "./utils/logger";
 
 // AppContent handles the main app layout and data management
 const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlist, updateWishlist }) => {
@@ -49,7 +50,7 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
       const unique = combined.filter((item, index, self) =>
         index === self.findIndex(i => i.productId === item.productId)
       );
-      console.log('Combined wishlist:', {
+      logger.log('Combined wishlist:', {
         userItems: wishlist.length,
         guestItems: guestWishlist.length,
         totalUnique: unique.length,
@@ -58,20 +59,20 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
       return unique;
     } else {
       // Guest user - only show guest wishlist
-      console.log('Guest wishlist:', guestWishlist.length, 'items');
+      logger.log('Guest wishlist:', guestWishlist.length, 'items');
       return guestWishlist;
     }
   }, [wishlist, guestWishlist, isAuthenticated]);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    console.log('AppContent: Auth state check - user:', !!user, 'needsProfileCompletion:', needsProfileCompletion(), 'isAuthenticated:', isAuthenticated);
+    logger.log('AppContent: Auth state check - user:', !!user, 'needsProfileCompletion:', needsProfileCompletion(), 'isAuthenticated:', isAuthenticated);
 
     // Show profile completion modal after 1 second delay for new users who need to complete their profile
     if (needsProfileCompletion() && user && !user.profileCompleted && isAuthenticated) {
-      console.log('AppContent: Scheduling profile modal to appear in 1 second');
+      logger.log('AppContent: Scheduling profile modal to appear in 1 second');
       const timer = setTimeout(() => {
-        console.log('AppContent: Showing profile modal after delay');
+        logger.log('AppContent: Showing profile modal after delay');
         setShowProfileModal(true);
       }, 1000); // 1 second delay
 
@@ -80,7 +81,7 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
   }, [needsProfileCompletion, user, isAuthenticated]);
 
   const handleProfileComplete = () => {
-    console.log('AppContent: Profile completed, closing modal');
+    logger.log('AppContent: Profile completed, closing modal');
     setShowProfileModal(false);
     // Profile is now completed, user can continue using the site
   };
@@ -148,9 +149,9 @@ const App = () => {
     try {
       const response = await axios.get('/api/cart-items?expand=product');
       setCart(response.data);
-      console.log('Cart fetched:', response.data);
+      logger.log('Cart fetched:', response.data);
     } catch (error) {
-      console.error('Error fetching cart:', error);
+      logger.error('Error fetching cart:', error);
       setCart([]);
     }
   }, []);
@@ -169,9 +170,9 @@ const App = () => {
         product: item.product
       }));
       setWishlist(wishlistItems);
-      console.log('Wishlist fetched:', wishlistItems);
+      logger.log('Wishlist fetched:', wishlistItems);
     } catch (error) {
-      console.error('Error fetching wishlist:', error);
+      logger.error('Error fetching wishlist:', error);
       setWishlist([]);
     }
   }, []);
@@ -179,26 +180,26 @@ const App = () => {
   // Refresh cart after adding/removing items (only for authenticated users)
   const refreshCart = useCallback(() => {
     if (localStorage.getItem('authToken')) {
-      console.log('Refreshing cart...');
+      logger.log('Refreshing cart...');
       fetchCart();
     } else {
-      console.log('Guest user - no cart to refresh');
+      logger.log('Guest user - no cart to refresh');
     }
   }, [fetchCart]);
 
   // Refresh wishlist (only for authenticated users)
   const refreshWishlist = useCallback(() => {
     if (localStorage.getItem('authToken')) {
-      console.log('Refreshing wishlist...');
+      logger.log('Refreshing wishlist...');
       fetchWishlist();
     } else {
-      console.log('Guest user - no wishlist to refresh');
+      logger.log('Guest user - no wishlist to refresh');
     }
   }, [fetchWishlist]);
 
   // Update wishlist (handles both guest and authenticated users)
   const updateWishlist = useCallback((newWishlist) => {
-    console.log('updateWishlist called with:', newWishlist?.length || 0, 'items');
+    logger.log('updateWishlist called with:', newWishlist?.length || 0, 'items');
 
     if (localStorage.getItem('authToken')) {
       // For authenticated users, update the combined state
@@ -207,18 +208,18 @@ const App = () => {
 
       // Also update guestWishlist state to trigger combinedWishlist recalculation
       setGuestWishlist(newWishlist);
-      console.log('Updated both wishlist and guestWishlist state for authenticated user');
+      logger.log('Updated both wishlist and guestWishlist state for authenticated user');
     } else {
       // For guest users, save to localStorage and update state
       localStorage.setItem('guestWishlist', JSON.stringify(newWishlist));
       setGuestWishlist(newWishlist);
-      console.log('Updated guestWishlist state');
+      logger.log('Updated guestWishlist state');
     }
   }, []);
 
   // Handle user login - fetch user's cart and wishlist data and show combined wishlist
   const handleUserLogin = useCallback(async (userData) => {
-    console.log('User logged in, fetching user data for:', userData.email);
+    logger.log('User logged in, fetching user data for:', userData.email);
 
     try {
       // Fetch user's existing data from API
@@ -230,22 +231,22 @@ const App = () => {
         try {
           const guestItems = JSON.parse(guestWishlistData);
           setGuestWishlist(guestItems);
-          console.log('Loaded guest wishlist for display:', guestItems.length, 'items');
+          logger.log('Loaded guest wishlist for display:', guestItems.length, 'items');
         } catch (error) {
-          console.error('Error parsing guest wishlist:', error);
+          logger.error('Error parsing guest wishlist:', error);
           setGuestWishlist([]);
         }
       }
 
-      console.log('Login complete - showing combined wishlist');
+      logger.log('Login complete - showing combined wishlist');
     } catch (error) {
-      console.error('Error during login data sync:', error);
+      logger.error('Error during login data sync:', error);
     }
   }, [fetchCart, fetchWishlist]);
 
   // Handle user logout - clear user's cart and wishlist data but keep guest data separate
   const handleUserLogout = useCallback(() => {
-    console.log('User logged out, clearing user data but keeping guest wishlist');
+    logger.log('User logged out, clearing user data but keeping guest wishlist');
     setCart([]);
     setWishlist([]);
     // Clear auth token to ensure proper logout
@@ -276,14 +277,14 @@ const App = () => {
       if (guestWishlist) {
         try {
           const wishlistData = JSON.parse(guestWishlist);
-          console.log('Parsed guest wishlist:', wishlistData);
+          logger.log('Parsed guest wishlist:', wishlistData);
           setGuestWishlist(wishlistData);
         } catch (error) {
-          console.error('Error parsing guest wishlist:', error);
+          logger.error('Error parsing guest wishlist:', error);
           setGuestWishlist([]);
         }
       } else {
-        console.log('No guest wishlist found');
+        logger.log('No guest wishlist found');
         setGuestWishlist([]);
       }
     };

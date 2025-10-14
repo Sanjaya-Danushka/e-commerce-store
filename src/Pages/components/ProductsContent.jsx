@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import adminAPI from '../../services/adminAPI';
+import { logger } from '../../utils/logger';
 
 const ProductsContent = ({ theme }) => {
   const [products, setProducts] = useState([]);
@@ -36,7 +37,7 @@ const ProductsContent = ({ theme }) => {
   const fetchProducts = useCallback(async (page = 1, search = '') => {
     try {
       setLoading(true);
-      console.log('Calling adminAPI.getProducts with params:', { page, limit: 10, search });
+      logger.log('Calling adminAPI.getProducts with params:', { page, limit: 10, search });
 
       const response = await adminAPI.getProducts({
         page,
@@ -44,23 +45,23 @@ const ProductsContent = ({ theme }) => {
         search
       });
 
-      console.log('Products API response received');
+      logger.log('Products API response received');
 
       if (response && response.data && response.data.products) {
-        console.log('Setting products:', response.data.products.length, 'products');
+        logger.log('Setting products:', response.data.products.length, 'products');
         setProducts(response.data.products || []);
         setTotalPages(response.data.pagination?.pages || 1);
         setCurrentPage(page);
       } else {
-        console.log('No products in response data');
+        logger.log('No products in response data');
         setProducts([]);
         setTotalPages(1);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
-      console.error('Error response:', error.response);
+      logger.error('Error fetching products:', error);
+      logger.error('Error response:', error.response);
       if (error.response?.status === 401) {
-        console.log('401 error - redirecting to admin page');
+        logger.log('401 error - redirecting to admin page');
         // Redirect to login if not authenticated
         window.location.href = '/admin';
         return;
@@ -68,7 +69,7 @@ const ProductsContent = ({ theme }) => {
       // If we get any other error, try again after a short delay (in case token is being set)
       const currentToken = localStorage.getItem('adminToken');
       if (!currentToken) {
-        console.log('No token and error occurred, waiting and retrying...');
+        logger.log('No token and error occurred, waiting and retrying...');
         setTimeout(() => {
           fetchProducts(page, search);
         }, 1000);
@@ -82,15 +83,15 @@ const ProductsContent = ({ theme }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    console.log('Admin token in ProductsContent:', token ? 'Present' : 'Missing');
+    logger.log('Admin token in ProductsContent: Present');
 
     if (!token) {
-      console.log('No admin token found, redirecting to admin page');
+      logger.log('No admin token found, redirecting to admin page');
       window.location.href = '/admin';
       return;
     }
 
-    console.log('Fetching products...');
+    logger.log('Fetching products...');
     fetchProducts(currentPage, searchTerm);
   }, [currentPage, fetchProducts]); // Removed searchTerm from dependencies since it's handled by debounced effect
 
@@ -117,7 +118,7 @@ const ProductsContent = ({ theme }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+      logger.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
@@ -150,20 +151,20 @@ const ProductsContent = ({ theme }) => {
 
     try {
       setUploading(true);
-      console.log('Starting image upload for file:', imageFile.name, 'Size:', imageFile.size);
+      logger.log('Starting image upload for file:', imageFile.name, 'Size:', imageFile.size);
 
       const response = await adminAPI.uploadImage(imageFile);
-      console.log('Upload response:', response);
-      console.log('Upload response data:', response.data);
+      logger.log('Upload response:', response);
+      logger.log('Upload response data:', response.data);
 
       // The response structure is: { data: { imagePath: '...', ... }, status: 200, ... }
       const imagePath = response.data?.imagePath;
-      console.log('Extracted imagePath:', imagePath);
+      logger.log('Extracted imagePath:', imagePath);
 
       return imagePath;
     } catch (error) {
-      console.error('Error uploading image:', error);
-      console.error('Error response:', error.response?.data);
+      logger.error('Error uploading image:', error);
+      logger.error('Error response:', error.response?.data);
       alert('Failed to upload image: ' + (error.response?.data?.error || error.message));
       return null;
     } finally {
@@ -232,7 +233,7 @@ const ProductsContent = ({ theme }) => {
       setImageFile(null);
       fetchProducts(currentPage, searchTerm);
     } catch (error) {
-      console.error('Error saving product:', error);
+      logger.error('Error saving product:', error);
       alert('Failed to save product');
     }
   };
@@ -259,7 +260,7 @@ const ProductsContent = ({ theme }) => {
         await adminAPI.deleteProduct(id);
         fetchProducts(currentPage, searchTerm);
       } catch (error) {
-        console.error('Error deleting product:', error);
+        logger.error('Error deleting product:', error);
         alert('Failed to delete product');
       }
     }
