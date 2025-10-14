@@ -27,6 +27,11 @@ export const Order = sequelize.define('Order', {
     type: DataTypes.JSON,
     allowNull: false
   },
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'pending',
+    allowNull: false
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },
@@ -38,3 +43,19 @@ export const Order = sequelize.define('Order', {
     order: [['createdAt', 'ASC']]
   }
 });
+
+// Import User for associations
+import User from './User.js';
+
+// Associations
+Order.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user'
+});
+
+User.hasMany(Order, {
+  foreignKey: 'userId',
+  as: 'orders'
+});
+
+export default Order;

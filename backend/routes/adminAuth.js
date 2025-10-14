@@ -34,7 +34,7 @@ router.post('/login', async (req, res) => {
         role: 'admin'
       },
       // eslint-disable-next-line no-undef
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '24h' }
     );
 
