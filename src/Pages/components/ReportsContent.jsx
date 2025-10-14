@@ -463,7 +463,7 @@ const CustomersTab = ({ data, theme, formatCurrency, formatNumber }) => (
     {/* Top Customers Table */}
     <div className={`${theme.card} ${theme.border} rounded-xl p-6 ${theme.shadow}`}>
       <h3 className={`text-xl font-bold ${theme.text} mb-6`}>Top Customers</h3>
-      <div className="overflow-x-auto">
+      <div className="overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className={`${theme.border} border-b`}>

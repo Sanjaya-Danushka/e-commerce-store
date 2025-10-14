@@ -115,7 +115,7 @@ const AdminsContent = ({ theme }) => {
         <>
           {/* Admins Table */}
           <div className={`${theme.card} ${theme.border} rounded-3xl ${theme.shadow} overflow-hidden`}>
-            <div className="overflow-x-auto">
+            <div className="overflow-hidden">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50/50">
                   <tr>
@@ -144,15 +144,23 @@ const AdminsContent = ({ theme }) => {
                     <tr key={admin.id} className={`hover:bg-slate-50/30 transition-colors duration-200`}>
                       <td className="px-8 py-6 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-14 w-14">
+                          <div className="flex-shrink-0 h-14 w-14 relative">
                             <img
-                              className="h-14 w-14 rounded-full object-cover border-2 border-slate-200"
-                              src={admin.profilePicture || '/images/icons/user-placeholder.png'}
+                              className="h-14 w-14 rounded-full object-cover border-2 border-slate-200 transition-opacity duration-300"
+                              src={admin.profilePicture || '/images/mobile-logo.png'}
                               alt={`${admin.firstName} ${admin.lastName}`}
                               onError={(e) => {
-                                e.target.src = '/images/icons/user-placeholder.png';
+                                e.target.style.opacity = '0';
                               }}
+                              loading="lazy"
                             />
+                            <div
+                              className={`absolute inset-0 h-14 w-14 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg border-2 border-slate-200 transition-opacity duration-300 ${
+                                admin.profilePicture ? 'opacity-0' : 'opacity-100'
+                              }`}
+                            >
+                              {(admin.firstName?.[0] || admin.lastName?.[0] || admin.email?.[0] || '?').toUpperCase()}
+                            </div>
                           </div>
                           <div className="ml-5">
                             <div className={`text-base font-semibold ${theme.text}`}>

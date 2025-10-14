@@ -292,7 +292,7 @@ const AdminDashboard = () => {
   return (
     <div className={`min-h-screen ${theme.background} transition-all duration-700`}>
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-80 ${theme.sidebar} ${theme.shadow} z-50`}>
+      <div className={`fixed left-0 top-0 h-full w-80 ${theme.sidebar} ${theme.shadow} z-50 overflow-y-auto`}>
         <div className="flex flex-col h-full p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-12">
@@ -323,7 +323,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-2">
+          <nav className="flex-1 space-y-2 min-h-0 overflow-y-auto">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -351,7 +351,7 @@ const AdminDashboard = () => {
           </nav>
 
           {/* Footer */}
-          <div className={`${theme.border} border-t pt-8`}>
+          <div className={`${theme.border} border-t pt-8 mt-8`}>
             <button
               onClick={handleLogout}
               className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl text-left transition-all duration-300 ${theme.hover} text-red-500 hover:scale-102`}

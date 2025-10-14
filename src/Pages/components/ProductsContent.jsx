@@ -329,7 +329,7 @@ const ProductsContent = ({ theme }) => {
             <p className={`${theme.textSecondary} text-lg`}>No products found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-hidden">
             <table className="w-full">
               <thead className={`${theme.background} ${theme.border} border-b`}>
                 <tr>
