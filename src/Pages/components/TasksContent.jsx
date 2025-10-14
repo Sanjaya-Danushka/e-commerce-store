@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, theme }) => {
+const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, onDeleteTodo, theme }) => {
   const [newTask, setNewTask] = useState('');
   const [priority, setPriority] = useState('medium');
   const [category, setCategory] = useState('general');
@@ -91,6 +91,13 @@ const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, theme }) => {
                       <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
                         {item.category}
                       </span>
+                      <button
+                        onClick={() => onDeleteTodo(item.id)}
+                        className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200"
+                        title="Delete task"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -115,6 +122,13 @@ const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, theme }) => {
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">
                         {item.category}
                       </span>
+                      <button
+                        onClick={() => onDeleteTodo(item.id)}
+                        className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200"
+                        title="Delete task"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -139,6 +153,13 @@ const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, theme }) => {
                       <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                         {item.category}
                       </span>
+                      <button
+                        onClick={() => onDeleteTodo(item.id)}
+                        className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200"
+                        title="Delete task"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -178,9 +199,18 @@ const TasksContent = ({ todoItems, onToggleTodo, onAddTodo, theme }) => {
               </h3>
               <div className="space-y-3">
                 {completedTasks.slice(0, 4).map((item) => (
-                  <div key={item.id} className={`flex items-center space-x-3 text-sm ${theme.textSecondary}`}>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="line-through">{item.title}</span>
+                  <div key={item.id} className={`flex items-center justify-between text-sm ${theme.textSecondary}`}>
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="line-through flex-1">{item.title}</span>
+                    </div>
+                    <button
+                      onClick={() => onDeleteTodo(item.id)}
+                      className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 opacity-60 hover:opacity-100"
+                      title="Delete completed task"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>

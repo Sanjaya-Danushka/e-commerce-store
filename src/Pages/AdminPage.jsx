@@ -297,6 +297,10 @@ const AdminDashboard = () => {
     setTodoItems([...todoItems, newTodo]);
   };
 
+  const deleteTodo = (id) => {
+    setTodoItems(items => items.filter(item => item.id !== id));
+  };
+
   // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
@@ -307,7 +311,7 @@ const AdminDashboard = () => {
       case 'calendar':
         return <CalendarContent theme={theme} isDarkMode={isDarkMode} />;
       case 'tasks':
-        return <TasksContent todoItems={todoItems} onToggleTodo={toggleTodo} onAddTodo={addTodo} theme={theme} />;
+        return <TasksContent todoItems={todoItems} onToggleTodo={toggleTodo} onAddTodo={addTodo} onDeleteTodo={deleteTodo} theme={theme} />;
       case 'products':
         return <ProductsContent theme={theme} />;
       case 'customers':
