@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import Header from "../components/Header";
 import OrderContainer from "../components/OrderContainer";
@@ -9,6 +9,90 @@ const OrdersPage = ({ cart, refreshCart }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const previousOrdersRef = useRef([]);
+  const [notifications, setNotifications] = useState([]);
+  const showNotification = useCallback((message, type = 'info') => {
+    const notification = {
+      id: Date.now(),
+      message,
+      type,
+      timestamp: new Date()
+    };
+
+    setNotifications(prev => [...prev, notification]);
+
+    // Auto-remove notification after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    }, 5000);
+  }, []);
+
+  const fetchOrders = useCallback(async (showLoading = true) => {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      // Add cache-busting timestamp to ensure fresh data
+      const response = await axios.get(`/api/orders?expand=products&_t=${Date.now()}`);
+      const newOrders = response.data;
+
+      // Check if any order statuses have changed
+      if (previousOrdersRef.current.length > 0 && newOrders.length > 0) {
+        const statusChanged = newOrders.some((newOrder, index) => {
+          const prevOrder = previousOrdersRef.current[index];
+          return prevOrder && prevOrder.status !== newOrder.status;
+        });
+
+        if (statusChanged) {
+          console.log('Order status changed, updating display');
+
+          // Find which orders changed and show notifications
+          newOrders.forEach((newOrder, index) => {
+            const prevOrder = previousOrdersRef.current[index];
+            if (prevOrder && prevOrder.status !== newOrder.status) {
+              let message = '';
+              switch (newOrder.status) {
+                case 'processing':
+                  message = `Order #${newOrder.id.slice(-8)} is now being processed!`;
+                  break;
+                case 'shipped':
+                  message = `Order #${newOrder.id.slice(-8)} has been shipped! 📦`;
+                  break;
+                case 'delivered':
+                  message = `Order #${newOrder.id.slice(-8)} has been delivered! ✅`;
+                  break;
+                case 'cancelled':
+                  message = `Order #${newOrder.id.slice(-8)} has been cancelled.`;
+                  break;
+                default:
+                  message = `Order #${newOrder.id.slice(-8)} status updated to ${newOrder.status}`;
+              }
+              showNotification(message, 'success');
+            }
+          });
+        }
+      }
+
+      // Use functional update to prevent unnecessary re-renders
+      setOrders(prevOrders => {
+        // Only update if orders actually changed
+        if (JSON.stringify(prevOrders) !== JSON.stringify(newOrders)) {
+          return newOrders;
+        }
+        return prevOrders;
+      });
+
+      previousOrdersRef.current = newOrders;
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      // Don't update orders on error to prevent flickering
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  }, [showNotification]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -16,23 +100,9 @@ const OrdersPage = ({ cart, refreshCart }) => {
     setRefreshing(false);
   };
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      // Add cache-busting timestamp to ensure fresh data
-      const response = await axios.get(`/api/orders?expand=products&_t=${Date.now()}`);
-      setOrders(response.data);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   // Refresh orders when user logs in
   useEffect(() => {
@@ -40,21 +110,37 @@ const OrdersPage = ({ cart, refreshCart }) => {
       console.log('User authenticated, refreshing orders for:', user.email);
       fetchOrders();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, fetchOrders]);
 
   // Add periodic refresh to catch status updates from admin panel
   useEffect(() => {
     if (isAuthenticated && user) {
       const interval = setInterval(() => {
-        // Add cache-busting timestamp for fresh data
-        axios.get(`/api/orders?expand=products&_t=${Date.now()}`)
-          .then(response => {
-            setOrders(response.data);
-          })
-          .catch(error => {
-            console.error("Error refreshing orders:", error);
-          });
-      }, 30000); // Refresh every 30 seconds
+        // Only refresh if page is visible to avoid unnecessary API calls
+        if (document.visibilityState === 'visible') {
+          axios.get(`/api/orders?expand=products&_t=${Date.now()}`)
+            .then(response => {
+              const newOrders = response.data;
+
+              // Check if any order statuses have changed (silent update)
+              if (previousOrdersRef.current.length > 0 && newOrders.length > 0) {
+                const statusChanged = newOrders.some((newOrder, index) => {
+                  const prevOrder = previousOrdersRef.current[index];
+                  return prevOrder && prevOrder.status !== newOrder.status;
+                });
+
+                if (statusChanged) {
+                  // Update orders silently (no loading state)
+                  setOrders(newOrders);
+                  previousOrdersRef.current = newOrders;
+                }
+              }
+            })
+            .catch(error => {
+              console.error("Error refreshing orders:", error);
+            });
+        }
+      }, 60000); // Refresh every 60 seconds (reduced frequency)
 
       return () => clearInterval(interval);
     }
@@ -145,6 +231,34 @@ const OrdersPage = ({ cart, refreshCart }) => {
             )}
           </button>
         </div>
+
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <div className="mb-6 space-y-2">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 rounded-lg border-l-4 ${
+                  notification.type === 'success'
+                    ? 'bg-green-50 border-green-400 text-green-700'
+                    : 'bg-blue-50 border-blue-400 text-blue-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">{notification.message}</p>
+                  <button
+                    onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-6">
           {loading ? (
