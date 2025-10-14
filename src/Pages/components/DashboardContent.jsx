@@ -249,20 +249,61 @@ const DashboardContent = ({ stats, loading, todoItems, onToggleTodo, theme, onAd
               data={{
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 datasets: [{
-                  data: [12000, 19000, 15000, 25000, 22000, 30000],
+                  label: 'Revenue ($)',
+                  data: [
+                    Math.floor((stats.totalRevenue || 0) * 0.3 / 100), // Jan
+                    Math.floor((stats.totalRevenue || 0) * 0.5 / 100), // Feb
+                    Math.floor((stats.totalRevenue || 0) * 0.4 / 100), // Mar
+                    Math.floor((stats.totalRevenue || 0) * 0.8 / 100), // Apr
+                    Math.floor((stats.totalRevenue || 0) * 0.7 / 100), // May
+                    Math.floor((stats.totalRevenue || 0) / 100)         // Jun (current)
+                  ],
                   borderColor: 'rgba(59, 130, 246, 1)',
                   backgroundColor: 'rgba(59, 130, 246, 0.1)',
                   tension: 0.4,
                   fill: true,
+                  pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                  pointBorderColor: '#fff',
+                  pointBorderWidth: 2,
+                  pointRadius: 4,
+                  pointHoverRadius: 8,
                 }]
               }}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return `$${context.parsed.y.toFixed(2)}`;
+                      }
+                    }
+                  }
+                },
                 scales: {
-                  x: { display: false },
-                  y: { display: false },
+                  x: {
+                    display: true,
+                    grid: { display: false },
+                    ticks: { color: theme.textSecondary, font: { size: 12 } }
+                  },
+                  y: {
+                    display: true,
+                    grid: { color: theme.border.replace('border-', 'rgba(148, 163, 184, 0.1)') },
+                    ticks: {
+                      color: theme.textSecondary,
+                      font: { size: 12 },
+                      callback: function(value) {
+                        return `$${value}`;
+                      }
+                    }
+                  },
+                },
+                elements: {
+                  point: {
+                    hoverRadius: 8,
+                  }
                 }
               }}
             />
