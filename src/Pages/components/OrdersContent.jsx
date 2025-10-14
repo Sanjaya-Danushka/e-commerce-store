@@ -10,7 +10,6 @@ const OrdersContent = ({ theme }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [searchTimeout, setSearchTimeout] = useState(null);
   const [orderStats, setOrderStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -93,24 +92,16 @@ const OrdersContent = ({ theme }) => {
     fetchOrderStats();
   }, [currentPage, searchTerm, statusFilter, fetchOrders, fetchOrderStats]);
 
-  // Handle search with debouncing for better UX
+  // Handle search - immediate execution for better UX
   const handleSearch = (e) => {
     const value = e.target.value;
     console.log('🔍 Search input changed:', value);
     setSearchTerm(value);
+    setCurrentPage(1);
 
-    // Debounce search to avoid too many API calls
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-
-    const timeout = setTimeout(() => {
-      console.log('🚀 Executing search for:', value);
-      setCurrentPage(1);
-      fetchOrders(1, value, statusFilter);
-    }, 500);
-
-    setSearchTimeout(timeout);
+    // Execute search immediately for better user experience
+    console.log('🚀 Executing search for:', value);
+    fetchOrders(1, value, statusFilter);
   };
 
   // Handle status filter

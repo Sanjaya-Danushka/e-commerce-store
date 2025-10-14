@@ -370,28 +370,82 @@ router.delete('/products/:id', async (req, res) => {
 // GET /api/admin/orders - Get all orders with pagination and filters
 router.get('/orders', async (req, res) => {
   try {
-    console.log('Fetching orders...');
+    console.log('Fetching orders with params:', req.query);
 
-    // Simple query without any complex filtering
-    const orders = await Order.findAll({
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+    const status = req.query.status || '';
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder || 'DESC';
+
+    // Build where clause for status filtering
+    let whereClause = {};
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    // Build order clause
+    let orderClause = [[sortBy, sortOrder]];
+    if (sortBy === 'orderTimeMs') {
+      orderClause = [['orderTimeMs', sortOrder]];
+    }
+
+    console.log('Where clause:', whereClause);
+    console.log('Order clause:', orderClause);
+
+    const { count, rows: orders } = await Order.findAndCountAll({
+      where: whereClause,
       include: [{
         model: User,
         as: 'user',
-        attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode', 'country']
+        attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode', 'country'],
+        required: false
       }],
-      limit: 10,
-      order: [['createdAt', 'DESC']]
+      limit,
+      offset,
+      order: orderClause
     });
 
-    console.log('Orders found:', orders?.length);
+    // Filter by search terms if provided
+    let filteredOrders = orders;
+    if (search && search.trim()) {
+      try {
+        filteredOrders = orders.filter(order => {
+          const user = order.user;
+          const searchLower = search.toLowerCase();
+
+          // Search in order ID
+          if (order.id.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+
+          // Search in user fields if user exists
+          if (user) {
+            if (user.firstName?.toLowerCase().includes(searchLower)) return true;
+            if (user.lastName?.toLowerCase().includes(searchLower)) return true;
+            if (user.email?.toLowerCase().includes(searchLower)) return true;
+          }
+
+          return false;
+        });
+      } catch (filterError) {
+        console.error('Error filtering orders:', filterError);
+        filteredOrders = orders; // Fallback to unfiltered results
+      }
+    }
+
+    console.log('Orders found:', filteredOrders?.length, 'Total count:', count);
 
     res.json({
-      orders,
+      orders: filteredOrders,
       pagination: {
-        total: orders.length,
-        page: 1,
-        limit: 10,
-        pages: 1
+        total: search && search.trim() ? filteredOrders.length : count,
+        page,
+        limit,
+        pages: Math.ceil((search && search.trim() ? filteredOrders.length : count) / limit)
       }
     });
   } catch (error) {
