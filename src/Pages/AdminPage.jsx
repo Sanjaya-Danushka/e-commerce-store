@@ -51,6 +51,7 @@ import ProductsContent from './components/ProductsContent';
 import CustomersContent from './components/CustomersContent';
 import OrdersContent from './components/OrdersContent';
 import ReportsContent from './components/ReportsContent';
+import AdminsContent from './components/AdminsContent';
 
 const AdminDashboard = () => {
   // State management
@@ -147,6 +148,7 @@ const AdminDashboard = () => {
     { id: 'tasks', label: 'Tasks', icon: '✅', color: 'bg-orange-500 hover:bg-orange-600', description: 'Task Management' },
     { id: 'products', label: 'Products', icon: '📦', color: 'bg-pink-500 hover:bg-pink-600', description: 'Inventory Control' },
     { id: 'customers', label: 'Customers', icon: '👥', color: 'bg-indigo-500 hover:bg-indigo-600', description: 'User Management' },
+    { id: 'admins', label: 'Admins', icon: '👑', color: 'bg-red-500 hover:bg-red-600', description: 'Admin Management' },
     { id: 'orders', label: 'Orders', icon: '🛒', color: 'bg-emerald-500 hover:bg-emerald-600', description: 'Order Processing' },
     { id: 'reports', label: 'Reports', icon: '📋', color: 'bg-amber-500 hover:bg-amber-600', description: 'Business Reports' },
   ];
@@ -276,6 +278,8 @@ const AdminDashboard = () => {
         return <ProductsContent theme={theme} />;
       case 'customers':
         return <CustomersContent theme={theme} />;
+      case 'admins':
+        return <AdminsContent theme={theme} />;
       case 'orders':
         return <OrdersContent theme={theme} />;
       case 'reports':

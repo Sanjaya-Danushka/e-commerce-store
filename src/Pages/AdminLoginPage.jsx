@@ -260,6 +260,9 @@ const AdminLoginPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter your email address"
+                autoComplete="off"
+                data-form-type="signup"
+                data-lpignore="true"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
@@ -333,6 +336,9 @@ const AdminLoginPage = () => {
                 value={passwordSetup.firstName}
                 onChange={handleChange}
                 placeholder="Enter your first name"
+                autoComplete="off"
+                data-form-type="signup"
+                data-lpignore="true"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
@@ -348,6 +354,9 @@ const AdminLoginPage = () => {
                 value={passwordSetup.lastName}
                 onChange={handleChange}
                 placeholder="Enter your last name"
+                autoComplete="off"
+                data-form-type="signup"
+                data-lpignore="true"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
@@ -364,6 +373,9 @@ const AdminLoginPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter your password"
+                autoComplete="off"
+                data-form-type="signup"
+                data-lpignore="true"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
@@ -380,6 +392,9 @@ const AdminLoginPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Confirm your password"
+                autoComplete="off"
+                data-form-type="signup"
+                data-lpignore="true"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
@@ -445,6 +460,9 @@ const AdminLoginPage = () => {
                 required
                 placeholder="Enter 6-digit code"
                 maxLength="6"
+                autoComplete="off"
+                data-form-type="verification"
+                data-lpignore="true"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-center text-2xl tracking-widest"
               />
             </div>
@@ -515,6 +533,9 @@ const AdminLoginPage = () => {
               onChange={handleChange}
               required
               placeholder="Enter admin email"
+              autoComplete="off"
+              data-form-type="login"
+              data-lpignore="true"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             />
           </div>
@@ -531,6 +552,9 @@ const AdminLoginPage = () => {
               onChange={handleChange}
               required
               placeholder="Enter admin password"
+              autoComplete="off"
+              data-form-type="login"
+              data-lpignore="true"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             />
           </div>

@@ -71,13 +71,21 @@ router.get('/users', async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
+    const roleFilter = req.query.role; // Optional role filter
 
-    // Filter to only show customers (non-admin users)
-    let whereClause = {
-      role: {
-        [Op.ne]: 'admin' // Exclude admin users
+    // Build where clause based on role filter
+    let whereClause = {};
+
+    if (roleFilter) {
+      if (roleFilter === 'admin') {
+        whereClause.role = 'admin';
+      } else if (roleFilter === 'customer' || roleFilter === 'user') {
+        whereClause.role = { [Op.ne]: 'admin' };
       }
-    };
+    } else {
+      // Default behavior: show only customers
+      whereClause.role = { [Op.ne]: 'admin' };
+    }
 
     if (search) {
       whereClause = {
@@ -108,8 +116,8 @@ router.get('/users', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching customers:', error);
-    res.status(500).json({ error: 'Failed to fetch customers' });
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
