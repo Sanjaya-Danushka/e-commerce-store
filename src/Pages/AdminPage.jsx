@@ -54,7 +54,11 @@ import ReportsContent from './components/ReportsContent';
 
 const AdminDashboard = () => {
   // State management
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Load saved tab from localStorage or default to dashboard
+    const savedTab = localStorage.getItem('adminActiveTab');
+    return savedTab || 'dashboard';
+  });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('adminDarkMode');
     return saved ? JSON.parse(saved) : false;
@@ -293,6 +297,7 @@ const AdminDashboard = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminDarkMode');
     localStorage.removeItem('adminTasks'); // Clear tasks on logout
+    localStorage.removeItem('adminActiveTab'); // Clear active tab on logout
     window.location.href = '/admin/login';
   };
 
@@ -328,6 +333,11 @@ const AdminDashboard = () => {
   React.useEffect(() => {
     localStorage.setItem('adminTasks', JSON.stringify(todoItems));
   }, [todoItems]);
+
+  // Save active tab to localStorage whenever it changes
+  React.useEffect(() => {
+    localStorage.setItem('adminActiveTab', activeTab);
+  }, [activeTab]);
 
   // Render content based on active tab
   const renderContent = () => {
