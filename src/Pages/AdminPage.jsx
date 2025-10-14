@@ -292,29 +292,29 @@ const AdminDashboard = () => {
   return (
     <div className={`min-h-screen ${theme.background} transition-all duration-700`}>
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-80 ${theme.sidebar} ${theme.shadow} z-50 overflow-y-auto`}>
-        <div className="flex flex-col h-full p-8">
+      <div className={`fixed left-0 top-0 h-full w-80 ${theme.sidebar} ${theme.shadow} z-50`}>
+        <div className="flex flex-col h-full p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-12">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center min-w-0">
               <a className="flex items-center" href="/" data-discover="true">
-                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center mr-3 shadow-lg">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center mr-2 shadow-lg">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z" clipRule="evenodd"></path>
                   </svg>
                 </div>
-                <span className={`text-xl font-bold ${theme.text}`}>ShopEase</span>
+                <span className={`text-lg font-bold ${theme.text} truncate`}>ShopEase</span>
               </a>
             </div>
 
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className={`w-14 h-7 rounded-full relative transition-all duration-300 ${
+              className={`w-12 h-6 rounded-full relative transition-all duration-300 flex-shrink-0 ${
                 isDarkMode ? 'bg-slate-600' : 'bg-slate-300'
               }`}
             >
-              <div className={`w-6 h-6 rounded-full absolute top-0.5 transition-all duration-300 ${
+              <div className={`w-5 h-5 rounded-full absolute top-0.5 transition-all duration-300 ${
                 isDarkMode ? 'right-0.5 bg-slate-800' : 'left-0.5 bg-white'
               } shadow-lg flex items-center justify-center`}>
                 {isDarkMode ? '🌙' : '☀️'}
@@ -323,23 +323,23 @@ const AdminDashboard = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-2 min-h-0 overflow-y-auto">
+          <nav className="flex-1 space-y-2 min-h-0">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl text-left transition-all duration-300 group relative overflow-hidden ${
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 group relative overflow-hidden ${
                   activeTab === item.id
                     ? `bg-gradient-to-r ${theme.primary} text-white shadow-xl transform scale-105`
                     : `${theme.hover} ${theme.text} hover:scale-102`
                 }`}
               >
-                <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center text-white shadow-sm text-lg`}>
+                <div className={`w-10 h-10 rounded-lg ${item.color} flex items-center justify-center text-white shadow-sm text-base`}>
                   {item.icon}
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold">{item.label}</div>
-                  <div className={`text-xs ${activeTab === item.id ? 'text-white/80' : theme.textSecondary}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm truncate">{item.label}</div>
+                  <div className={`text-xs ${activeTab === item.id ? 'text-white/80' : theme.textSecondary} truncate`}>
                     {item.description}
                   </div>
                 </div>
@@ -351,15 +351,15 @@ const AdminDashboard = () => {
           </nav>
 
           {/* Footer */}
-          <div className={`${theme.border} border-t pt-8 mt-8`}>
+          <div className={`${theme.border} border-t pt-6 mt-6`}>
             <button
               onClick={handleLogout}
-              className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl text-left transition-all duration-300 ${theme.hover} text-red-500 hover:scale-102`}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${theme.hover} text-red-500 hover:scale-102`}
             >
-              <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center text-white shadow-sm">
+              <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center text-white shadow-sm">
                 🚪
               </div>
-              <span className="font-semibold">Logout</span>
+              <span className="font-semibold text-sm">Logout</span>
             </button>
           </div>
         </div>
