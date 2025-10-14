@@ -64,7 +64,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// GET /api/admin/users - Get all users with pagination and search
+// GET /api/admin/users - Get all customers (non-admin users) with pagination and search
 router.get('/users', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -72,9 +72,16 @@ router.get('/users', async (req, res) => {
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
 
-    let whereClause = {};
+    // Filter to only show customers (non-admin users)
+    let whereClause = {
+      role: {
+        [Op.ne]: 'admin' // Exclude admin users
+      }
+    };
+
     if (search) {
       whereClause = {
+        ...whereClause,
         [Op.or]: [
           { email: { [Op.iLike]: `%${search}%` } },
           { firstName: { [Op.iLike]: `%${search}%` } },
@@ -101,19 +108,19 @@ router.get('/users', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
+    console.error('Error fetching customers:', error);
+    res.status(500).json({ error: 'Failed to fetch customers' });
   }
 });
 
-// GET /api/admin/users/:id - Get single user
+// GET /api/admin/users/:id - Get single customer
 router.get('/users/:id', async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
       attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
     });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Customer not found' });
     }
     res.json(user);
   } catch (error) {
@@ -141,7 +148,7 @@ router.put('/users/:id', async (req, res) => {
 
     const user = await User.findByPk(req.params.id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Customer not found' });
     }
 
     const updatedData = {};
@@ -161,7 +168,7 @@ router.put('/users/:id', async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Failed to update user' });
+    res.status(500).json({ error: 'Failed to update customer' });
   }
 });
 
@@ -170,14 +177,14 @@ router.delete('/users/:id', async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Customer not found' });
     }
 
     await user.destroy();
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'Customer deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
+    res.status(500).json({ error: 'Failed to delete customer' });
   }
 });
 
@@ -186,6 +193,7 @@ router.get('/stats', async (req, res) => {
   try {
     const totalProducts = await Product.count();
     const totalUsers = await User.count();
+    const totalCustomers = await User.count({ where: { role: { [Op.ne]: 'admin' } } });
     const totalOrders = await Order.count();
 
     // Calculate total revenue from orders
@@ -206,6 +214,7 @@ router.get('/stats', async (req, res) => {
     res.json({
       totalProducts,
       totalUsers,
+      totalCustomers,
       totalOrders,
       totalRevenue,
       recentProducts,

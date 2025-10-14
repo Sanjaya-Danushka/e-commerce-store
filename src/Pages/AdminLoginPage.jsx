@@ -175,7 +175,12 @@ const AdminLoginPage = () => {
       setShowVerification(true);
     } catch (error) {
       console.error('Signup start error:', error);
-      setError(error.response?.data?.error || 'Failed to start signup process');
+      
+      if (error.response?.status === 409) {
+        setError('An account with this email already exists. Please use the login form to sign in instead.');
+      } else {
+        setError(error.response?.data?.error || 'Failed to start signup process');
+      }
     } finally {
       setLoading(false);
     }
@@ -261,7 +266,22 @@ const AdminLoginPage = () => {
 
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                {error}
+                <div className="flex items-center justify-between">
+                  <span>{error}</span>
+                  {error.includes('already exists') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSignup(false);
+                        setError('');
+                        setSignupEmail('');
+                      }}
+                      className="text-red-800 hover:text-red-900 font-medium text-sm"
+                    >
+                      Go to Login
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
