@@ -14,7 +14,7 @@ const verificationStore = new Map();
 const adminGoogleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.GOOGLE_REDIRECT_URI}/admin`
+  `${process.env.GOOGLE_REDIRECT_URI}` // Remove /admin suffix
 );
 
 // GET /api/auth/google - Initiate Google OAuth for admin
@@ -25,7 +25,7 @@ router.get('/google', (req, res) => {
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email'
     ],
-    state: '/admin'
+    state: req.query.redirect || '/admin'
   });
 
   res.redirect(authUrl);
@@ -34,7 +34,7 @@ router.get('/google', (req, res) => {
 // GET /api/auth/google/callback - Handle Google OAuth callback for admin
 router.get('/google/callback', async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
 
     if (!code) {
       return res.status(400).json({ error: 'Authorization code not provided' });
@@ -47,7 +47,7 @@ router.get('/google/callback', async (req, res) => {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID,
       client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: `${process.env.GOOGLE_REDIRECT_URI}/admin`,
+      redirect_uri: `${process.env.GOOGLE_REDIRECT_URI}`, // Use exact redirect URI without /admin suffix
       grant_type: 'authorization_code'
     });
 
@@ -138,7 +138,8 @@ router.get('/google/callback', async (req, res) => {
     );
 
     // Redirect to admin panel with token
-    res.redirect(`http://localhost:5173/admin?token=${token}`);
+    const redirectUrl = state ? `${state}?token=${token}` : `/admin?token=${token}`;
+    res.redirect(`http://localhost:5173${redirectUrl}`);
 
   } catch (error) {
     console.error('Admin Google OAuth error:', error);

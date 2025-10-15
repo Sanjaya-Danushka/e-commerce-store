@@ -190,7 +190,23 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
+    // Check for token in URL parameters (from Google OAuth callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
+
+    if (urlToken) {
+      console.log('AdminPage: Found token in URL parameters');
+      console.log('AdminPage: Token length:', urlToken.length);
+      console.log('AdminPage: Token preview:', urlToken.substring(0, 50) + '...');
+      localStorage.setItem('adminToken', urlToken);
+      // Clean up URL to remove token
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      console.log('AdminPage: Token stored and URL cleaned');
+    }
+
     const token = localStorage.getItem('adminToken');
+    console.log('AdminPage: Current token in localStorage:', token ? 'Present' : 'Not present');
 
     if (!token) {
       console.log('AdminPage: No token found, attempting auto-login...');
