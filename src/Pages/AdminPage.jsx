@@ -193,6 +193,8 @@ const AdminDashboard = () => {
     // Check for token in URL parameters (from Google OAuth callback)
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
+    const message = urlParams.get('message');
+    const tempToken = urlParams.get('tempToken');
 
     if (urlToken) {
       console.log('AdminPage: Found token in URL parameters');
@@ -203,6 +205,27 @@ const AdminDashboard = () => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       console.log('AdminPage: Token stored and URL cleaned');
+    }
+
+    // Handle different message types
+    if (message === 'user_exists_not_admin') {
+      console.log('AdminPage: User exists but is not admin');
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      // Redirect to login with message
+      window.location.href = '/admin/login?message=user_exists_not_admin';
+      return;
+    }
+
+    if (message === 'create_account' && tempToken) {
+      console.log('AdminPage: New user needs to create admin account');
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      // Redirect to login with create account flow
+      window.location.href = `/admin/login?message=create_account&tempToken=${tempToken}`;
+      return;
     }
 
     const token = localStorage.getItem('adminToken');
@@ -226,7 +249,45 @@ const AdminDashboard = () => {
       loginAdmin();
       return;
     }
-    fetchStats();
+
+    // Check if token has admin role by making a test request
+    const checkAdminAccess = async () => {
+      try {
+        // First check if we can decode the token to see the role
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+          // Simple JWT decode to check role without making API call
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload.role === 'admin') {
+              console.log('AdminPage: Token shows admin role, proceeding with API calls');
+              fetchStats();
+              return;
+            } else {
+              console.log('AdminPage: Token shows non-admin role, redirecting to login');
+              window.location.href = '/admin/login?message=user_exists_not_admin';
+              return;
+            }
+          }
+        }
+
+        // If no token or can't decode, try API call as fallback
+        await adminAPI.getStats();
+        // If successful, user has admin access
+        fetchStats();
+      } catch (error) {
+        if (error.response?.status === 403) {
+          console.log('AdminPage: User does not have admin access, redirecting to login');
+          window.location.href = '/admin/login?message=user_exists_not_admin';
+        } else {
+          // Other error, still try to fetch stats
+          fetchStats();
+        }
+      }
+    };
+
+    checkAdminAccess();
   }, [fetchStats]);
 
   // Logout handler

@@ -248,7 +248,7 @@ const AdminLoginPage = () => {
     }
 
     try {
-      const response = await axios.post('/api/auth/admin/signup/complete', {
+      const response = await axios.post('/api/auth/admin/complete-google-signup', {
         tempToken: tempToken,
         password: passwordSetup.password,
         firstName: passwordSetup.firstName,
@@ -260,7 +260,7 @@ const AdminLoginPage = () => {
       window.location.href = '/admin';
     } catch (error) {
       console.error('Password setup error:', error);
-      setError(error.response?.data?.error || 'Failed to complete signup');
+      setError(error.response?.data?.error || 'Failed to complete account setup');
     } finally {
       setLoading(false);
     }
@@ -279,6 +279,37 @@ const AdminLoginPage = () => {
       if (timer) clearTimeout(timer);
     };
   }, [showEmailSent]);
+
+  // Check for access denied message from admin panel
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    const reason = urlParams.get('reason');
+    const tempToken = urlParams.get('tempToken');
+
+    if (message === 'access_denied' && reason === 'not_admin') {
+      setError('You need admin privileges to access the admin panel. Please contact your administrator to get admin access.');
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
+    if (message === 'user_exists_not_admin') {
+      setError('Your account exists but does not have admin privileges. Please contact your system administrator to upgrade your account to admin status.');
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
+    if (message === 'create_account' && tempToken) {
+      setError('Welcome! Please complete your admin account setup by setting a password.');
+      setTempToken(tempToken);
+      setShowPasswordSetup(true);
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
 
   if (showSignup) {
     return (

@@ -24,6 +24,18 @@ export const authenticateAdmin = (req, res, next) => {
 
     if (decoded.role !== 'admin') {
       console.log('❌ Admin auth failed: User role is', decoded.role, 'not admin');
+
+      // For API routes, return 403 error
+      if (req.url.startsWith('/api/')) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // For page access, redirect to login with message
+      if (decoded.role === 'user') {
+        console.log('🔄 Redirecting non-admin user to login page with message');
+        return res.redirect('http://localhost:5173/admin/login?message=user_exists_not_admin');
+      }
+
       return res.status(403).json({ error: 'Admin access required' });
     }
 

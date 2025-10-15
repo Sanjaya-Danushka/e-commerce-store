@@ -94,28 +94,42 @@ router.get('/google/callback', async (req, res) => {
         adminUser.profilePicture = profilePictureUrl || adminUser.profilePicture;
         await adminUser.save();
       } else {
-        // Check if regular user exists with this email - promote to admin
+        // Check if regular user exists with this email
         let existingUser = await User.findOne({ where: { email } });
 
         if (existingUser) {
-          // Promote existing user to admin
-          existingUser.googleId = googleId;
-          existingUser.role = 'admin';
-          existingUser.profilePicture = profilePictureUrl || existingUser.profilePicture;
-          existingUser.isEmailVerified = true; // Google emails are verified
-          await existingUser.save();
-          adminUser = existingUser;
+          // User exists but is not admin - redirect with message
+          const token = jwt.sign(
+            {
+              id: existingUser.id,
+              email: existingUser.email,
+              role: existingUser.role
+            },
+            process.env.JWT_SECRET || 'fallback-secret-key',
+            { expiresIn: '24h' }
+          );
+
+          // Redirect with message for existing non-admin user
+          const redirectUrl = state ? `${state}?token=${token}&message=user_exists_not_admin` : `/admin?token=${token}&message=user_exists_not_admin`;
+          return res.redirect(`http://localhost:5173${redirectUrl}`);
         } else {
-          // Create new admin user with Google data
-          adminUser = await User.create({
-            googleId,
-            email,
-            firstName,
-            lastName,
-            profilePicture: profilePictureUrl,
-            isEmailVerified: true, // Google emails are verified
-            role: 'admin'
-          });
+          // User doesn't exist - redirect with create account message
+          const tempToken = jwt.sign(
+            {
+              email,
+              googleId,
+              firstName,
+              lastName,
+              profilePicture: profilePictureUrl,
+              purpose: 'create_admin_account'
+            },
+            process.env.JWT_SECRET || 'fallback-secret-key',
+            { expiresIn: '1h' }
+          );
+
+          // Redirect with message for new user
+          const redirectUrl = state ? `${state}?message=create_account&tempToken=${tempToken}` : `/admin?message=create_account&tempToken=${tempToken}`;
+          return res.redirect(`http://localhost:5173${redirectUrl}`);
         }
       }
     } else {
@@ -546,6 +560,79 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Error during admin login:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// POST /api/auth/admin/complete-google-signup - Complete admin account creation from Google OAuth
+router.post('/complete-google-signup', async (req, res) => {
+  try {
+    const { tempToken, password, firstName, lastName } = req.body;
+
+    if (!tempToken || !password) {
+      return res.status(400).json({ error: 'Temporary token and password are required' });
+    }
+
+    // Verify the temporary token
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET || 'fallback-secret-key');
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid or expired temporary token' });
+    }
+
+    if (decoded.purpose !== 'create_admin_account') {
+      return res.status(401).json({ error: 'Invalid token purpose' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email: decoded.email } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+
+    // Create the new admin user with Google data
+    const newUser = await User.create({
+      googleId: decoded.googleId,
+      email: decoded.email,
+      firstName: firstName || decoded.firstName,
+      lastName: lastName || decoded.lastName,
+      profilePicture: decoded.profilePicture,
+      password: password, // This will be hashed by the model hook
+      isEmailVerified: true, // Google emails are verified
+      role: 'admin'
+    });
+
+    console.log('Created admin user from Google OAuth:', newUser.email);
+
+    // Generate final JWT token for admin
+    const finalToken = jwt.sign(
+      {
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role
+      },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      token: finalToken,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role,
+        isEmailVerified: newUser.isEmailVerified,
+        profileCompleted: newUser.profileCompleted
+      },
+      message: 'Admin account created successfully'
+    });
+  } catch (error) {
+    console.error('Error completing Google admin signup:', error);
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
