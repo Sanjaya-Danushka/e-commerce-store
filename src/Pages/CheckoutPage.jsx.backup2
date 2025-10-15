@@ -3,84 +3,6 @@ import { formatMoney } from "../utils/money";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements
-} from "@stripe/react-stripe-js";
-
-// Initialize Stripe
-const stripePromise = loadStripe('pk_test_51SISPUCSFn0z5K5oSB28IzVbGjk5MEIzXO6gcy4kDl8rf3bAX7o4lvItVckWdJNjzsjAELwrEyELe6X17gXAxDkl00sXFNAAPQ');
-
-// Stripe Payment Form Component
-const PaymentForm = () => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [cardError, setCardError] = useState("");
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    const cardElement = elements.getElement(CardElement);
-
-    // Create payment method using Stripe Elements
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: 'card',
-      card: cardElement,
-      billing_details: {
-        name: 'Customer Name', // You can get this from a form field
-      },
-    });
-
-    if (error) {
-      setCardError(error.message);
-      return;
-    }
-
-    // Payment method created successfully
-    return paymentMethod;
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-medium text-gray-900">Credit Card Information</h4>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Card Details
-          </label>
-          <div className={`p-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 ${
-            cardError ? 'border-red-500' : 'border-gray-300'
-          }`}>
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: '#424770',
-                    '::placeholder': {
-                      color: '#aab7c4',
-                    },
-                  },
-                },
-              }}
-            />
-          </div>
-          {cardError && (
-            <p className="mt-1 text-sm text-red-600">{cardError}</p>
-          )}
-        </div>
-      </div>
-    </form>
-  );
-};
 
 const CheckoutPage = () => {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
@@ -89,6 +11,16 @@ const CheckoutPage = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("credit_card");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+
+  // Credit Card Form State
+  const [cardDetails, setCardDetails] = useState({
+    number: "",
+    expiry: "",
+    cvv: "",
+    name: "",
+    zipCode: ""
+  });
+  const [cardErrors, setCardErrors] = useState({});
 
   useEffect(() => {
     // Fetch cart items directly
@@ -191,85 +123,107 @@ const CheckoutPage = () => {
     }));
   };
 
-  // Real Stripe payment processing
-  const processStripePayment = async () => {
-    try {
-      // Load Stripe.js script if not already loaded
-      if (!window.Stripe) {
-        const script = document.createElement('script');
-        script.src = 'https://js.stripe.com/v3/';
-        document.head.appendChild(script);
+  // Credit Card Validation
+  const validateCreditCard = () => {
+    const errors = {};
 
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
+    // Card number validation (basic Luhn algorithm check would be more thorough)
+    if (!cardDetails.number || cardDetails.number.replace(/\s/g, '').length < 13) {
+      errors.number = "Valid card number is required";
+    }
+
+    // Expiry validation (MM/YY format)
+    if (!cardDetails.expiry || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardDetails.expiry)) {
+      errors.expiry = "Valid expiry date is required (MM/YY)";
+    } else {
+      const [month, year] = cardDetails.expiry.split('/');
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear() % 100;
+      const currentMonth = currentDate.getMonth() + 1;
+
+      if (parseInt(year) < currentYear || (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
+        errors.expiry = "Card has expired";
       }
+    }
 
-      // Initialize Stripe with your publishable key
-      const stripe = window.Stripe('pk_test_51SISPUCSFn0z5K5oSB28IzVbGjk5MEIzXO6gcy4kDl8rf3bAX7o4lvItVckWdJNjzsjAELwrEyELe6X17gXAxDkl00sXFNAAPQ');
+    // CVV validation
+    if (!cardDetails.cvv || !/^\d{3,4}$/.test(cardDetails.cvv)) {
+      errors.cvv = "Valid CVV is required";
+    }
 
-      // Create payment method using Stripe Elements
-      const { error: createError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: {
-          number: cardDetails.number.replace(/\s/g, ''),
-          exp_month: parseInt(cardDetails.expiry.split('/')[0]),
-          exp_year: parseInt('20' + cardDetails.expiry.split('/')[1]),
-          cvc: cardDetails.cvv,
-        },
-        billing_details: {
-          name: cardDetails.name,
-          address: {
-            postal_code: cardDetails.zipCode,
-          },
-        },
-      });
+    // Name validation
+    if (!cardDetails.name || cardDetails.name.trim().length < 2) {
+      errors.name = "Cardholder name is required";
+    }
 
-      if (createError) {
-        throw { success: false, error: createError.message };
-      }
+    // ZIP code validation
+    if (!cardDetails.zipCode || !/^\d{5}(-\d{4})?$/.test(cardDetails.zipCode)) {
+      errors.zipCode = "Valid ZIP code is required";
+    }
 
-      // Create payment intent on your backend
-      const response = await axios.post('/api/create-payment-intent', {
-        amount: calculateOrderTotal(), // Amount in cents
-        currency: 'usd',
-        paymentMethodId: paymentMethod.id,
-        metadata: {
-          paymentMethod: 'stripe',
-          customerEmail: 'customer@example.com' // Get from user context
-        }
-      });
+    setCardErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-      if (response.data.requiresAction) {
-        // Handle 3D Secure authentication
-        const { error: confirmError } = await stripe.confirmCardPayment(
-          response.data.clientSecret,
-          {
-            payment_method: paymentMethod.id,
-          }
-        );
-
-        if (confirmError) {
-          throw { success: false, error: confirmError.message };
-        }
-      }
-
-      return {
-        success: true,
-        transactionId: response.data.paymentIntentId,
-        message: "Payment processed successfully via Stripe"
-      };
-
-    } catch (error) {
-      console.error('Stripe payment error:', error);
-      throw {
-        success: false,
-        error: error.error || error.message || "Payment processing failed"
-      };
+  const formatCardNumber = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return v;
     }
   };
 
-  const processApplePay = async () => {
+  const formatExpiry = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  const handleCardDetailsChange = (field, value) => {
+    let formattedValue = value;
+
+    if (field === 'number') {
+      formattedValue = formatCardNumber(value);
+    } else if (field === 'expiry') {
+      formattedValue = formatExpiry(value);
+    }
+
+    setCardDetails(prev => ({
+      ...prev,
+      [field]: formattedValue
+    }));
+
+    // Clear error when user starts typing
+    if (cardErrors[field]) {
+      setCardErrors(prev => ({
+        ...prev,
+      }));
+
+      const orderResponse = await axios.post("/api/orders", {
+        cartItems: itemsToOrder,
+        paymentMethod: selectedPaymentMethod,
+        paymentTransactionId: paymentResult.transactionId,
+        paymentStatus: "completed"
+      });
+
+      // Re-fetch cart items to get updated cart state
+      const fetchCartItems = async () => {
+        try {
+          const response = await axios.get("/api/cart-items?expand=product");
+          setCartItems(response.data);
+          // Re-initialize selected items for remaining items
+          const initialSelectedItems = {};
+          response.data.forEach(item => {
+            initialSelectedItems[item.productId] = true;
     // Check if Apple Pay is available
     if (typeof window !== 'undefined' && (!window.ApplePaySession || !window.ApplePaySession.canMakePayments)) {
       throw {
@@ -347,6 +301,12 @@ const CheckoutPage = () => {
 
     if (selectedCartItems.length === 0) {
       alert("Please select at least one item to place your order.");
+      return;
+    }
+
+    // Validate credit card if selected
+    if (selectedPaymentMethod === "credit_card" && !validateCreditCard()) {
+      setPaymentError("Please correct the credit card information.");
       return;
     }
 
@@ -739,9 +699,105 @@ const CheckoutPage = () => {
 
               {/* Payment Form Section */}
               {selectedPaymentMethod === "credit_card" && (
-                <Elements stripe={stripePromise}>
-                  <PaymentForm />
-                </Elements>
+                <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900">Credit Card Information</h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Card Number
+                      </label>
+                      <input
+                        type="text"
+                        value={cardDetails.number}
+                        onChange={(e) => handleCardDetailsChange('number', e.target.value)}
+                        placeholder="1234 5678 9012 3456"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          cardErrors.number ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        maxLength="19"
+                      />
+                      {cardErrors.number && (
+                        <p className="mt-1 text-sm text-red-600">{cardErrors.number}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Expiry Date
+                      </label>
+                      <input
+                        type="text"
+                        value={cardDetails.expiry}
+                        onChange={(e) => handleCardDetailsChange('expiry', e.target.value)}
+                        placeholder="MM/YY"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          cardErrors.expiry ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        maxLength="5"
+                      />
+                      {cardErrors.expiry && (
+                        <p className="mt-1 text-sm text-red-600">{cardErrors.expiry}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        CVV
+                      </label>
+                      <input
+                        type="text"
+                        value={cardDetails.cvv}
+                        onChange={(e) => handleCardDetailsChange('cvv', e.target.value)}
+                        placeholder="123"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          cardErrors.cvv ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        maxLength="4"
+                      />
+                      {cardErrors.cvv && (
+                        <p className="mt-1 text-sm text-red-600">{cardErrors.cvv}</p>
+                      )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cardholder Name
+                      </label>
+                      <input
+                        type="text"
+                        value={cardDetails.name}
+                        onChange={(e) => handleCardDetailsChange('name', e.target.value)}
+                        placeholder="John Doe"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          cardErrors.name ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                      />
+                      {cardErrors.name && (
+                        <p className="mt-1 text-sm text-red-600">{cardErrors.name}</p>
+                      )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        ZIP Code
+                      </label>
+                      <input
+                        type="text"
+                        value={cardDetails.zipCode}
+                        onChange={(e) => handleCardDetailsChange('zipCode', e.target.value)}
+                        placeholder="12345"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          cardErrors.zipCode ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        maxLength="10"
+                      />
+                      {cardErrors.zipCode && (
+                        <p className="mt-1 text-sm text-red-600">{cardErrors.zipCode}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
 
               {selectedPaymentMethod === "apple_pay" && (
