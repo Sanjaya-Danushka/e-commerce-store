@@ -111,8 +111,17 @@ const AdminsContent = ({ theme }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (response.status === 409) {
+          if (errorData.error.includes('admin account')) {
+            throw new Error('An admin account with this email already exists. Please use the login form to sign in instead.');
+          } else {
+            throw new Error('An account with this email already exists as a regular user. Please contact your system administrator to upgrade your account to admin status.');
+          }
+        }
         throw new Error(errorData.error || 'Failed to create admin');
       }
+
+      const result = await response.json();
 
       setShowCreateModal(false);
       setFormData({
@@ -123,6 +132,14 @@ const AdminsContent = ({ theme }) => {
         phoneNumber: '',
         isEmailVerified: false
       });
+
+      // Show success message
+      if (result.message.includes('promoted')) {
+        alert('User promoted to admin successfully!');
+      } else {
+        alert('Admin created successfully!');
+      }
+
       fetchAdmins(currentPage, searchTerm);
     } catch (error) {
       console.error('Error creating admin:', error);

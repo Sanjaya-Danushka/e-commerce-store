@@ -137,10 +137,37 @@ router.post('/admins', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ where: { email } });
+    // Check if admin user already exists with this email
+    const existingAdminUser = await User.findOne({ where: { email, role: 'admin' } });
+    if (existingAdminUser) {
+      return res.status(409).json({ error: 'An admin account with this email already exists. Please use the login form to sign in instead.' });
+    }
+
+    // Check if regular user exists with this email
+    const existingUser = await User.findOne({ where: { email, role: { [Op.ne]: 'admin' } } });
     if (existingUser) {
-      return res.status(409).json({ error: 'User with this email already exists' });
+      // Promote existing regular user to admin
+      existingUser.role = 'admin';
+      existingUser.firstName = firstName || existingUser.firstName;
+      existingUser.lastName = lastName || existingUser.lastName;
+      existingUser.phoneNumber = phoneNumber || existingUser.phoneNumber;
+      if (password) {
+        existingUser.password = password; // This will be hashed by the model hook
+      }
+      existingUser.isEmailVerified = false; // Reset email verification for admin
+      existingUser.profileCompleted = !!(firstName && lastName);
+
+      await existingUser.save();
+      console.log('Promoted existing user to admin:', existingUser.email);
+
+      // Remove password from response
+      const adminResponse = { ...existingUser.toJSON() };
+      delete adminResponse.password;
+
+      return res.status(201).json({
+        admin: adminResponse,
+        message: 'Existing user promoted to admin successfully'
+      });
     }
 
     // Create new admin user
