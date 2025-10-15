@@ -64,7 +64,169 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// GET /api/admin/users - Get all customers (non-admin users) with pagination and search
+// GET /api/admin/admins - Get all admin users with pagination and search
+router.get('/admins', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    // Build where clause for admin users only
+    let whereClause = {
+      role: 'admin'
+    };
+
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [Op.or]: [
+          { email: { [Op.iLike]: `%${search}%` } },
+          { firstName: { [Op.iLike]: `%${search}%` } },
+          { lastName: { [Op.iLike]: `%${search}%` } }
+        ]
+      };
+    }
+
+    const { count, rows: admins } = await User.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
+
+    res.json({
+      admins,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        pages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching admins:', error);
+    res.status(500).json({ error: 'Failed to fetch admins' });
+  }
+});
+
+// GET /api/admin/admins/:id - Get single admin user
+router.get('/admins/:id', async (req, res) => {
+  try {
+    const admin = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordExpires'] }
+    });
+    if (!admin || admin.role !== 'admin') {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+    res.json(admin);
+  } catch (error) {
+    console.error('Error fetching admin:', error);
+    res.status(500).json({ error: 'Failed to fetch admin' });
+  }
+});
+
+// POST /api/admin/admins - Create new admin user
+router.post('/admins', async (req, res) => {
+  try {
+    const { email, firstName, lastName, password, phoneNumber } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'User with this email already exists' });
+    }
+
+    // Create new admin user
+    const newAdmin = await User.create({
+      email,
+      firstName: firstName || null,
+      lastName: lastName || null,
+      phoneNumber: phoneNumber || null,
+      password, // This will be hashed by the model hook
+      role: 'admin',
+      isEmailVerified: false, // New admins need to verify their email
+      profileCompleted: !!(firstName && lastName)
+    });
+
+    console.log('Created new admin user:', newAdmin.email);
+
+    // Remove password from response
+    const adminResponse = { ...newAdmin.toJSON() };
+    delete adminResponse.password;
+
+    res.status(201).json({
+      admin: adminResponse,
+      message: 'Admin user created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating admin:', error);
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    res.status(500).json({ error: 'Failed to create admin' });
+  }
+});
+
+// PUT /api/admin/admins/:id - Update admin user
+router.put('/admins/:id', async (req, res) => {
+  try {
+    const { firstName, lastName, phoneNumber, profileCompleted, isEmailVerified } = req.body;
+
+    const admin = await User.findByPk(req.params.id);
+    if (!admin || admin.role !== 'admin') {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    const updatedData = {};
+    if (firstName !== undefined) updatedData.firstName = firstName;
+    if (lastName !== undefined) updatedData.lastName = lastName;
+    if (phoneNumber !== undefined) updatedData.phoneNumber = phoneNumber;
+    if (profileCompleted !== undefined) updatedData.profileCompleted = profileCompleted;
+    if (isEmailVerified !== undefined) updatedData.isEmailVerified = isEmailVerified;
+
+    await admin.update(updatedData);
+
+    // Remove password from response
+    const adminResponse = { ...admin.toJSON() };
+    delete adminResponse.password;
+
+    res.json({
+      admin: adminResponse,
+      message: 'Admin updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating admin:', error);
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    res.status(500).json({ error: 'Failed to update admin' });
+  }
+});
+
+// DELETE /api/admin/admins/:id - Delete admin user
+router.delete('/admins/:id', async (req, res) => {
+  try {
+    const admin = await User.findByPk(req.params.id);
+    if (!admin || admin.role !== 'admin') {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    await admin.destroy();
+    res.json({ message: 'Admin deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting admin:', error);
+    res.status(500).json({ error: 'Failed to delete admin' });
+  }
+});
+
+// GET /api/admin/users - Get all users with pagination and search
 router.get('/users', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

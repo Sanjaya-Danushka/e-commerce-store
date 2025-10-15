@@ -8,12 +8,21 @@ const AdminsContent = ({ theme }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    phoneNumber: '',
+    isEmailVerified: false
+  });
 
   // Fetch admins function
   const fetchAdmins = async (page = 1, search = '') => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/users?page=${page}&limit=10&role=admin${search ? `&search=${search}` : ''}`, {
+      const response = await fetch(`/api/admin/admins?page=${page}&limit=10${search ? `&search=${search}` : ''}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
@@ -24,7 +33,7 @@ const AdminsContent = ({ theme }) => {
       }
 
       const data = await response.json();
-      setAdmins(data.users);
+      setAdmins(data.admins);
       setTotalPages(data.pagination.pages);
       setCurrentPage(page);
     } catch (error) {
@@ -68,7 +77,7 @@ const AdminsContent = ({ theme }) => {
     if (!window.confirm('Are you sure you want to delete this admin account?')) return;
 
     try {
-      const response = await fetch(`/api/admin/users/${adminId}`, {
+      const response = await fetch(`/api/admin/admins/${adminId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -84,6 +93,99 @@ const AdminsContent = ({ theme }) => {
       console.error('Error deleting admin:', error);
       alert('Error deleting admin');
     }
+  };
+
+  // Handle create admin
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('/api/admin/admins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create admin');
+      }
+
+      setShowCreateModal(false);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        phoneNumber: '',
+        isEmailVerified: false
+      });
+      fetchAdmins(currentPage, searchTerm);
+    } catch (error) {
+      console.error('Error creating admin:', error);
+      alert(error.message);
+    }
+  };
+
+  // Handle update admin
+  const handleUpdateAdmin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const form = e.target;
+      const updateData = {
+        firstName: form.firstName.value,
+        lastName: form.lastName.value,
+        phoneNumber: form.phoneNumber.value,
+        isEmailVerified: form.isEmailVerified.checked
+      };
+
+      const response = await fetch(`/api/admin/admins/${editingAdmin.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update admin');
+      }
+
+      setShowModal(false);
+      setEditingAdmin(null);
+      fetchAdmins(currentPage, searchTerm);
+    } catch (error) {
+      console.error('Error updating admin:', error);
+      alert(error.message);
+    }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Open create modal
+  const openCreateModal = () => {
+    setShowCreateModal(true);
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      phoneNumber: '',
+      isEmailVerified: false
+    });
   };
 
   return (
@@ -103,6 +205,12 @@ const AdminsContent = ({ theme }) => {
             className={`w-full px-6 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text} placeholder:${theme.textSecondary}`}
           />
         </div>
+        <button
+          onClick={openCreateModal}
+          className={`px-8 py-4 bg-gradient-to-r ${theme.button} text-white rounded-2xl hover:scale-105 transition-all duration-200 shadow-lg font-semibold`}
+        >
+          Create Admin
+        </button>
       </div>
 
       {/* Loading State */}
@@ -237,12 +345,13 @@ const AdminsContent = ({ theme }) => {
             <div className="p-10">
               <h2 className={`text-3xl font-bold ${theme.text} mb-8`}>Edit Admin</h2>
 
-              <form>
+              <form onSubmit={handleUpdateAdmin}>
                 <div className="grid grid-cols-2 gap-8 mb-8">
                   <div>
                     <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>First Name:</label>
                     <input
                       type="text"
+                      name="firstName"
                       defaultValue={editingAdmin.firstName || ''}
                       className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
                       placeholder="First Name"
@@ -252,6 +361,7 @@ const AdminsContent = ({ theme }) => {
                     <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>Last Name:</label>
                     <input
                       type="text"
+                      name="lastName"
                       defaultValue={editingAdmin.lastName || ''}
                       className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
                       placeholder="Last Name"
@@ -274,6 +384,7 @@ const AdminsContent = ({ theme }) => {
                   <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>Phone Number:</label>
                   <input
                     type="tel"
+                    name="phoneNumber"
                     defaultValue={editingAdmin.phoneNumber || ''}
                     className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
                     placeholder="Phone Number"
@@ -284,6 +395,7 @@ const AdminsContent = ({ theme }) => {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
+                      name="isEmailVerified"
                       defaultChecked={editingAdmin.isEmailVerified}
                       className="w-6 h-6 rounded-lg border-2 border-slate-300 text-red-600 focus:ring-red-500"
                     />
@@ -300,10 +412,117 @@ const AdminsContent = ({ theme }) => {
                     Cancel
                   </button>
                   <button
-                    type="button"
+                    type="submit"
                     className={`px-8 py-4 bg-gradient-to-r ${theme.button} text-white rounded-2xl hover:scale-105 transition-all duration-200 shadow-lg font-semibold`}
                   >
                     Update Admin
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Admin Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
+          <div className={`${theme.card} ${theme.border} rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${theme.shadow}`}>
+            <div className="p-10">
+              <h2 className={`text-3xl font-bold ${theme.text} mb-8`}>Create New Admin</h2>
+
+              <form onSubmit={handleCreateAdmin}>
+                <div className="grid grid-cols-2 gap-8 mb-8">
+                  <div>
+                    <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>First Name:</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
+                      placeholder="First Name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>Last Name:</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
+                      placeholder="Last Name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>Email:</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
+                    placeholder="admin@example.com"
+                    required
+                  />
+                </div>
+
+                <div className="mb-8">
+                  <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>Password:</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
+                    placeholder="Enter password"
+                    required
+                  />
+                </div>
+
+                <div className="mb-8">
+                  <label className={`block text-base font-medium ${theme.textSecondary} mb-3`}>Phone Number:</label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className={`w-full px-5 py-4 ${theme.input} ${theme.border} rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 ${theme.text}`}
+                    placeholder="Phone Number"
+                  />
+                </div>
+
+                <div className="mb-10">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="isEmailVerified"
+                      checked={formData.isEmailVerified}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isEmailVerified: e.target.checked }))}
+                      className="w-6 h-6 rounded-lg border-2 border-slate-300 text-red-600 focus:ring-red-500"
+                    />
+                    <span className={`ml-4 text-base font-medium ${theme.text}`}>Email Verified</span>
+                  </label>
+                </div>
+
+                <div className="flex gap-5 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className={`px-8 py-4 ${theme.border} ${theme.text} rounded-2xl hover:bg-slate-50 transition-all duration-200 font-semibold`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={`px-8 py-4 bg-gradient-to-r ${theme.button} text-white rounded-2xl hover:scale-105 transition-all duration-200 shadow-lg font-semibold`}
+                  >
+                    Create Admin
                   </button>
                 </div>
               </form>
