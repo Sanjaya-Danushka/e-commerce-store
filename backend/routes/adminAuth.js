@@ -98,20 +98,13 @@ router.get('/google/callback', async (req, res) => {
         let existingUser = await User.findOne({ where: { email } });
 
         if (existingUser) {
-          // User exists but is not admin - redirect with message
-          const token = jwt.sign(
-            {
-              id: existingUser.id,
-              email: existingUser.email,
-              role: existingUser.role
-            },
-            process.env.JWT_SECRET || 'fallback-secret-key',
-            { expiresIn: '24h' }
-          );
-
-          // Redirect with message for existing non-admin user
-          const redirectUrl = state ? `${state}?token=${token}&message=user_exists_not_admin` : `/admin?token=${token}&message=user_exists_not_admin`;
-          return res.redirect(`http://localhost:5173${redirectUrl}`);
+          // Promote existing user to admin
+          existingUser.googleId = googleId;
+          existingUser.role = 'admin';
+          existingUser.profilePicture = profilePictureUrl || existingUser.profilePicture;
+          existingUser.isEmailVerified = true; // Google emails are verified
+          await existingUser.save();
+          adminUser = existingUser;
         } else {
           // User doesn't exist - redirect with create account message
           const tempToken = jwt.sign(
@@ -176,15 +169,19 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Check if user already exists (admin or regular user)
-    console.log('Checking if admin user already exists:', email);
+    // Check if any user already exists with this email
+    console.log('Checking if any user already exists:', email);
     const existingUser = await User.findOne({
       where: { email }
     });
 
     if (existingUser) {
-      console.log('User already exists with email:', email);
-      return res.status(409).json({ error: 'An account with this email already exists' });
+      console.log('User already exists with email:', email, 'Role:', existingUser.role);
+      if (existingUser.role === 'admin') {
+        return res.status(409).json({ error: 'An admin account with this email already exists. Please use the login form to sign in instead.' });
+      } else {
+        return res.status(409).json({ error: 'An account with this email already exists as a regular user. Please contact your system administrator to upgrade your account to admin status.' });
+      }
     }
 
     console.log('Creating temporary verification session for:', email);
@@ -250,7 +247,7 @@ router.post('/signup/verify', async (req, res) => {
       return res.status(401).json({ error: 'Verification code has expired. Please request a new one.' });
     }
 
-    // Check if user already exists (double-check)
+    // Check if any user already exists (double-check)
     const existingUser = await User.findOne({
       where: { email }
     });
@@ -258,7 +255,11 @@ router.post('/signup/verify', async (req, res) => {
     if (existingUser) {
       // Clean up verification data
       verificationStore.delete(email);
-      return res.status(409).json({ error: 'An account with this email already exists' });
+      if (existingUser.role === 'admin') {
+        return res.status(409).json({ error: 'An admin account with this email already exists' });
+      } else {
+        return res.status(409).json({ error: 'An account with this email already exists as a regular user. Please contact your system administrator to upgrade your account to admin status.' });
+      }
     }
 
     // Create the verified admin user

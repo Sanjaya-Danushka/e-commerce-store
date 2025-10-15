@@ -198,7 +198,12 @@ const AdminLoginPage = () => {
       console.error('Signup start error:', error);
 
       if (error.response?.status === 409) {
-        setError('An account with this email already exists. Please use the login form to sign in instead.');
+        const errorMessage = error.response.data.error;
+        if (errorMessage.includes('regular user')) {
+          setError('An account with this email already exists as a regular user. Please contact your system administrator to upgrade your account to admin status.');
+        } else {
+          setError('An admin account with this email already exists. Please use the login form to sign in instead.');
+        }
       } else {
         setError(error.response?.data?.error || 'Failed to start signup process');
       }
