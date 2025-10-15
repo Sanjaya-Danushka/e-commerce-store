@@ -7,8 +7,9 @@ import SalePage from "./Pages/SalePage";
 import NewArrivalsPage from "./Pages/NewArrivalsPage";
 import ProductsPage from "./Pages/ProductsPage";
 import WishlistPage from "./Pages/WishlistPage";
-import CheckoutPage from "./Pages/CheckutPage";
+import CheckoutPage from "./Pages/CheckoutPage";
 import OrdersPage from "./Pages/OrdersPage";
+import OrderSuccessPage from "./Pages/OrderSuccessPage";
 import TrackingPage from "./Pages/TrackingPage";
 import AboutPage from "./Pages/AboutPage";
 import ContactPage from "./Pages/ContactPage";
@@ -90,6 +91,7 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
           <Route path="/wishlist" element={<WishlistPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} refreshWishlist={refreshWishlist} updateWishlist={updateWishlist} />} />
           <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
           <Route path="/orders" element={<OrdersPage cart={cart} wishlist={combinedWishlist} refreshCart={refreshCart} />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/tracking" element={<TrackingPage cart={cart} />} />
           <Route path="/about" element={<AboutPage cart={cart} wishlist={combinedWishlist} />} />
           <Route path="/contact" element={<ContactPage cart={cart} wishlist={combinedWishlist} />} />

@@ -4,10 +4,11 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
-const CheckutPage = () => {
+const CheckoutPage = () => {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState({});
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("credit_card");
 
   useEffect(() => {
     // Fetch cart items directly
@@ -126,8 +127,11 @@ const CheckutPage = () => {
     }));
 
     axios
-      .post("/api/orders", { cartItems: itemsToOrder })
-      .then(() => {
+      .post("/api/orders", {
+        cartItems: itemsToOrder,
+        paymentMethod: selectedPaymentMethod
+      })
+      .then((response) => {
         alert("Order placed successfully!");
         // Re-fetch cart items to get updated cart state
         const fetchCartItems = async () => {
@@ -147,7 +151,8 @@ const CheckutPage = () => {
           }
         };
         fetchCartItems();
-        window.location.href = "/orders";
+        // Redirect to order success page with order ID
+        window.location.href = `/order-success?orderId=${response.data.orderId}`;
       })
       .catch((error) => {
         console.error("Error placing order:", error);
@@ -379,6 +384,84 @@ const CheckutPage = () => {
           <div className="lg:sticky lg:top-8">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                Payment Method
+              </h3>
+
+              <div className="space-y-3 mb-6">
+                <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value="credit_card"
+                    checked={selectedPaymentMethod === "credit_card"}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <div className="ml-3 flex-1">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-gray-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                      </svg>
+                      <span className="font-medium text-gray-900">Credit Card</span>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value="paypal"
+                    checked={selectedPaymentMethod === "paypal"}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <div className="ml-3 flex-1">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm-1.07 11.93c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm0-3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm3 3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm0-3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29z"/>
+                      </svg>
+                      <span className="font-medium text-gray-900">PayPal</span>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value="apple_pay"
+                    checked={selectedPaymentMethod === "apple_pay"}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <div className="ml-3 flex-1">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-gray-900 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                      </svg>
+                      <span className="font-medium text-gray-900">Apple Pay</span>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value="google_pay"
+                    checked={selectedPaymentMethod === "google_pay"}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <div className="ml-3 flex-1">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-gray-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                      </svg>
+                      <span className="font-medium text-gray-900">Google Pay</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 Payment Summary
               </h3>
 
@@ -427,4 +510,4 @@ const CheckutPage = () => {
   );
 };
 
-export default CheckutPage;
+export default CheckoutPage;
