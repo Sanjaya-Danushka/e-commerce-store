@@ -25,6 +25,9 @@ export const generateVerificationCode = () => {
 // Send verification email
 export const sendVerificationEmail = async (email, verificationCode) => {
   try {
+    console.log(`📧 Preparing to send verification email to: ${email}`);
+    console.log(`🔢 Verification code to send: ${verificationCode}`);
+
     // Create email options (currently disabled for development)
     // eslint-disable-next-line no-unused-vars
     const mailOptions = {
@@ -49,6 +52,10 @@ export const sendVerificationEmail = async (email, verificationCode) => {
             <p style="color: #999; font-size: 14px; margin-top: 30px;">
               If you didn't request this verification code, please ignore this email.
             </p>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              Debug: Code generated at ${new Date().toISOString()}
+            </p>
           </div>
         </div>
       `
@@ -58,9 +65,10 @@ export const sendVerificationEmail = async (email, verificationCode) => {
     console.log(`=== VERIFICATION CODE FOR ${email} ===`);
     console.log(`Code: ${verificationCode}`);
     console.log(`Expires: ${new Date(Date.now() + 10 * 60 * 1000)}`);
+    console.log(`Email HTML contains: ${mailOptions.html.includes(verificationCode) ? '✅ CORRECT CODE' : '❌ WRONG CODE'}`);
     console.log('=====================================');
 
-    // In production, uncomment this line to actually send email
+    // In development, send the email
     await transporter.sendMail(mailOptions);
 
     return { success: true };

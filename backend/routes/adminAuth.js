@@ -200,7 +200,8 @@ router.post('/signup', async (req, res) => {
 
     res.json({
       message: 'Verification code sent to your email',
-      email: email.replace(/(.{2}).*(@.*)/, '$1***$2') // Mask email for security
+      email: email.replace(/(.{2}).*(@.*)/, '$1***$2'), // Mask email for security
+      verificationCode: process.env.NODE_ENV === 'development' ? verificationCode : undefined // Only include in development
     });
   } catch (error) {
     console.error('Error during admin signup:', error);
@@ -383,7 +384,8 @@ router.post('/send-verification', async (req, res) => {
 
     res.json({
       message: 'Verification code sent to your email',
-      email: email.replace(/(.{2}).*(@.*)/, '$1***$2') // Mask email for security
+      email: email.replace(/(.{2}).*(@.*)/, '$1***$2'), // Mask email for security
+      verificationCode: process.env.NODE_ENV === 'development' ? verificationCode : undefined // Only include in development
     });
   } catch (error) {
     console.error('Error sending verification code:', error);

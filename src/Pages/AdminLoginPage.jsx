@@ -15,6 +15,7 @@ const AdminLoginPage = () => {
   // Signup states
   const [showSignup, setShowSignup] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
+  const [showEmailSent, setShowEmailSent] = useState(false);
   const [tempToken, setTempToken] = useState('');
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [passwordSetup, setPasswordSetup] = useState({
@@ -115,6 +116,10 @@ const AdminLoginPage = () => {
     setLoading(true);
     setError('');
 
+    // Debug: Show what code is being sent
+    console.log('Sending verification code:', verificationCode);
+    console.log('For email:', userEmail);
+
     try {
       const response = await axios.post('/api/auth/admin/verify-email', {
         email: userEmail,
@@ -130,6 +135,7 @@ const AdminLoginPage = () => {
       window.location.href = '/admin';
     } catch (error) {
       console.error('Email verification error:', error);
+      console.error('Error response:', error.response?.data);
       setError(error.response?.data?.error || 'Email verification failed');
     } finally {
       setLoading(false);
@@ -146,13 +152,26 @@ const AdminLoginPage = () => {
       setLoading(true);
       setError('');
 
-      await axios.post('/api/auth/admin/send-verification', {
+      console.log('Sending verification code request for email:', userEmail);
+
+      const response = await axios.post('/api/auth/admin/send-verification', {
         email: userEmail
       });
+
+      console.log('Send verification response:', response.data);
+
+      // For testing: Store the code in a way that can be displayed
+      // This is temporary for debugging - remove in production
+      if (response.data && response.data.verificationCode) {
+        console.log('VERIFICATION CODE SENT:', response.data.verificationCode);
+        // Store in sessionStorage for debugging display
+        sessionStorage.setItem('debugVerificationCode', response.data.verificationCode);
+      }
 
       setError('');
     } catch (error) {
       console.error('Send verification error:', error);
+      console.error('Error response:', error.response?.data);
       setError(error.response?.data?.error || 'Failed to send verification code');
     } finally {
       setLoading(false);
@@ -172,10 +191,10 @@ const AdminLoginPage = () => {
 
       setUserEmail(signupEmail);
       setShowSignup(false);
-      setShowVerification(true);
+      setShowEmailSent(true);
     } catch (error) {
       console.error('Signup start error:', error);
-      
+
       if (error.response?.status === 409) {
         setError('An account with this email already exists. Please use the login form to sign in instead.');
       } else {
@@ -191,17 +210,24 @@ const AdminLoginPage = () => {
     setLoading(true);
     setError('');
 
+    // Debug: Show what code is being sent for signup
+    console.log('Signup verification - Sending code:', verificationCode);
+    console.log('For email:', userEmail);
+
     try {
       const response = await axios.post('/api/auth/admin/signup/verify', {
         email: userEmail,
         verificationCode: verificationCode
       });
 
+      console.log('Signup verification response:', response.data);
+
       setTempToken(response.data.tempToken);
       setShowVerification(false);
       setShowPasswordSetup(true);
     } catch (error) {
       console.error('Signup verification error:', error);
+      console.error('Error response:', error.response?.data);
       setError(error.response?.data?.error || 'Email verification failed');
     } finally {
       setLoading(false);
@@ -237,6 +263,20 @@ const AdminLoginPage = () => {
       setLoading(false);
     }
   };
+
+  // Auto-advance from email sent to verification after 3 seconds
+  React.useEffect(() => {
+    let timer;
+    if (showEmailSent) {
+      timer = setTimeout(() => {
+        setShowEmailSent(false);
+        setShowVerification(true);
+      }, 3000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showEmailSent]);
 
   if (showSignup) {
     return (
@@ -310,6 +350,47 @@ const AdminLoginPage = () => {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (showEmailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="mb-4">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto"></div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Sending verification code...</h1>
+            <p className="text-gray-600 mt-2">Please wait while we send a verification code to your email</p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center space-x-3">
+              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-blue-800">Verification code sent via email</p>
+                <p className="text-xs text-blue-600">{userEmail}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setShowEmailSent(false);
+                setShowVerification(true);
+              }}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Continue to verification →
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -438,12 +519,23 @@ const AdminLoginPage = () => {
   }
 
   if (showVerification) {
+    // Get debug code from sessionStorage for testing
+    const debugCode = sessionStorage.getItem('debugVerificationCode');
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
         <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800">Email Verification Required</h1>
             <p className="text-gray-600 mt-2">Enter the verification code sent to {userEmail}</p>
+
+            {/* Debug section for testing - remove in production */}
+            {debugCode && (
+              <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <p className="text-sm font-medium text-yellow-800">🔧 Debug Mode:</p>
+                <p className="text-xs text-yellow-700">Verification code sent: <code className="font-mono bg-yellow-200 px-1 rounded">{debugCode}</code></p>
+              </div>
+            )}
           </div>
 
           <form onSubmit={showSignup ? handleSignupVerification : handleVerificationSubmit} className="space-y-6">
