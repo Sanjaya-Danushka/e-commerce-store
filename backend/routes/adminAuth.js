@@ -7,6 +7,9 @@ import { OAuth2Client } from 'google-auth-library';
 
 const router = express.Router();
 
+// In-memory storage for verification codes (replace with Redis in production)
+const verificationStore = new Map();
+
 // Initialize Google OAuth client for admin
 const adminGoogleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -169,32 +172,28 @@ router.post('/signup', async (req, res) => {
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
 
-    console.log('Creating temporary signup record for:', email);
+    console.log('Creating temporary verification session for:', email);
     // Generate verification code
     const verificationCode = generateVerificationCode();
     console.log('Generated verification code:', verificationCode);
 
-    // Store verification code in database (expires in 10 minutes)
+    // Store verification code in memory (expires in 10 minutes)
     const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Create a temporary user record for signup process
-    const tempUser = await User.create({
-      email,
-      emailVerificationToken: verificationCode,
-      emailVerificationExpires: verificationExpires,
-      role: 'admin', // Set as admin by default for signup
-      isEmailVerified: false
+    verificationStore.set(email, {
+      verificationCode,
+      expires: verificationExpires,
+      createdAt: new Date()
     });
 
-    console.log('Created temporary admin user for signup');
+    console.log('Stored verification code in memory for:', email);
 
     // Send verification email
     const emailResult = await sendVerificationEmail(email, verificationCode);
     console.log('Email result:', emailResult);
 
     if (!emailResult.success) {
-      // Clean up the temporary user if email sending fails
-      await tempUser.destroy();
+      // Clean up the temporary verification data if email sending fails
+      verificationStore.delete(email);
       return res.status(500).json({ error: 'Failed to send verification email' });
     }
 
@@ -218,36 +217,53 @@ router.post('/signup/verify', async (req, res) => {
       return res.status(400).json({ error: 'Email and verification code are required' });
     }
 
-    // Find user by email (should be the temporary signup record)
-    const user = await User.findOne({
-      where: { email, role: 'admin' }
-    });
+    // Check if verification data exists in memory
+    const verificationData = verificationStore.get(email);
 
-    if (!user) {
+    if (!verificationData) {
       return res.status(404).json({ error: 'Signup session not found. Please start the signup process again.' });
     }
 
     // Check if verification code is valid and not expired
-    if (user.emailVerificationToken !== verificationCode) {
+    if (verificationData.verificationCode !== verificationCode) {
       return res.status(401).json({ error: 'Invalid verification code' });
     }
 
-    if (new Date() > user.emailVerificationExpires) {
+    if (new Date() > verificationData.expires) {
+      // Clean up expired verification data
+      verificationStore.delete(email);
       return res.status(401).json({ error: 'Verification code has expired. Please request a new one.' });
     }
 
-    // Mark as verified and prepare for password setup
-    await user.update({
-      isEmailVerified: true,
-      emailVerificationToken: null,
-      emailVerificationExpires: null
+    // Check if user already exists (double-check)
+    const existingUser = await User.findOne({
+      where: { email }
     });
+
+    if (existingUser) {
+      // Clean up verification data
+      verificationStore.delete(email);
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+
+    // Create the verified admin user
+    const newUser = await User.create({
+      email,
+      role: 'admin',
+      isEmailVerified: true,
+      profileCompleted: false
+    });
+
+    console.log('Created verified admin user:', newUser.email);
+
+    // Clean up verification data
+    verificationStore.delete(email);
 
     // Generate temporary token for password setup (expires in 15 minutes)
     const tempToken = jwt.sign(
       {
-        id: user.id,
-        email: user.email,
+        id: newUser.id,
+        email: newUser.email,
         purpose: 'admin_signup_password_setup'
       },
       process.env.JWT_SECRET || 'fallback-secret-key',
@@ -257,7 +273,7 @@ router.post('/signup/verify', async (req, res) => {
     res.json({
       message: 'Email verified successfully. You can now set your password.',
       tempToken: tempToken,
-      email: user.email
+      email: newUser.email
     });
   } catch (error) {
     console.error('Error verifying admin signup email:', error);
@@ -364,21 +380,23 @@ router.post('/send-verification', async (req, res) => {
     const verificationCode = generateVerificationCode();
     console.log('Generated verification code:', verificationCode);
 
-    // Store verification code in database (expires in 10 minutes)
+    // Store verification code in memory (expires in 10 minutes)
     const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    await adminUser.update({
-      emailVerificationToken: verificationCode,
-      emailVerificationExpires: verificationExpires
+    verificationStore.set(email, {
+      verificationCode,
+      expires: verificationExpires,
+      createdAt: new Date()
     });
 
-    console.log('Updated admin user with verification code');
+    console.log('Updated verification code in memory for:', email);
 
     // Send verification email
     const emailResult = await sendVerificationEmail(email, verificationCode);
     console.log('Email result:', emailResult);
 
     if (!emailResult.success) {
+      // Clean up verification data if email sending fails
+      verificationStore.delete(email);
       return res.status(500).json({ error: 'Failed to send verification email' });
     }
 
@@ -398,6 +416,9 @@ router.post('/verify-email', async (req, res) => {
   try {
     const { email, verificationCode } = req.body;
 
+    console.log(`🔍 Verifying email: ${email}`);
+    console.log(`🔢 Verification code received: ${verificationCode}`);
+
     if (!email || !verificationCode) {
       return res.status(400).json({ error: 'Email and verification code are required' });
     }
@@ -407,18 +428,29 @@ router.post('/verify-email', async (req, res) => {
       where: { email, role: 'admin' }
     });
 
+    console.log(`👤 Admin user found: ${adminUser ? 'YES' : 'NO'}`);
+    if (adminUser) {
+      console.log(`🔑 Stored verification token: ${adminUser.emailVerificationToken}`);
+      console.log(`⏰ Token expires: ${adminUser.emailVerificationExpires}`);
+      console.log(`✅ Token matches: ${adminUser.emailVerificationToken === verificationCode}`);
+    }
+
     if (!adminUser) {
       return res.status(404).json({ error: 'Admin user not found' });
     }
 
     // Check if verification code is valid and not expired
     if (adminUser.emailVerificationToken !== verificationCode) {
+      console.log(`❌ Verification failed: Token mismatch`);
       return res.status(401).json({ error: 'Invalid verification code' });
     }
 
     if (new Date() > adminUser.emailVerificationExpires) {
+      console.log(`❌ Verification failed: Token expired`);
       return res.status(401).json({ error: 'Verification code has expired' });
     }
+
+    console.log(`✅ Verification successful for: ${email}`);
 
     // Mark email as verified and clear verification token
     await adminUser.update({
