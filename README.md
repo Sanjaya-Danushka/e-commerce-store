@@ -100,6 +100,13 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
      -d '{"email": "admin@example.com", "password": "Admin123!", "firstName": "Demo", "lastName": "Admin"}'
    ```
 
+   **Customer Signup Process:**
+   1. Navigate to http://localhost:5173/signup
+   2. Enter email address to receive verification code
+   3. Check email for verification code
+   4. Enter verification code and set password
+   5. Account is created and ready to use
+
 5. **Open browser:**
    - App: http://localhost:5173
    - Admin: http://localhost:5173/admin
@@ -128,8 +135,10 @@ e-commerce-store/
 ## 🔌 API Overview
 
 ### **Authentication & Users**
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
+- `POST /api/auth/signup` - Start customer signup (email verification)
+- `POST /api/auth/signup/verify` - Verify email for customer signup
+- `POST /api/auth/signup/complete` - Complete signup by setting password
+- `POST /api/auth/login` - User login with email verification check
 - `POST /api/auth/google` - Google OAuth login
 - `GET /api/auth/profile` - Get user profile
 - `PUT /api/auth/profile` - Update user profile
@@ -358,6 +367,13 @@ MIT License - see LICENSE file for details.
 - **Comprehensive API Documentation** - Updated with all admin management endpoints
 - **Enhanced Security Documentation** - Detailed security features and best practices
 - **Production-Ready Security** - RBAC, input validation, and secure error handling
+
+### **🎯 Customer Authentication System**
+- **Email Verification Flow** - Complete signup process with email verification
+- **Google OAuth Integration** - Seamless social login for customers
+- **Enhanced Login Security** - Email verification required for password-based accounts
+- **Password Setup Flow** - Secure account completion after email verification
+- **Account Recovery** - Email verification for existing accounts
 
 ### **🎯 Admin Panel Features**
 - **Admin Account Management** - Full CRUD operations for admin users

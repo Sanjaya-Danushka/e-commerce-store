@@ -152,44 +152,98 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
     }
   };
 
-  const register = async (email, password, firstName, lastName) => {
+  const register = async (email) => {
     try {
       console.log('Attempting registration for:', email);
-      const response = await axios.post('/api/auth/register', {
+
+      // Start the signup process with email verification
+      const signupResponse = await axios.post('/api/auth/signup', { email });
+
+      if (!signupResponse.data.success) {
+        throw new Error(signupResponse.data.error || 'Failed to start signup');
+      }
+
+      console.log('Signup initiated, email verification sent to:', email);
+
+      // Return the verification data to the component
+      return {
+        success: true,
+        needsVerification: true,
+        email: email,
+        message: 'Verification code sent to your email'
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Registration failed'
+      };
+    }
+  };
+
+  const verifySignup = async (email, verificationCode) => {
+    try {
+      console.log('Verifying signup for:', email);
+      const response = await axios.post('/api/auth/signup/verify', {
         email,
+        verificationCode
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Verification failed');
+      }
+
+      console.log('Email verified successfully for:', email);
+
+      // Return the temp token for password setup
+      return {
+        success: true,
+        tempToken: response.data.tempToken,
+        email: response.data.email,
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('Verification error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Verification failed'
+      };
+    }
+  };
+
+  const completeSignup = async (tempToken, password, firstName, lastName) => {
+    try {
+      console.log('Completing signup with temp token');
+      const response = await axios.post('/api/auth/signup/complete', {
+        tempToken,
         password,
         firstName,
         lastName
       });
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to complete signup');
+      }
+
       const { token: newToken, user: userData } = response.data;
 
-      console.log('Registration successful, setting user:', userData.email);
+      console.log('Signup completed successfully, setting user:', userData.email);
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('authToken', newToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-      // Immediately save basic user data to backend
-      try {
-        await axios.put('/api/auth/profile', {
-          profileCompleted: false
-        });
-        console.log('Basic user profile created in backend');
-      } catch (profileError) {
-        console.error('Failed to create basic profile:', profileError);
-      }
-
-      // Notify parent component that user logged in (registration counts as login)
+      // Notify parent component that user logged in (signup counts as login)
       if (onUserLogin) {
         onUserLogin(userData);
       }
 
       return { success: true };
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Signup completion error:', error);
       return {
         success: false,
-        error: error.response?.data?.error || 'Registration failed'
+        error: error.response?.data?.error || 'Failed to complete signup'
       };
     }
   };
@@ -264,6 +318,8 @@ export const AuthProvider = ({ children, onUserLogin, onUserLogout }) => {
     login,
     loginWithGoogle,
     register,
+    verifySignup,
+    completeSignup,
     logout,
     getProfile,
     updateProfile,
