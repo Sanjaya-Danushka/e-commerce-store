@@ -2,7 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 import { sequelize } from './models/index.js';
+
+// Load environment variables
+dotenv.config();
 
 // Import all routes
 import productRoutes from './routes/products.js';
@@ -12,6 +16,7 @@ import orderRoutes from './routes/orders.js';
 import wishlistRoutes from './routes/wishlist.js';
 import resetRoutes from './routes/reset.js';
 import paymentSummaryRoutes from './routes/paymentSummary.js';
+import stripePaymentRoutes from './routes/stripePayments.js';
 import contactRoutes from './routes/contact.js';
 import subscribeRoutes from './routes/subscribe.js';
 import careersRoutes from './routes/careers.js';
@@ -54,6 +59,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/payment-summary', paymentSummaryRoutes);
+app.use('/api/stripe', stripePaymentRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/subscribe', subscribeRoutes);
 app.use('/api/careers', careersRoutes);

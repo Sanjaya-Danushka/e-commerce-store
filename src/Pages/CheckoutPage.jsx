@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, forwardRef, useImperativeHandle } from "react";
 import { formatMoney } from "../utils/money";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -15,72 +15,125 @@ import {
 const stripePromise = loadStripe('pk_test_51SISPUCSFn0z5K5oSB28IzVbGjk5MEIzXO6gcy4kDl8rf3bAX7o4lvItVckWdJNjzsjAELwrEyELe6X17gXAxDkl00sXFNAAPQ');
 
 // Stripe Payment Form Component
-const PaymentForm = () => {
+const PaymentForm = forwardRef((props, ref) => {
   const stripe = useStripe();
   const elements = useElements();
   const [cardError, setCardError] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  useImperativeHandle(ref, () => ({
+    processPayment: async (amount) => {
+      if (!stripe || !elements) {
+        throw { success: false, error: 'Stripe not initialized' };
+      }
 
-    if (!stripe || !elements) {
-      return;
+      setIsProcessing(true);
+      setCardError("");
+
+      try {
+        const cardElement = elements.getElement(CardElement);
+
+        if (!cardElement) {
+          throw { success: false, error: 'Card element not found' };
+        }
+
+        // Create payment method using Stripe Elements
+        const { error, paymentMethod } = await stripe.createPaymentMethod({
+          type: 'card',
+          card: cardElement,
+          billing_details: {
+            name: 'Customer Name', // You can get this from a form field if needed
+          },
+        });
+
+        if (error) {
+          throw { success: false, error: error.message };
+        }
+
+        // Create payment intent on your backend
+        const response = await axios.post('/api/stripe/create-payment-intent', {
+          amount: amount, // Amount in cents
+          currency: 'usd',
+          paymentMethodId: paymentMethod.id,
+          metadata: {
+            paymentMethod: 'stripe',
+            customerEmail: 'customer@example.com' // Get from user context
+          }
+        });
+
+        if (response.data.requiresAction) {
+          // Handle 3D Secure authentication
+          const { error: confirmError } = await stripe.confirmCardPayment(
+            response.data.clientSecret,
+            {
+              payment_method: paymentMethod.id,
+            }
+          );
+
+          if (confirmError) {
+            throw { success: false, error: confirmError.message };
+          }
+        }
+
+        return {
+          success: true,
+          transactionId: response.data.paymentIntentId,
+          message: "Payment processed successfully via Stripe"
+        };
+
+      } catch (error) {
+        console.error('Stripe payment error:', error);
+        throw {
+          success: false,
+          error: error.error || error.message || "Payment processing failed"
+        };
+      } finally {
+        setIsProcessing(false);
+      }
     }
-
-    const cardElement = elements.getElement(CardElement);
-
-    // Create payment method using Stripe Elements
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: 'card',
-      card: cardElement,
-      billing_details: {
-        name: 'Customer Name', // You can get this from a form field
-      },
-    });
-
-    if (error) {
-      setCardError(error.message);
-      return;
-    }
-
-    // Payment method created successfully
-    return paymentMethod;
-  };
+  }));
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-medium text-gray-900">Credit Card Information</h4>
+    <div>
+      <form>
+        <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium text-gray-900">Credit Card Information</h4>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Card Details
-          </label>
-          <div className={`p-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 ${
-            cardError ? 'border-red-500' : 'border-gray-300'
-          }`}>
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: '#424770',
-                    '::placeholder': {
-                      color: '#aab7c4',
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Card Details
+            </label>
+            <div className={`p-3 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 ${
+              cardError ? 'border-red-500' : 'border-gray-300'
+            }`}>
+              <CardElement
+                options={{
+                  style: {
+                    base: {
+                      fontSize: '16px',
+                      color: '#424770',
+                      '::placeholder': {
+                        color: '#aab7c4',
+                      },
                     },
                   },
-                },
-              }}
-            />
+                }}
+              />
+            </div>
+            {cardError && (
+              <p className="mt-1 text-sm text-red-600">{cardError}</p>
+            )}
           </div>
-          {cardError && (
-            <p className="mt-1 text-sm text-red-600">{cardError}</p>
-          )}
         </div>
-      </div>
-    </form>
+      </form>
+      {isProcessing && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-800 text-sm font-medium">Processing payment...</p>
+        </div>
+      )}
+    </div>
   );
-};
+});
 
 const CheckoutPage = () => {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
@@ -89,6 +142,7 @@ const CheckoutPage = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("credit_card");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const paymentFormRef = useRef(null);
 
   useEffect(() => {
     // Fetch cart items directly
@@ -191,84 +245,6 @@ const CheckoutPage = () => {
     }));
   };
 
-  // Real Stripe payment processing
-  const processStripePayment = async () => {
-    try {
-      // Load Stripe.js script if not already loaded
-      if (!window.Stripe) {
-        const script = document.createElement('script');
-        script.src = 'https://js.stripe.com/v3/';
-        document.head.appendChild(script);
-
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
-      }
-
-      // Initialize Stripe with your publishable key
-      const stripe = window.Stripe('pk_test_51SISPUCSFn0z5K5oSB28IzVbGjk5MEIzXO6gcy4kDl8rf3bAX7o4lvItVckWdJNjzsjAELwrEyELe6X17gXAxDkl00sXFNAAPQ');
-
-      // Create payment method using Stripe Elements
-      const { error: createError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: {
-          number: cardDetails.number.replace(/\s/g, ''),
-          exp_month: parseInt(cardDetails.expiry.split('/')[0]),
-          exp_year: parseInt('20' + cardDetails.expiry.split('/')[1]),
-          cvc: cardDetails.cvv,
-        },
-        billing_details: {
-          name: cardDetails.name,
-          address: {
-            postal_code: cardDetails.zipCode,
-          },
-        },
-      });
-
-      if (createError) {
-        throw { success: false, error: createError.message };
-      }
-
-      // Create payment intent on your backend
-      const response = await axios.post('/api/create-payment-intent', {
-        amount: calculateOrderTotal(), // Amount in cents
-        currency: 'usd',
-        paymentMethodId: paymentMethod.id,
-        metadata: {
-          paymentMethod: 'stripe',
-          customerEmail: 'customer@example.com' // Get from user context
-        }
-      });
-
-      if (response.data.requiresAction) {
-        // Handle 3D Secure authentication
-        const { error: confirmError } = await stripe.confirmCardPayment(
-          response.data.clientSecret,
-          {
-            payment_method: paymentMethod.id,
-          }
-        );
-
-        if (confirmError) {
-          throw { success: false, error: confirmError.message };
-        }
-      }
-
-      return {
-        success: true,
-        transactionId: response.data.paymentIntentId,
-        message: "Payment processed successfully via Stripe"
-      };
-
-    } catch (error) {
-      console.error('Stripe payment error:', error);
-      throw {
-        success: false,
-        error: error.error || error.message || "Payment processing failed"
-      };
-    }
-  };
-
   const processApplePay = async () => {
     // Check if Apple Pay is available
     if (typeof window !== 'undefined' && (!window.ApplePaySession || !window.ApplePaySession.canMakePayments)) {
@@ -359,7 +335,11 @@ const CheckoutPage = () => {
 
       switch (selectedPaymentMethod) {
         case "credit_card":
-          paymentResult = await processStripePayment();
+          if (paymentFormRef.current) {
+            paymentResult = await paymentFormRef.current.processPayment(calculateOrderTotal());
+          } else {
+            throw new Error("Payment form not available");
+          }
           break;
         case "paypal":
           paymentResult = await processPayPalPayment();
@@ -740,7 +720,7 @@ const CheckoutPage = () => {
               {/* Payment Form Section */}
               {selectedPaymentMethod === "credit_card" && (
                 <Elements stripe={stripePromise}>
-                  <PaymentForm />
+                  <PaymentForm ref={paymentFormRef} />
                 </Elements>
               )}
 
