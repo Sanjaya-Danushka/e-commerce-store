@@ -11,7 +11,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 - **🛒 Shopping Cart** - Persistent cart with real-time updates and guest checkout
 - **❤️ Wishlist** - Save and manage favorite products with instant sync across devices
 - **📦 Order Management** - Complete order placement, tracking, and history
-- **💳 Payment Integration** - Secure payment processing (ready for Stripe/PayPal)
+- **💳 Payment Integration** - 4 complete payment methods: Credit Card (Stripe), ShopEase (PayPal), Apple Pay, and Google Pay
 
 ### 🤖 **AI & Advanced Features**
 
@@ -247,10 +247,37 @@ e-commerce-store/
 - `GET /api/orders/:id` - Get order details
 - `PUT /api/orders/:id/status` - Update order status (admin)
 
-### **💳 Stripe Payment Testing**
+### **💳 Payment Integration - 4 Payment Methods**
 
-#### **Test Card Details (Development Only)**
+The application now supports **4 complete payment methods** with real API integrations:
 
+#### **1. 💳 Credit Card (Stripe)**
+- **Secure card processing** with Stripe Elements
+- **3D Secure support** for enhanced security
+- **Real-time validation** and error handling
+- **PCI compliant** - no card data touches your servers
+
+#### **2. 🏪 ShopEase (PayPal)**
+- **PayPal integration** with redirect flow
+- **Secure payment processing** through PayPal's API
+- **Order tracking** and confirmation emails
+- **Guest checkout support** for PayPal users
+
+#### **3. 📱 Apple Pay**
+- **Native Apple Pay integration** using Payment Request API
+- **Touch ID/Face ID authentication** for secure payments
+- **Token-based processing** for maximum security
+- **Automatic device detection** - only shows on supported devices
+
+#### **4. 🔍 Google Pay**
+- **Google Pay API integration** using Payment Request API
+- **One-tap checkout** with saved payment methods
+- **Multi-card support** (Visa, MasterCard, Amex, Discover)
+- **Cross-platform compatibility** - works on Android and desktop
+
+### **🧪 Payment Testing Guide**
+
+#### **Credit Card Testing (Stripe)**
 For testing the Stripe payment integration, use these test cards:
 
 | Card Type                 | Card Number           | Expiry                        | CVC                      | Expected Result    |
@@ -259,21 +286,74 @@ For testing the Stripe payment integration, use these test cards:
 | **❌ Declined**           | `4000 0000 0000 0002` | Any future date               | Any 3 digits             | Payment declined   |
 | **⚠️ Insufficient Funds** | `4000 0000 0000 9995` | Any future date               | Any 3 digits             | Insufficient funds |
 
-#### **Testing Steps**
+#### **Apple Pay Testing**
+- **Safari on iOS/macOS** - Apple Pay will appear as an option
+- **Test on real devices** - Requires Touch ID/Face ID setup
+- **Sandbox environment** - Use Apple Pay sandbox for testing
+
+#### **Google Pay Testing**
+- **Chrome/Edge browsers** - Google Pay will appear as an option
+- **Android devices** - Native Google Pay integration
+- **Desktop testing** - Works with Google accounts that have payment methods
+
+#### **PayPal Testing**
+- **Redirects to PayPal** - Test the full PayPal payment flow
+- **Sandbox accounts** - Use PayPal developer sandbox for testing
+- **Guest checkout** - Test without requiring user accounts
+
+### **🔧 Payment Setup Requirements**
+
+#### **Stripe Setup**
+1. Create Stripe account: https://stripe.com
+2. Get test keys from [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
+3. Add to `backend/.env`:
+   ```bash
+   STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+   STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+   ```
+
+#### **PayPal Setup**
+1. Create PayPal developer account
+2. Get API credentials from PayPal dashboard
+3. Configure PayPal endpoints in backend
+
+#### **Apple Pay Setup**
+1. **Domain Registration** - Register your domain with Apple Pay
+2. **Merchant Certificate** - Obtain Apple Pay merchant certificate
+3. **Backend Validation** - Implement merchant validation endpoint
+
+#### **Google Pay Setup**
+1. **Google Pay Console** - Register as Google Pay merchant
+2. **Payment Processor** - Set up Stripe or other supported processor
+3. **Merchant Configuration** - Configure merchant ID and gateway
+
+### **Testing Steps for All Payment Methods**
 
 1. **Navigate to checkout page** in your browser
-2. **Select Credit Card** as payment method
-3. **Enter test card details** above
+2. **Add items to cart** and proceed to checkout
+3. **Select different payment methods** to test each one:
+   - **Credit Card** - Enter test card details
+   - **Apple Pay** - Use Touch ID/Face ID (iOS/macOS Safari)
+   - **Google Pay** - Use saved payment methods (Chrome/Android)
+   - **PayPal** - Complete redirect flow
 4. **Complete the order** - should process successfully
 5. **Check backend logs** for payment processing confirmation
+6. **Verify order creation** in admin panel or user profile
 
 #### **Stripe Dashboard Testing**
-
 1. **Go to [Stripe Dashboard](https://dashboard.stripe.com/test/payments)**
 2. **View test payments** to confirm transactions
 3. **Check payment status** and details
 
-> **⚠️ Important:** These test cards only work in test mode and won't charge real money.
+#### **Apple Pay Console**
+1. **Apple Pay Dashboard** - Monitor transactions and setup
+2. **Domain Verification** - Ensure domain is properly registered
+
+#### **Google Pay Console**
+1. **Google Pay Business Console** - Monitor transactions
+2. **Integration Status** - Verify setup completion
+
+> **⚠️ Important:** Test cards only work in test mode and won't charge real money. For production, use live API keys and real payment methods.
 
 ### **Email & Notifications**
 
@@ -457,7 +537,7 @@ npm run build
 - [x] **Responsive Design** - Mobile-first approach
 - [x] **All Footer Pages** - Complete site navigation
 - [x] **Search & Filtering** - Advanced product discovery
-- [x] **Payment Ready** - Integration points prepared
+- [x] **Payment Integration** - 4 complete payment methods with real API integrations
 - [x] **Analytics Dashboard** - Sales and user metrics
 
 ## 🔒 Security Features

@@ -143,6 +143,7 @@ const CheckoutPage = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+  const [isGooglePaySupported, setIsGooglePaySupported] = useState(false);
   const paymentFormRef = useRef(null);
 
   useEffect(() => {
@@ -155,7 +156,18 @@ const CheckoutPage = () => {
       }
     };
 
+    // Check if Google Pay is supported
+    const checkGooglePaySupport = () => {
+      if (typeof window !== 'undefined' && window.PaymentRequest) {
+        // Check if Google Pay is available (basic check)
+        setIsGooglePaySupported(true);
+      } else {
+        setIsGooglePaySupported(false);
+      }
+    };
+
     checkApplePaySupport();
+    checkGooglePaySupport();
 
     // Fetch cart items directly
     const fetchCartItems = async () => {
@@ -354,29 +366,98 @@ const CheckoutPage = () => {
 
   const processGooglePay = async () => {
     // Check if Google Pay is available
-    if (typeof window !== 'undefined' && !window.PaymentRequest) {
+    if (typeof window === 'undefined' || !window.PaymentRequest) {
       throw {
         success: false,
         error: "Google Pay is not supported in this browser."
       };
     }
 
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (Math.random() > 0.04) { // 96% success rate
-          resolve({
-            success: true,
-            transactionId: `google_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            message: "Google Pay payment processed"
-          });
-        } else {
-          reject({
-            success: false,
-            error: "Google Pay payment was declined."
-          });
+    const amount = calculateOrderTotal();
+
+    // Google Pay payment request
+    const paymentRequest = {
+      apiVersion: 2,
+      apiVersionMinor: 0,
+      allowedPaymentMethods: [{
+        type: 'CARD',
+        parameters: {
+          allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+          allowedCardNetworks: ['AMEX', 'DISCOVER', 'INTERAC', 'JCB', 'MASTERCARD', 'VISA']
+        },
+        tokenizationSpecification: {
+          type: 'PAYMENT_GATEWAY',
+          parameters: {
+            gateway: 'stripe', // or your preferred gateway
+            gatewayMerchantId: 'your-gateway-merchant-id' // You'll need to set this up
+          }
         }
-      }, 2500);
-    });
+      }],
+      merchantInfo: {
+        merchantName: 'ShopEase',
+        merchantId: 'your-merchant-id' // You'll need to get this from Google
+      },
+      transactionInfo: {
+        totalPriceStatus: 'FINAL',
+        totalPrice: (amount / 100).toFixed(2),
+        currencyCode: 'USD',
+        countryCode: 'US'
+      }
+    };
+
+    const paymentRequestObj = new window.PaymentRequest(
+      paymentRequest.allowedPaymentMethods,
+      paymentRequest.transactionInfo,
+      {
+        requestPayerEmail: true,
+        requestPayerName: true,
+        requestPayerPhone: false,
+        requestShipping: false
+      }
+    );
+
+    try {
+      // Show Google Pay payment sheet
+      const paymentResponse = await paymentRequestObj.show();
+
+      // Send payment token to backend for processing
+      const response = await axios.post('/api/google-pay/process-payment', {
+        paymentToken: paymentResponse.details.paymentMethodData.tokenizationData.token,
+        amount: amount,
+        currency: 'USD'
+      });
+
+      if (response.data.success) {
+        // Complete the payment
+        paymentResponse.complete('success');
+        return {
+          success: true,
+          transactionId: response.data.transactionId,
+          message: "Google Pay payment successful"
+        };
+      } else {
+        // Cancel the payment
+        paymentResponse.complete('fail');
+        throw {
+          success: false,
+          error: response.data.error || "Payment failed"
+        };
+      }
+    } catch (error) {
+      console.error('Google Pay error:', error);
+
+      if (error.message === 'Request cancelled') {
+        throw {
+          success: false,
+          error: "Payment cancelled by user"
+        };
+      }
+
+      throw {
+        success: false,
+        error: error.message || "Google Pay payment failed"
+      };
+    }
   };
 
   const processPayPalPayment = async () => {
@@ -795,13 +876,14 @@ const CheckoutPage = () => {
                   selectedPaymentMethod === "google_pay"
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200'
-                }`}>
+                } ${!isGooglePaySupported ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <input
                     type="radio"
                     value="google_pay"
                     checked={selectedPaymentMethod === "google_pay"}
                     onChange={(e) => setSelectedPaymentMethod(e.target.value)}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    disabled={!isGooglePaySupported}
                   />
                   <div className="ml-3 flex-1">
                     <div className="flex items-center">
@@ -809,6 +891,11 @@ const CheckoutPage = () => {
                         <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
                       </svg>
                       <span className="font-medium text-gray-900">Google Pay</span>
+                      {!isGooglePaySupported && (
+                        <span className="ml-2 text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                          Not supported
+                        </span>
+                      )}
                     </div>
                   </div>
                 </label>
@@ -935,20 +1022,98 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {selectedPaymentMethod === "google_pay" && (
+              {selectedPaymentMethod === "google_pay" && isGooglePaySupported && (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <div className="text-center">
                     <button
                       className="inline-flex items-center px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                      onClick={() => {/* Google Pay integration would go here */}}
+                      onClick={async () => {
+                        try {
+                          setIsProcessingPayment(true);
+                          setPaymentError("");
+                          const result = await processGooglePay();
+                          if (result.success) {
+                            // Payment successful, continue with order placement
+                            const selectedCartItems = cartItems.filter(item => selectedItems[item.productId]);
+                            const itemsToOrder = selectedCartItems.map(item => ({
+                              productId: item.productId,
+                              quantity: item.quantity,
+                              deliveryOptionId: item.deliveryOptionId
+                            }));
+
+                            const orderResponse = await axios.post("/api/orders", {
+                              cartItems: itemsToOrder,
+                              paymentMethod: "google_pay",
+                              paymentTransactionId: result.transactionId,
+                              paymentStatus: "completed"
+                            });
+
+                            // Re-fetch cart items to get updated cart state
+                            const fetchCartItems = async () => {
+                              try {
+                                const response = await axios.get("/api/cart-items?expand=product");
+                                setCartItems(response.data);
+                                const initialSelectedItems = {};
+                                response.data.forEach(item => {
+                                  initialSelectedItems[item.productId] = true;
+                                });
+                                setSelectedItems(initialSelectedItems);
+                              } catch (error) {
+                                console.error("Error fetching cart items:", error);
+                                setCartItems([]);
+                                setSelectedItems({});
+                              }
+                            };
+
+                            await fetchCartItems();
+
+                            // Redirect to order success page
+                            window.location.href = `/order-success?orderId=${orderResponse.data.orderId}`;
+                          }
+                        } catch (error) {
+                          console.error("Google Pay error:", error);
+                          setPaymentError(error.error || "Google Pay failed. Please try again.");
+                        } finally {
+                          setIsProcessingPayment(false);
+                        }
+                      }}
+                      disabled={isProcessingPayment}
                     >
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
-                      </svg>
-                      Pay with Google Pay
+                      {isProcessingPayment ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                          </svg>
+                          Pay with Google Pay
+                        </>
+                      )}
                     </button>
                     <p className="mt-2 text-sm text-gray-600">
                       Fast, simple checkout with your saved cards
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedPaymentMethod === "google_pay" && !isGooglePaySupported && (
+                <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="text-center">
+                    <svg className="w-8 h-8 text-yellow-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <p className="text-yellow-800 text-sm font-medium">
+                      Google Pay is not supported in this browser.
+                    </p>
+                    <p className="text-yellow-700 text-sm mt-1">
+                      Please select a different payment method.
                     </p>
                   </div>
                 </div>
