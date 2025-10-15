@@ -15,9 +15,26 @@ const HomePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const response = await axios.get("/api/products");
-      setProducts(response.data);
-      setAllProducts(response.data);
+      try {
+        console.log('🔄 Fetching homepage products from API...');
+        const response = await axios.get("/api/products");
+        const productsData = response.data;
+
+        // Extract products array from API response
+        // API returns: { products: [...], pagination: {...} }
+        const productsArray = Array.isArray(productsData) ? productsData : productsData.products || [];
+
+        console.log(`✅ Homepage products loaded: ${productsArray.length} products`);
+
+        setProducts(productsArray);
+        setAllProducts(productsArray);
+      } catch (error) {
+        console.error('❌ Error fetching homepage products:', error);
+        console.error('❌ API Response:', error.response?.data);
+        // Set empty arrays on error to prevent crashes
+        setProducts([]);
+        setAllProducts([]);
+      }
     };
     fetchProducts();
   }, []);

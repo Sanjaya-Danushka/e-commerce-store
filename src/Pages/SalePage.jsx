@@ -14,12 +14,19 @@ const SalePage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   useEffect(() => {
     const fetchSaleProducts = async () => {
       try {
+        console.log('🔄 Fetching sale products from API...');
         const response = await fetch("/api/products");
-        const products = await response.json();
+        const productsData = await response.json();
+
+        // Extract products array from API response
+        // API returns: { products: [...], pagination: {...} }
+        const productsArray = Array.isArray(productsData) ? productsData : productsData.products || [];
+
+        console.log(`✅ Sale products loaded: ${productsArray.length} products`);
 
         // For demo purposes, we'll take all products and mark them as sale products
-        setSaleProducts(products);
-        setAllSaleProducts(products);
+        setSaleProducts(productsArray);
+        setAllSaleProducts(productsArray);
       } catch (error) {
         console.error("Error fetching sale products:", error);
         setSaleProducts([]);

@@ -4,7 +4,6 @@ import Footer from "../components/Footer";
 import CustomDropdown from "../components/CustomDropdown";
 import ProductCard from "../components/ProductCard";
 import axios from "axios";
-import { logger } from "../utils/logger";
 
 const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [products, setProducts] = useState([]);
@@ -19,22 +18,37 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchProducts = async () => {
+    try {
+      console.log('🔄 Fetching products from API...');
+      const response = await axios.get("/api/products");
+      const productsData = response.data;
+
+      // Extract products array from API response
+      // API returns: { products: [...], pagination: {...} }
+      const productsArray = Array.isArray(productsData) ? productsData : productsData.products || [];
+
+      console.log(`✅ Products loaded: ${productsArray.length} products`);
+
+      // Load products data (remove verbose debug logging for cleaner console)
+      setProducts(productsArray);
+      setFilteredProducts(productsArray);
+      setError(null); // Clear any previous errors
+    } catch (error) {
+      console.error('❌ Error fetching products:', error);
+      console.error('❌ API Response:', error.response?.data);
+      // Set empty arrays on error to prevent crashes
+      setProducts([]);
+      setFilteredProducts([]);
+      setError('Failed to load products. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get("/api/products");
-        const productsData = response.data;
-
-        // Load products data (remove verbose debug logging for cleaner console)
-        setProducts(productsData);
-        setFilteredProducts(productsData);
-        setProducts([]);
-        setFilteredProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
   }, []);
 
@@ -231,6 +245,39 @@ const ProductsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading amazing products...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header cart={cart} wishlist={wishlist} />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Oops! Something went wrong</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                fetchProducts();
+              }}
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              Try Again
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
           </div>
         </div>
         <Footer />

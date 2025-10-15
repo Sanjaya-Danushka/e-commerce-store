@@ -26,11 +26,18 @@ const NewArrivalsPage = ({ cart, wishlist, refreshCart, updateWishlist }) => {
   useEffect(() => {
     const fetchNewArrivals = async () => {
       try {
+        console.log('🔄 Fetching new arrivals from API...');
         const response = await fetch('/api/products');
-        const products = await response.json();
+        const productsData = await response.json();
+
+        // Extract products array from API response
+        // API returns: { products: [...], pagination: {...} }
+        const productsArray = Array.isArray(productsData) ? productsData : productsData.products || [];
+
+        console.log(`✅ New arrivals loaded: ${productsArray.length} products`);
 
         // Enhance products with our new images from newPage-images directory
-        const enhancedProducts = products.map((product, index) => ({
+        const enhancedProducts = productsArray.map((product, index) => ({
           ...product,
           newArrivalImage: `/images/newPage-images/${Object.keys(imageCategories)[index % Object.keys(imageCategories).length]}`
         }));
