@@ -217,6 +217,31 @@ e-commerce-store/
 - `GET /api/orders/:id` - Get order details
 - `PUT /api/orders/:id/status` - Update order status (admin)
 
+### **💳 Stripe Payment Testing**
+
+#### **Test Card Details (Development Only)**
+For testing the Stripe payment integration, use these test cards:
+
+| Card Type | Card Number | Expiry | CVC | Expected Result |
+|-----------|-------------|--------|-----|-----------------|
+| **✅ Successful** | `4242 4242 4242 4242` | Any future date (e.g., 12/25) | Any 3 digits (e.g., 123) | Payment succeeds |
+| **❌ Declined** | `4000 0000 0000 0002` | Any future date | Any 3 digits | Payment declined |
+| **⚠️ Insufficient Funds** | `4000 0000 0000 9995` | Any future date | Any 3 digits | Insufficient funds |
+
+#### **Testing Steps**
+1. **Navigate to checkout page** in your browser
+2. **Select Credit Card** as payment method
+3. **Enter test card details** above
+4. **Complete the order** - should process successfully
+5. **Check backend logs** for payment processing confirmation
+
+#### **Stripe Dashboard Testing**
+1. **Go to [Stripe Dashboard](https://dashboard.stripe.com/test/payments)**
+2. **View test payments** to confirm transactions
+3. **Check payment status** and details
+
+> **⚠️ Important:** These test cards only work in test mode and won't charge real money.
+
 ### **Email & Notifications**
 - `POST /api/subscribe` - Newsletter subscription
 - `POST /api/contact` - Contact form submissions
