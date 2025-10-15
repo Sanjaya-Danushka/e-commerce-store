@@ -5,6 +5,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 ## ✨ Key Features
 
 ### 🛍️ **Core E-Commerce Features**
+
 - **🔐 User Authentication** - JWT-based auth with Google OAuth and profile management
 - **📧 Email Notifications** - Automated email system for orders, confirmations, and marketing
 - **🛒 Shopping Cart** - Persistent cart with real-time updates and guest checkout
@@ -13,18 +14,21 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 - **💳 Payment Integration** - Secure payment processing (ready for Stripe/PayPal)
 
 ### 🤖 **AI & Advanced Features**
+
 - **🎯 AI-Powered Chatbot** - Trained AI assistant for customer support and product recommendations
 - **📊 Advanced Analytics** - Sales tracking, user behavior analytics, and reporting
 - **🎨 Dynamic UI** - Responsive design with animations and modern UX patterns
 - **🔍 Smart Search** - Product search with filtering, sorting, and recommendations
 
 ### 👨‍💼 **Admin & Management**
+
 - **📋 Admin Panel** - Full admin dashboard at `/admin` for complete store management
 - **📦 Product Management** - Add, edit, delete products with inventory tracking
 - **👥 User Management** - Customer data, order history, and support management
 - **📈 Sales Dashboard** - Revenue tracking, popular products, and business insights
 
 ### 📱 **Pages & Navigation**
+
 - **🏠 Home Page** - Hero section, featured products, categories, testimonials
 - **🛍️ Products Page** - Advanced filtering, search, sorting, and product grid
 - **💸 Sale Page** - Dedicated sales section with promotional banners
@@ -34,6 +38,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 - **👤 Profile Management** - User profiles, order history, and settings
 
 ### 📄 **Footer Pages**
+
 - **ℹ️ About Us** - Company information and mission
 - **📞 Contact** - Contact forms and information
 - **📋 Terms of Service** - Legal terms and conditions
@@ -53,12 +58,14 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js (v16+)
 - npm
 
 ### Installation
 
 1. **Clone & install:**
+
    ```bash
    git clone <your-repo-url>
    cd e-commerce-store
@@ -67,6 +74,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
 2. **Configure environment:**
+
    ```bash
    cd backend
    cp .env.example .env
@@ -76,6 +84,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ### **📧 Email Configuration**
 
    #### **Development Setup (Gmail)**
+
    ```bash
    # In backend/.env
    SMTP_HOST=smtp.gmail.com
@@ -90,9 +99,11 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    **Note:** Gmail SMTP requires the `FROM_EMAIL` to match your Gmail address for authentication, but you can use a custom display name like "ShopEase Support".
 
    #### **Production Setup (Recommended)**
+
    For production, use professional email services that support custom sender addresses:
 
    **Option 1: SendGrid**
+
    ```bash
    SENDGRID_API_KEY=your-sendgrid-api-key
    FROM_EMAIL=noreply@yourdomain.com
@@ -100,6 +111,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
    **Option 2: Mailgun**
+
    ```bash
    MAILGUN_API_KEY=your-mailgun-api-key
    MAILGUN_DOMAIN=yourdomain.com
@@ -108,6 +120,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
    **Option 3: Amazon SES**
+
    ```bash
    AWS_ACCESS_KEY_ID=your-access-key
    AWS_SECRET_ACCESS_KEY=your-secret-key
@@ -117,6 +130,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
    ### **Email Features**
+
    - ✅ **Admin Verification**: Secure admin login with email codes
    - ✅ **Customer Signup**: Email verification for new accounts
    - ✅ **Password Reset**: Secure password recovery via email
@@ -124,6 +138,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    - ✅ **Contact Forms**: Customer inquiry notifications
 
 3. **Start servers:**
+
    ```bash
    # Terminal 1 - Backend
    cd backend && npm run dev
@@ -133,6 +148,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
 4. **Create demo admin (optional):**
+
    ```bash
    # Using the admin panel UI (recommended)
    1. Start the application
@@ -151,6 +167,7 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
    **Customer Signup Process:**
+
    1. Navigate to http://localhost:5173/signup
    2. Enter email address to receive verification code
    3. Check email for verification code
@@ -185,6 +202,7 @@ e-commerce-store/
 ## 🔌 API Overview
 
 ### **Authentication & Users**
+
 - `POST /api/auth/signup` - Start customer signup (email verification)
 - `POST /api/auth/signup/verify` - Verify email for customer signup
 - `POST /api/auth/signup/complete` - Complete signup by setting password
@@ -194,6 +212,7 @@ e-commerce-store/
 - `PUT /api/auth/profile` - Update user profile
 
 ### **Products & Inventory**
+
 - `GET /api/products` - Get all products
 - `GET /api/products/:id` - Get single product
 - `POST /api/products` - Create product (admin)
@@ -201,17 +220,20 @@ e-commerce-store/
 - `DELETE /api/products/:id` - Delete product (admin)
 
 ### **Shopping Cart**
+
 - `GET /api/cart-items` - Get user's cart
 - `POST /api/cart-items` - Add item to cart
 - `PUT /api/cart-items/:id` - Update cart item
 - `DELETE /api/cart-items/:id` - Remove from cart
 
 ### **Wishlist**
+
 - `GET /api/wishlist` - Get user's wishlist
 - `POST /api/wishlist` - Add item to wishlist
 - `DELETE /api/wishlist/:id` - Remove from wishlist
 
 ### **Orders & Checkout**
+
 - `POST /api/orders` - Create new order
 - `GET /api/orders` - Get user's orders
 - `GET /api/orders/:id` - Get order details
@@ -220,15 +242,17 @@ e-commerce-store/
 ### **💳 Stripe Payment Testing**
 
 #### **Test Card Details (Development Only)**
+
 For testing the Stripe payment integration, use these test cards:
 
-| Card Type | Card Number | Expiry | CVC | Expected Result |
-|-----------|-------------|--------|-----|-----------------|
-| **✅ Successful** | `4242 4242 4242 4242` | Any future date (e.g., 12/25) | Any 3 digits (e.g., 123) | Payment succeeds |
-| **❌ Declined** | `4000 0000 0000 0002` | Any future date | Any 3 digits | Payment declined |
-| **⚠️ Insufficient Funds** | `4000 0000 0000 9995` | Any future date | Any 3 digits | Insufficient funds |
+| Card Type                 | Card Number           | Expiry                        | CVC                      | Expected Result    |
+| ------------------------- | --------------------- | ----------------------------- | ------------------------ | ------------------ |
+| **✅ Successful**         | `4242 4242 4242 4242` | Any future date (e.g., 12/25) | Any 3 digits (e.g., 123) | Payment succeeds   |
+| **❌ Declined**           | `4000 0000 0000 0002` | Any future date               | Any 3 digits             | Payment declined   |
+| **⚠️ Insufficient Funds** | `4000 0000 0000 9995` | Any future date               | Any 3 digits             | Insufficient funds |
 
 #### **Testing Steps**
+
 1. **Navigate to checkout page** in your browser
 2. **Select Credit Card** as payment method
 3. **Enter test card details** above
@@ -236,6 +260,7 @@ For testing the Stripe payment integration, use these test cards:
 5. **Check backend logs** for payment processing confirmation
 
 #### **Stripe Dashboard Testing**
+
 1. **Go to [Stripe Dashboard](https://dashboard.stripe.com/test/payments)**
 2. **View test payments** to confirm transactions
 3. **Check payment status** and details
@@ -243,11 +268,13 @@ For testing the Stripe payment integration, use these test cards:
 > **⚠️ Important:** These test cards only work in test mode and won't charge real money.
 
 ### **Email & Notifications**
+
 - `POST /api/subscribe` - Newsletter subscription
 - `POST /api/contact` - Contact form submissions
 - Email notifications for orders, confirmations, and marketing
 
 ### **Admin & Analytics**
+
 - `GET /api/admin/users` - Get all users (admin)
 - `GET /api/admin/orders` - Get all orders (admin)
 - `GET /api/admin/analytics` - Sales analytics (admin)
@@ -261,6 +288,7 @@ For testing the Stripe payment integration, use these test cards:
 Admin panel available at `/admin` for complete store management:
 
 ### **Demo Admin Credentials**
+
 - **Email:** `admin@example.com`
 - **Password:** `Admin123!`
 - **Access:** Full admin privileges for testing all admin features
@@ -268,6 +296,7 @@ Admin panel available at `/admin` for complete store management:
 > **Note:** For security, change these credentials in production and disable demo accounts.
 
 ### **Admin Features**
+
 - User management and support
 - Product inventory and categories
 - Order processing and tracking
@@ -278,12 +307,14 @@ Admin panel available at `/admin` for complete store management:
 ## 🔒 Enhanced Security Features
 
 ### **Authentication & Authorization**
+
 - **JWT Tokens** - Secure, stateless authentication with configurable expiration
 - **Password Hashing** - bcrypt with salt rounds for maximum security
 - **Role-Based Access Control (RBAC)** - Admin vs User permissions
 - **Google OAuth Integration** - Social login with account linking
 
 ### **API Security**
+
 - **Input Validation** - Comprehensive validation using Sequelize validators
 - **SQL Injection Protection** - Parameterized queries and ORM usage
 - **CORS Protection** - Configurable cross-origin resource sharing
@@ -291,18 +322,21 @@ Admin panel available at `/admin` for complete store management:
 - **Request Logging** - Detailed logging for security monitoring
 
 ### **Data Security**
+
 - **Password Requirements** - Strong password policies enforced
 - **Email Verification** - Required email confirmation for new accounts
 - **Session Management** - Secure token handling and automatic expiration
 - **Data Encryption** - Sensitive data protection at rest and in transit
 
 ### **Admin Security**
+
 - **Admin Account Creation** - Secure admin account management
 - **Permission Validation** - Role-based route protection
 - **Audit Logging** - Admin action tracking for compliance
 - **Secure Admin Routes** - JWT authentication required for all admin endpoints
 
 ### **Best Practices Implemented**
+
 - **Environment Variables** - Sensitive configuration in environment files
 - **Error Handling** - Secure error messages (no sensitive data exposure)
 - **HTTPS Ready** - SSL/TLS configuration ready for production
@@ -338,6 +372,7 @@ curl -X POST http://localhost:3000/api/admin/admins \
 ```
 
 ### **Security Considerations for Demo Accounts**
+
 - Change demo credentials before production deployment
 - Demo accounts should be disabled in production environments
 - Use strong, unique passwords for production admin accounts
@@ -346,6 +381,7 @@ curl -X POST http://localhost:3000/api/admin/admins \
 ## 🤖 AI Chatbot
 
 Integrated AI-powered chatbot trained on product catalog and customer service data:
+
 - **Product Recommendations** - Suggests items based on user preferences
 - **Customer Support** - Answers questions about orders, shipping, returns
 - **Sales Assistance** - Helps users find products and complete purchases
@@ -354,6 +390,7 @@ Integrated AI-powered chatbot trained on product catalog and customer service da
 ## 📧 Email System
 
 Comprehensive email notification system:
+
 - **Order Confirmations** - Automatic emails when orders are placed
 - **Shipping Notifications** - Updates when orders ship
 - **Marketing Emails** - Newsletter and promotional campaigns
@@ -363,6 +400,7 @@ Comprehensive email notification system:
 ## 🛠️ Tech Stack
 
 ### **Frontend**
+
 - **React** - Modern React with hooks and context
 - **JavaScript** - ES6+ with modern features
 - **Tailwind CSS** - Utility-first CSS framework
@@ -370,6 +408,7 @@ Comprehensive email notification system:
 - **Axios** - HTTP client for API calls
 
 ### **Backend**
+
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web application framework
 - **SQLite** - Lightweight database with Sequelize ORM
@@ -378,6 +417,7 @@ Comprehensive email notification system:
 - **Nodemailer** - Email sending capabilities
 
 ### **Development Tools**
+
 - **Vite** - Fast build tool and dev server
 - **ESLint** - Code linting and formatting
 - **Prettier** - Code formatting
@@ -395,6 +435,7 @@ npm run build
 ## 📋 Features Implemented
 
 ### ✅ **Completed Features**
+
 - [x] **User Authentication** - JWT-based with Google OAuth
 - [x] **Product Management** - CRUD operations with admin panel
 - [x] **Shopping Cart** - Persistent with guest checkout
@@ -431,6 +472,7 @@ MIT License - see LICENSE file for details.
 ## 📋 Latest Updates
 
 ### **🔐 Enhanced Admin Security & Management**
+
 - **Complete Admin CRUD Operations** - Create, read, update, delete admin accounts
 - **Smart Account Promotion** - Automatically promotes regular users to admin when creating admin accounts
 - **Advanced Error Handling** - Clear, actionable error messages for different scenarios
@@ -438,12 +480,14 @@ MIT License - see LICENSE file for details.
 - **Role-Based Access Control** - Enhanced permissions system with admin-only routes
 
 ### **🛠️ Developer Experience Improvements**
+
 - **Demo Admin Setup Script** - Automated creation of demo admin accounts
 - **Comprehensive API Documentation** - Updated with all admin management endpoints
 - **Enhanced Security Documentation** - Detailed security features and best practices
 - **Production-Ready Security** - RBAC, input validation, and secure error handling
 
 ### **🎯 Customer Authentication System**
+
 - **Email Verification Flow** - Complete signup process with email verification
 - **Google OAuth Integration** - Seamless social login for customers
 - **Enhanced Login Security** - Email verification required for password-based accounts
@@ -451,6 +495,7 @@ MIT License - see LICENSE file for details.
 - **Account Recovery** - Email verification for existing accounts
 
 ### **🎯 Admin Panel Features**
+
 - **Admin Account Management** - Full CRUD operations for admin users
 - **User Search & Filtering** - Advanced search across admin accounts
 - **Email Verification Management** - Toggle email verification status
@@ -463,4 +508,4 @@ MIT License - see LICENSE file for details.
 **🌐 Admin Panel:** http://localhost:5173/admin
 **📚 Documentation:** Comprehensive security and API documentation included
 
-*Built with ❤️ using modern web technologies*
+_Built with ❤️ using modern web technologies_
