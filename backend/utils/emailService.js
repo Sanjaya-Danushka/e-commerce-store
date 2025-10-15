@@ -28,10 +28,13 @@ export const sendVerificationEmail = async (email, verificationCode) => {
     console.log(`📧 Preparing to send verification email to: ${email}`);
     console.log(`🔢 Verification code to send: ${verificationCode}`);
 
-    // Create email options (currently disabled for development)
-    // eslint-disable-next-line no-unused-vars
+    // For development with Gmail, we need to use the real Gmail address for SMTP
+    // but can show a custom display name
+    const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER || 'your-email@gmail.com';
+    const displayName = fromEmail.includes('gmail.com') ? 'ShopEase Support' : 'ShopEase';
+
     const mailOptions = {
-      from: process.env.FROM_EMAIL || process.env.SMTP_USER || 'your-email@gmail.com',
+      from: `"${displayName}" <${fromEmail}>`,
       to: email,
       subject: 'Admin Login Verification Code',
       html: `
@@ -54,7 +57,7 @@ export const sendVerificationEmail = async (email, verificationCode) => {
             </p>
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
             <p style="color: #999; font-size: 12px; text-align: center;">
-              Debug: Code generated at ${new Date().toISOString()}
+              Sent from ShopEase Admin System
             </p>
           </div>
         </div>
@@ -84,7 +87,7 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: process.env.FROM_EMAIL || process.env.SMTP_USER || 'your-email@gmail.com',
+      from: `"ShopEase Support" <${process.env.FROM_EMAIL || process.env.SMTP_USER || 'your-email@gmail.com'}>`,
       to: email,
       subject: 'Password Reset Request',
       html: `

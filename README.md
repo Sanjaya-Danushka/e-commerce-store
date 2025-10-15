@@ -73,6 +73,56 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    # Edit .env with your settings (database, email, JWT secrets, etc.)
    ```
 
+   ### **📧 Email Configuration**
+
+   #### **Development Setup (Gmail)**
+   ```bash
+   # In backend/.env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=your-gmail@gmail.com
+   SMTP_PASS=your-app-password
+   FROM_EMAIL=noreply@shopease.com
+   CONTACT_EMAIL=support@shopease.com
+   ```
+
+   **Note:** Gmail SMTP requires the `FROM_EMAIL` to match your Gmail address for authentication, but you can use a custom display name like "ShopEase Support".
+
+   #### **Production Setup (Recommended)**
+   For production, use professional email services that support custom sender addresses:
+
+   **Option 1: SendGrid**
+   ```bash
+   SENDGRID_API_KEY=your-sendgrid-api-key
+   FROM_EMAIL=noreply@yourdomain.com
+   CONTACT_EMAIL=support@yourdomain.com
+   ```
+
+   **Option 2: Mailgun**
+   ```bash
+   MAILGUN_API_KEY=your-mailgun-api-key
+   MAILGUN_DOMAIN=yourdomain.com
+   FROM_EMAIL=noreply@yourdomain.com
+   CONTACT_EMAIL=support@yourdomain.com
+   ```
+
+   **Option 3: Amazon SES**
+   ```bash
+   AWS_ACCESS_KEY_ID=your-access-key
+   AWS_SECRET_ACCESS_KEY=your-secret-key
+   AWS_REGION=us-east-1
+   FROM_EMAIL=noreply@yourdomain.com
+   CONTACT_EMAIL=support@yourdomain.com
+   ```
+
+   ### **Email Features**
+   - ✅ **Admin Verification**: Secure admin login with email codes
+   - ✅ **Customer Signup**: Email verification for new accounts
+   - ✅ **Password Reset**: Secure password recovery via email
+   - ✅ **Order Notifications**: Automated order confirmations
+   - ✅ **Contact Forms**: Customer inquiry notifications
+
 3. **Start servers:**
    ```bash
    # Terminal 1 - Backend
