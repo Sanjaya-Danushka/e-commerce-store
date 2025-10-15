@@ -300,22 +300,32 @@ const CheckoutPage = () => {
   };
 
   const processPayPalPayment = async () => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (Math.random() > 0.05) { // 95% success rate
-          resolve({
-            success: true,
-            transactionId: `paypal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            message: "PayPal payment completed"
-          });
-        } else {
-          reject({
-            success: false,
-            error: "PayPal payment failed. Please try again or use a different payment method."
-          });
-        }
-      }, 4000); // PayPal typically takes longer
-    });
+    try {
+      const amount = calculateOrderTotal();
+      const description = `ShopEase Order - ${calculateItemsCount()} items`;
+
+      // Create PayPal payment on backend
+      const response = await axios.post('/api/stripe/create-paypal-payment', {
+        amount: amount.toString(),
+        currency: 'USD',
+        description: description,
+        returnUrl: `${window.location.origin}/checkout/success`,
+        cancelUrl: `${window.location.origin}/checkout/cancel`
+      });
+
+      if (response.data.success && response.data.approvalUrl) {
+        // Redirect to PayPal for payment
+        window.location.href = response.data.approvalUrl;
+      } else {
+        throw new Error(response.data.error || 'Failed to create PayPal payment');
+      }
+    } catch (error) {
+      console.error('PayPal payment error:', error);
+      throw {
+        success: false,
+        error: error.response?.data?.error || error.message || "PayPal payment failed"
+      };
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -667,7 +677,8 @@ const CheckoutPage = () => {
                       <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm-1.07 11.93c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm0-3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm3 3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm0-3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29z"/>
                       </svg>
-                      <span className="font-medium text-gray-900">PayPal</span>
+                      <span className="font-medium text-gray-900">shopease</span>
+                      <span className="text-sm text-gray-500 ml-2">(via PayPal)</span>
                     </div>
                   </div>
                 </label>
@@ -767,12 +778,12 @@ const CheckoutPage = () => {
                   <div className="text-center">
                     <button
                       className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                      onClick={() => {/* PayPal integration would go here */}}
+                      onClick={processPayPalPayment}
                     >
                       <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 2C5.59 2 2 5.59 2 10s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm-1.07 11.93c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm0-3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm3 3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29zm0-3c-.36.36-.93.36-1.29 0l-1.5-1.5c-.36-.36-.36-.93 0-1.29s.93-.36 1.29 0l1.5 1.5c.36.36.36.93 0 1.29z"/>
                       </svg>
-                      Pay with PayPal
+                      Pay with shopease (PayPal)
                     </button>
                     <p className="mt-2 text-sm text-gray-600">
                       You'll be redirected to PayPal to complete your payment

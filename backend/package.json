@@ -26,6 +26,7 @@
     "mysql2": "^3.14.1",
     "nodemailer": "^7.0.9",
     "patch-package": "^8.0.1",
+    "paypal-rest-sdk": "^1.8.1",
     "pg": "^8.16.0",
     "sequelize": "^6.6.5",
     "sql.js": "1.10.3",

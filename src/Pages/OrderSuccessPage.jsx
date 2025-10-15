@@ -13,8 +13,42 @@ const OrderSuccessPage = () => {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        // Get order ID from URL parameters or state
+        // Check for PayPal return parameters
         const urlParams = new URLSearchParams(location.search);
+        const paymentId = urlParams.get('paymentId');
+        const payerId = urlParams.get('PayerID');
+
+        // If PayPal parameters exist, execute the payment first
+        if (paymentId && payerId) {
+          try {
+            // Execute PayPal payment
+            const executeResponse = await axios.post('/api/stripe/execute-paypal-payment', {
+              paymentId,
+              payerId
+            });
+
+            if (executeResponse.data.success) {
+              // Payment successful, create order
+              const orderResponse = await axios.post('/api/orders', {
+                cartItems: [], // This should be populated from session or state
+                paymentMethod: 'paypal',
+                paymentTransactionId: paymentId,
+                paymentStatus: 'completed'
+              });
+
+              // Redirect to success page with order ID
+              navigate(`/order-success?orderId=${orderResponse.data.orderId}`, { replace: true });
+              return;
+            }
+          } catch (paypalError) {
+            console.error('PayPal payment execution failed:', paypalError);
+            // Redirect to cancel page or show error
+            navigate('/checkout/cancel');
+            return;
+          }
+        }
+
+        // Get order ID from URL parameters or state
         const orderId = urlParams.get('orderId') || location.state?.orderId;
 
         if (!orderId) {
