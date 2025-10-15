@@ -4,6 +4,7 @@ import process from 'process';
 import { User } from '../models/User.js';
 import { generateVerificationCode, sendVerificationEmail } from '../utils/emailService.js';
 import { OAuth2Client } from 'google-auth-library';
+import { Op } from 'sequelize';
 
 const router = express.Router();
 
@@ -161,22 +162,18 @@ router.get('/test', (req, res) => {
 // POST /api/auth/admin/signup - Start admin signup process (send verification code)
 router.post('/signup', async (req, res) => {
   try {
-    console.log('Admin signup request received:', req.body);
     const { email } = req.body;
 
     if (!email) {
-      console.log('No email provided');
       return res.status(400).json({ error: 'Email is required' });
     }
 
     // Check if any user already exists with this email
-    console.log('Checking if any user already exists:', email);
     const existingUser = await User.findOne({
       where: { email }
     });
 
     if (existingUser) {
-      console.log('User already exists with email:', email, 'Role:', existingUser.role);
       if (existingUser.role === 'admin') {
         return res.status(409).json({ error: 'An admin account with this email already exists. Please use the login form to sign in instead.' });
       } else {
@@ -184,10 +181,8 @@ router.post('/signup', async (req, res) => {
       }
     }
 
-    console.log('Creating temporary verification session for:', email);
     // Generate verification code
     const verificationCode = generateVerificationCode();
-    console.log('Generated verification code:', verificationCode);
 
     // Store verification code in memory (expires in 10 minutes)
     const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -197,11 +192,8 @@ router.post('/signup', async (req, res) => {
       createdAt: new Date()
     });
 
-    console.log('Stored verification code in memory for:', email);
-
     // Send verification email
     const emailResult = await sendVerificationEmail(email, verificationCode);
-    console.log('Email result:', emailResult);
 
     if (!emailResult.success) {
       // Clean up the temporary verification data if email sending fails
@@ -269,8 +261,6 @@ router.post('/signup/verify', async (req, res) => {
       isEmailVerified: true,
       profileCompleted: false
     });
-
-    console.log('Created verified admin user:', newUser.email);
 
     // Clean up verification data
     verificationStore.delete(email);
@@ -372,29 +362,23 @@ router.post('/signup/complete', async (req, res) => {
 // POST /api/auth/admin/send-verification - Send verification code to admin email
 router.post('/send-verification', async (req, res) => {
   try {
-    console.log('Send verification request received:', req.body);
     const { email } = req.body;
 
     if (!email) {
-      console.log('No email provided');
       return res.status(400).json({ error: 'Email is required' });
     }
 
     // Check if user exists and is admin
-    console.log('Looking for admin user:', email);
     const adminUser = await User.findOne({
       where: { email, role: 'admin' }
     });
 
     if (!adminUser) {
-      console.log('Admin user not found');
       return res.status(404).json({ error: 'Admin user not found' });
     }
 
-    console.log('Admin user found:', adminUser.email);
     // Generate verification code
     const verificationCode = generateVerificationCode();
-    console.log('Generated verification code:', verificationCode);
 
     // Store verification code in memory (expires in 10 minutes)
     const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -404,11 +388,8 @@ router.post('/send-verification', async (req, res) => {
       createdAt: new Date()
     });
 
-    console.log('Updated verification code in memory for:', email);
-
     // Send verification email
     const emailResult = await sendVerificationEmail(email, verificationCode);
-    console.log('Email result:', emailResult);
 
     if (!emailResult.success) {
       // Clean up verification data if email sending fails
@@ -432,9 +413,6 @@ router.post('/verify-email', async (req, res) => {
   try {
     const { email, verificationCode } = req.body;
 
-    console.log(`🔍 Verifying email: ${email}`);
-    console.log(`🔢 Verification code received: ${verificationCode}`);
-
     if (!email || !verificationCode) {
       return res.status(400).json({ error: 'Email and verification code are required' });
     }
@@ -444,29 +422,18 @@ router.post('/verify-email', async (req, res) => {
       where: { email, role: 'admin' }
     });
 
-    console.log(`👤 Admin user found: ${adminUser ? 'YES' : 'NO'}`);
-    if (adminUser) {
-      console.log(`🔑 Stored verification token: ${adminUser.emailVerificationToken}`);
-      console.log(`⏰ Token expires: ${adminUser.emailVerificationExpires}`);
-      console.log(`✅ Token matches: ${adminUser.emailVerificationToken === verificationCode}`);
-    }
-
     if (!adminUser) {
       return res.status(404).json({ error: 'Admin user not found' });
     }
 
     // Check if verification code is valid and not expired
     if (adminUser.emailVerificationToken !== verificationCode) {
-      console.log(`❌ Verification failed: Token mismatch`);
       return res.status(401).json({ error: 'Invalid verification code' });
     }
 
     if (new Date() > adminUser.emailVerificationExpires) {
-      console.log(`❌ Verification failed: Token expired`);
       return res.status(401).json({ error: 'Verification code has expired' });
     }
-
-    console.log(`✅ Verification successful for: ${email}`);
 
     // Mark email as verified and clear verification token
     await adminUser.update({
@@ -585,10 +552,35 @@ router.post('/complete-google-signup', async (req, res) => {
       return res.status(401).json({ error: 'Invalid token purpose' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ where: { email: decoded.email } });
+    // Check if admin user already exists with this email
+    const existingAdminUser = await User.findOne({ where: { email: decoded.email, role: 'admin' } });
+    if (existingAdminUser) {
+      return res.status(409).json({ error: 'An admin account with this email already exists. Please use the login form to sign in instead.' });
+    }
+
+    // Check if regular user exists with this email
+    const existingUser = await User.findOne({ where: { email: decoded.email, role: { [Op.ne]: 'admin' } } });
     if (existingUser) {
-      return res.status(409).json({ error: 'An account with this email already exists' });
+      // Promote existing regular user to admin
+      existingUser.role = 'admin';
+      existingUser.firstName = firstName || existingUser.firstName;
+      existingUser.lastName = lastName || existingUser.lastName;
+      if (password) {
+        existingUser.password = password; // This will be hashed by the model hook
+      }
+      existingUser.isEmailVerified = false; // Reset email verification for admin
+      existingUser.profileCompleted = !!(firstName && lastName);
+
+      await existingUser.save();
+
+      // Remove password from response
+      const adminResponse = { ...existingUser.toJSON() };
+      delete adminResponse.password;
+
+      return res.status(201).json({
+        admin: adminResponse,
+        message: 'Existing user promoted to admin successfully'
+      });
     }
 
     // Create the new admin user with Google data
@@ -602,8 +594,6 @@ router.post('/complete-google-signup', async (req, res) => {
       isEmailVerified: true, // Google emails are verified
       role: 'admin'
     });
-
-    console.log('Created admin user from Google OAuth:', newUser.email);
 
     // Generate final JWT token for admin
     const finalToken = jwt.sign(

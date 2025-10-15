@@ -82,7 +82,25 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    npm run dev
    ```
 
-4. **Open browser:**
+4. **Create demo admin (optional):**
+   ```bash
+   # Using the admin panel UI (recommended)
+   1. Start the application
+   2. Navigate to http://localhost:5173/admin/login
+   3. Click "Create Admin Account"
+   4. Enter: admin@example.com / Admin123!
+
+   # Or using the setup script:
+   node scripts/create-demo-admin.js
+
+   # Or using API (if you have admin access)
+   curl -X POST http://localhost:3000/api/admin/admins \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+     -d '{"email": "admin@example.com", "password": "Admin123!", "firstName": "Demo", "lastName": "Admin"}'
+   ```
+
+5. **Open browser:**
    - App: http://localhost:5173
    - Admin: http://localhost:5173/admin
    - API: http://localhost:3000
@@ -102,6 +120,7 @@ e-commerce-store/
 │   ├── routes/           # API routes
 │   ├── middleware/       # Custom middleware
 │   └── services/         # Business logic services
+├── scripts/              # Utility scripts (demo admin setup, etc.)
 ├── database.sqlite       # SQLite database
 └── package.json         # Dependencies
 ```
@@ -148,15 +167,97 @@ e-commerce-store/
 - `GET /api/admin/users` - Get all users (admin)
 - `GET /api/admin/orders` - Get all orders (admin)
 - `GET /api/admin/analytics` - Sales analytics (admin)
+- `GET /api/admin/admins` - Get all admin users (admin only)
+- `POST /api/admin/admins` - Create new admin user (admin only)
+- `PUT /api/admin/admins/:id` - Update admin user (admin only)
+- `DELETE /api/admin/admins/:id` - Delete admin user (admin only)
 
 ## 🔐 Admin Access
 
 Admin panel available at `/admin` for complete store management:
+
+### **Demo Admin Credentials**
+- **Email:** `admin@example.com`
+- **Password:** `Admin123!`
+- **Access:** Full admin privileges for testing all admin features
+
+> **Note:** For security, change these credentials in production and disable demo accounts.
+
+### **Admin Features**
 - User management and support
 - Product inventory and categories
 - Order processing and tracking
 - Sales analytics and reporting
 - Email campaign management
+- Admin account management (create, edit, delete admins)
+
+## 🔒 Enhanced Security Features
+
+### **Authentication & Authorization**
+- **JWT Tokens** - Secure, stateless authentication with configurable expiration
+- **Password Hashing** - bcrypt with salt rounds for maximum security
+- **Role-Based Access Control (RBAC)** - Admin vs User permissions
+- **Google OAuth Integration** - Social login with account linking
+
+### **API Security**
+- **Input Validation** - Comprehensive validation using Sequelize validators
+- **SQL Injection Protection** - Parameterized queries and ORM usage
+- **CORS Protection** - Configurable cross-origin resource sharing
+- **Rate Limiting** - API endpoint protection (configurable)
+- **Request Logging** - Detailed logging for security monitoring
+
+### **Data Security**
+- **Password Requirements** - Strong password policies enforced
+- **Email Verification** - Required email confirmation for new accounts
+- **Session Management** - Secure token handling and automatic expiration
+- **Data Encryption** - Sensitive data protection at rest and in transit
+
+### **Admin Security**
+- **Admin Account Creation** - Secure admin account management
+- **Permission Validation** - Role-based route protection
+- **Audit Logging** - Admin action tracking for compliance
+- **Secure Admin Routes** - JWT authentication required for all admin endpoints
+
+### **Best Practices Implemented**
+- **Environment Variables** - Sensitive configuration in environment files
+- **Error Handling** - Secure error messages (no sensitive data exposure)
+- **HTTPS Ready** - SSL/TLS configuration ready for production
+- **Security Headers** - Helmet.js integration for additional protection
+- **Input Sanitization** - All user inputs validated and sanitized
+- **Session Security** - Secure token handling with proper expiration
+- **Password Policies** - Strong password requirements enforced
+- **Audit Logging** - Admin actions tracked for compliance monitoring
+
+## 📋 Demo Admin Setup
+
+### **Creating Demo Admin Account**
+
+For testing purposes, you can create a demo admin account:
+
+```bash
+# Using the admin panel UI (recommended)
+1. Start the application
+2. Navigate to http://localhost:5173/admin/login
+3. Click "Create Admin Account"
+4. Enter: admin@example.com / Admin123!
+
+# Or using API (if you have admin access)
+curl -X POST http://localhost:3000/api/admin/admins \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "Admin123!",
+    "firstName": "Demo",
+    "lastName": "Admin"
+  }'
+```
+
+### **Security Considerations for Demo Accounts**
+- Change demo credentials before production deployment
+- Demo accounts should be disabled in production environments
+- Use strong, unique passwords for production admin accounts
+- Enable email verification for production admin accounts
 
 ## 🤖 AI Chatbot
 
@@ -218,6 +319,8 @@ npm run build
 - [x] **Email Notifications** - Automated email system
 - [x] **AI Chatbot** - Trained assistant for customer support
 - [x] **Admin Dashboard** - Complete store management
+- [x] **Admin Account Management** - Create, edit, delete admin users
+- [x] **Enhanced Security** - RBAC, audit logging, secure admin routes
 - [x] **Responsive Design** - Mobile-first approach
 - [x] **All Footer Pages** - Complete site navigation
 - [x] **Search & Filtering** - Advanced product discovery
@@ -228,15 +331,45 @@ npm run build
 
 - **Password Hashing** - bcrypt for secure password storage
 - **JWT Authentication** - Secure token-based authentication
+- **Role-Based Access Control** - Admin vs User permissions with route protection
 - **Input Validation** - Comprehensive validation on all inputs
 - **CORS Protection** - Cross-origin resource sharing configured
 - **Rate Limiting** - API rate limiting to prevent abuse
 - **SQL Injection Protection** - Parameterized queries
+- **Admin Account Security** - Secure admin creation and management
+- **Audit Logging** - Admin action tracking for compliance
+- **Session Management** - Secure token handling and expiration
 
 ## 📄 License
 
 MIT License - see LICENSE file for details.
 
+## 📋 Latest Updates
+
+### **🔐 Enhanced Admin Security & Management**
+- **Complete Admin CRUD Operations** - Create, read, update, delete admin accounts
+- **Smart Account Promotion** - Automatically promotes regular users to admin when creating admin accounts
+- **Advanced Error Handling** - Clear, actionable error messages for different scenarios
+- **Audit Logging** - Admin actions tracked for compliance and security monitoring
+- **Role-Based Access Control** - Enhanced permissions system with admin-only routes
+
+### **🛠️ Developer Experience Improvements**
+- **Demo Admin Setup Script** - Automated creation of demo admin accounts
+- **Comprehensive API Documentation** - Updated with all admin management endpoints
+- **Enhanced Security Documentation** - Detailed security features and best practices
+- **Production-Ready Security** - RBAC, input validation, and secure error handling
+
+### **🎯 Admin Panel Features**
+- **Admin Account Management** - Full CRUD operations for admin users
+- **User Search & Filtering** - Advanced search across admin accounts
+- **Email Verification Management** - Toggle email verification status
+- **Profile Management** - Update admin names, phone numbers, and details
+- **Secure Authentication** - JWT-based admin authentication with role validation
+
 ---
+
+**🔑 Demo Admin Access:** `admin@example.com` / `Admin123!`
+**🌐 Admin Panel:** http://localhost:5173/admin
+**📚 Documentation:** Comprehensive security and API documentation included
 
 *Built with ❤️ using modern web technologies*
