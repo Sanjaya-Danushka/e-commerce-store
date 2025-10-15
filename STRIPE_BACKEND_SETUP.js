@@ -1,9 +1,10 @@
+/* eslint-disable no-undef */
 // BACKEND ENDPOINT FOR STRIPE PAYMENT INTENT
 // Add this to your backend server (e.g., in Node.js/Express)
 
 const express = require('express');
 const router = express.Router();
-const stripe = require('stripe')('sk_test_51SISPUCSFn0z5K5o4U2WfENE1WtF1D2IFToC6sK8e00ZUHWXhrfURfxuy3itSKy0QEhhYQje09MFwt6WZ67Wcshz00Zcvqdxjq'); // Your secret key
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Your secret key from .env
 
 // Create Payment Intent endpoint
 router.post('/create-payment-intent', async (req, res) => {
@@ -55,8 +56,8 @@ module.exports = router;
 /*
 1. Create a .env file in your backend project root:
 
-STRIPE_SECRET_KEY=sk_test_51SISPUCSFn0z5K5o4U2WfENE1WtF1D2IFToC6sK8e00ZUHWXhrfURfxuy3itSKy0QEhhYQje09MFwt6WZ67Wcshz00Zcvqdxjq
-STRIPE_PUBLISHABLE_KEY=pk_test_51SISPUCSFn0z5K5oSB28IzVbGjk5MEIzXO6gcy4kDl8rf3bAX7o4lvItVckWdJNjzsjAELwrEyELe6X17gXAxDkl00sXFNAAPQ
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
 
 2. Install required packages:
 npm install stripe dotenv cors express
