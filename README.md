@@ -39,7 +39,6 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 
 ### 📄 **Footer Pages**
 
-- **ℹ️ About Us** - Company information and mission
 - **📞 Contact** - Contact forms and information
 - **📋 Terms of Service** - Legal terms and conditions
 - **🔒 Privacy Policy** - Data protection and privacy information
@@ -58,14 +57,12 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js (v16+)
 - npm
 
 ### Installation
 
 1. **Clone & install:**
-
    ```bash
    git clone <your-repo-url>
    cd e-commerce-store
@@ -74,71 +71,13 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    ```
 
 2. **Configure environment:**
-
    ```bash
    cd backend
    cp .env.example .env
    # Edit .env with your settings (database, email, JWT secrets, etc.)
    ```
 
-   ### **📧 Email Configuration**
-
-   #### **Development Setup (Gmail)**
-
-   ```bash
-   # In backend/.env
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_SECURE=false
-   SMTP_USER=your-gmail@gmail.com
-   SMTP_PASS=your-app-password
-   FROM_EMAIL=noreply@shopease.com
-   CONTACT_EMAIL=support@shopease.com
-   ```
-
-   **Note:** Gmail SMTP requires the `FROM_EMAIL` to match your Gmail address for authentication, but you can use a custom display name like "ShopEase Support".
-
-   #### **Production Setup (Recommended)**
-
-   For production, use professional email services that support custom sender addresses:
-
-   **Option 1: SendGrid**
-
-   ```bash
-   SENDGRID_API_KEY=your-sendgrid-api-key
-   FROM_EMAIL=noreply@yourdomain.com
-   CONTACT_EMAIL=support@yourdomain.com
-   ```
-
-   **Option 2: Mailgun**
-
-   ```bash
-   MAILGUN_API_KEY=your-mailgun-api-key
-   MAILGUN_DOMAIN=yourdomain.com
-   FROM_EMAIL=noreply@yourdomain.com
-   CONTACT_EMAIL=support@yourdomain.com
-   ```
-
-   **Option 3: Amazon SES**
-
-   ```bash
-   AWS_ACCESS_KEY_ID=your-access-key
-   AWS_SECRET_ACCESS_KEY=your-secret-key
-   AWS_REGION=us-east-1
-   FROM_EMAIL=noreply@yourdomain.com
-   CONTACT_EMAIL=support@yourdomain.com
-   ```
-
-   ### **Email Features**
-
-   - ✅ **Admin Verification**: Secure admin login with email codes
-   - ✅ **Customer Signup**: Email verification for new accounts
-   - ✅ **Password Reset**: Secure password recovery via email
-   - ✅ **Order Notifications**: Automated order confirmations
-   - ✅ **Contact Forms**: Customer inquiry notifications
-
 3. **Start servers:**
-
    ```bash
    # Terminal 1 - Backend
    cd backend && npm run dev
@@ -147,37 +86,106 @@ A modern, full-stack e-commerce application built with React, Node.js, Express, 
    npm run dev
    ```
 
-4. **Create demo admin (optional):**
-
-   ```bash
-   # Using the admin panel UI (recommended)
-   1. Start the application
-   2. Navigate to http://localhost:5173/admin/login
-   3. Click "Create Admin Account"
-   4. Enter: admin@example.com / Admin123!
-
-   # Or using the setup script:
-   node scripts/create-demo-admin.js
-
-   # Or using API (if you have admin access)
-   curl -X POST http://localhost:3000/api/admin/admins \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
-     -d '{"email": "admin@example.com", "password": "Admin123!", "firstName": "Demo", "lastName": "Admin"}'
-   ```
-
-   **Customer Signup Process:**
-
-   1. Navigate to http://localhost:5173/signup
-   2. Enter email address to receive verification code
-   3. Check email for verification code
-   4. Enter verification code and set password
-   5. Account is created and ready to use
-
-5. **Open browser:**
+4. **Open browser:**
    - App: http://localhost:5173
    - Admin: http://localhost:5173/admin
    - API: http://localhost:3000
+
+## 🚀 Developer Setup
+
+### **Prerequisites**
+- Node.js (v16+), npm
+- Gmail account (for email) or SendGrid/Mailgun
+- Google Cloud Console account (for OAuth)
+- Stripe account (for payments)
+
+### **Quick Setup**
+1. Clone and install dependencies
+2. Copy environment template: `cp .env.example backend/.env`
+3. Get API keys from services below
+4. Update `backend/.env` with your real credentials
+5. Start servers: `npm run dev` (frontend) + `cd backend && npm run dev` (backend)
+
+### **🔑 Required API Keys Setup**
+
+#### **📧 Email Configuration (Choose One)**
+
+**Option 1: Gmail SMTP**
+1. Enable 2-factor authentication on your Gmail account
+2. Generate app password: https://myaccount.google.com/apppasswords
+3. Use your Gmail address and the generated app password
+
+**Option 2: SendGrid**
+1. Create account: https://sendgrid.com
+2. Get API key: https://app.sendgrid.com/settings/api_keys
+3. Verify your domain for custom email addresses
+
+**Option 3: Mailgun**
+1. Create account: https://mailgun.com
+2. Get API key: https://app.mailgun.com/app/domains
+3. Add your domain for custom email addresses
+
+#### **🔐 Google OAuth Setup**
+1. Go to [Google Cloud Console](https://console.developers.google.com)
+2. Create new project or select existing one
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials (Client ID)
+5. Add redirect URI: `http://localhost:3000/api/auth/google/callback`
+6. Copy Client ID and Client Secret
+
+#### **💳 Stripe Payment Setup**
+1. Create Stripe account: https://stripe.com
+2. Go to [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
+3. Copy **Test Secret Key** (starts with `sk_test_`)
+4. Copy **Test Publishable Key** (starts with `pk_test_`)
+
+### **⚙️ Environment Configuration**
+
+**Update `backend/.env` with your real values:**
+
+```bash
+# Email (choose one method)
+SMTP_USER=your-gmail@gmail.com
+SMTP_PASS=your-gmail-app-password
+
+# OR SendGrid
+SENDGRID_API_KEY=SG.your_sendgrid_api_key
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+```
+
+### **🚀 Running the Project**
+
+```bash
+# Terminal 1 - Backend API Server
+cd backend && npm run dev
+
+# Terminal 2 - Frontend Development Server
+npm run dev
+```
+
+**URLs:**
+- **App:** http://localhost:5173
+- **Admin:** http://localhost:5173/admin
+- **API:** http://localhost:3000
+
+### **🔧 Troubleshooting**
+
+**Common Issues:**
+- **Email not sending?** Check SMTP credentials and app passwords
+- **OAuth not working?** Verify redirect URI matches exactly
+- **Stripe errors?** Ensure you're using test keys, not live keys
+- **Database errors?** Make sure SQLite database file exists
+
+**Getting Help:**
+- Check browser console for frontend errors
+- Check terminal for backend errors
+- All API endpoints documented in sections below
 
 ## 🗂️ Project Structure
 
