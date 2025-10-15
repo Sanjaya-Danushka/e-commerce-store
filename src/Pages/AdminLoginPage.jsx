@@ -16,6 +16,7 @@ const AdminLoginPage = () => {
   const [showSignup, setShowSignup] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
   const [showEmailSent, setShowEmailSent] = useState(false);
+  const [isSignupVerification, setIsSignupVerification] = useState(false);
   const [tempToken, setTempToken] = useState('');
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [passwordSetup, setPasswordSetup] = useState({
@@ -191,6 +192,7 @@ const AdminLoginPage = () => {
 
       setUserEmail(signupEmail);
       setShowSignup(false);
+      setIsSignupVerification(true);
       setShowEmailSent(true);
     } catch (error) {
       console.error('Signup start error:', error);
@@ -538,7 +540,7 @@ const AdminLoginPage = () => {
             )}
           </div>
 
-          <form onSubmit={showSignup ? handleSignupVerification : handleVerificationSubmit} className="space-y-6">
+          <form onSubmit={isSignupVerification ? handleSignupVerification : handleVerificationSubmit} className="space-y-6">
             <div>
               <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
                 Verification Code:
@@ -570,7 +572,7 @@ const AdminLoginPage = () => {
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              {loading ? 'Verifying...' : showSignup ? 'Verify & Continue' : 'Verify & Login'}
+              {loading ? 'Verifying...' : isSignupVerification ? 'Verify & Continue' : 'Verify & Login'}
             </button>
 
             <div className="text-center space-y-2">
@@ -589,13 +591,14 @@ const AdminLoginPage = () => {
                   setShowVerification(false);
                   setError('');
                   setVerificationCode('');
-                  if (showSignup) {
+                  if (isSignupVerification) {
                     setShowSignup(true);
+                    setIsSignupVerification(false);
                   }
                 }}
                 className="text-gray-600 hover:text-gray-800 text-sm font-medium"
               >
-                Back to {showSignup ? 'signup' : 'login'}
+                Back to {isSignupVerification ? 'signup' : 'login'}
               </button>
             </div>
           </form>
