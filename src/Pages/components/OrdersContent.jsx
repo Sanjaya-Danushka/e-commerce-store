@@ -351,7 +351,12 @@ const OrdersContent = ({ theme }) => {
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id} className={`${theme.border} border-b hover:bg-opacity-50 transition-colors`}>
+                  <tr
+                    key={order.id}
+                    className={`${theme.border} border-b hover:bg-opacity-50 transition-colors ${
+                      order.status === 'cancelled' ? 'relative' : ''
+                    }`}
+                  >
                     <td className={`px-6 py-4 ${theme.text} font-mono font-medium`}>
                       #{order.id.slice(-8)}
                     </td>
@@ -369,17 +374,38 @@ const OrdersContent = ({ theme }) => {
                       {formatDate(order.orderTimeMs)}
                     </td>
                     <td className={`px-6 py-4`}>
-                      <select
-                        value={order.status || 'pending'}
-                        onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)} border-0`}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
+                      <div className="relative group">
+                        <select
+                          value={order.status || 'pending'}
+                          onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)} border-0`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+
+                        {/* Cancellation Reason Tooltip - only show for cancelled orders */}
+                        {order.status === 'cancelled' && (order.cancellationReason || order.cancellationOtherReason) && (
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap">
+                            <div className="font-medium mb-1">Cancellation Reason:</div>
+                            <div>{order.cancellationReason || 'Other'}</div>
+                            {order.cancellationOtherReason && (
+                              <div className="mt-1 text-gray-300">
+                                Details: {order.cancellationOtherReason}
+                              </div>
+                            )}
+                            {order.cancelledAt && (
+                              <div className="mt-1 text-gray-400 text-xs">
+                                Cancelled: {formatDate(order.cancelledAt)}
+                              </div>
+                            )}
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className={`px-6 py-4 ${theme.text} font-semibold`}>
                       {formatCurrency(order.totalCostCents)}
