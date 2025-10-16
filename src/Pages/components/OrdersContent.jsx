@@ -326,7 +326,7 @@ const OrdersContent = ({ theme }) => {
       </div>
 
       {/* Orders Table */}
-      <div className={`${theme.card} ${theme.border} rounded-3xl ${theme.shadow} overflow-visible relative`}>
+      <div className={`${theme.card} ${theme.border} rounded-3xl ${theme.shadow} relative`}>
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
@@ -337,7 +337,7 @@ const OrdersContent = ({ theme }) => {
             <p className={`${theme.textSecondary} text-lg`}>No orders found</p>
           </div>
         ) : (
-          <div className="overflow-auto relative">
+          <div className="relative">
             <table className="w-full">
               <thead className={`${theme.background} ${theme.border} border-b`}>
                 <tr>
@@ -349,13 +349,12 @@ const OrdersContent = ({ theme }) => {
                   <th className={`px-6 py-4 text-center ${theme.text} font-semibold`}>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="relative">
                 {orders.map((order) => (
                   <tr
                     key={order.id}
-                    className={`${theme.border} border-b hover:bg-opacity-50 transition-colors ${
-                      order.status === 'cancelled' ? 'relative' : ''
-                    }`}
+                    className={`${theme.border} border-b hover:bg-opacity-50 transition-colors`}
+                    style={{ position: 'relative' }}
                   >
                     <td className={`px-6 py-4 ${theme.text} font-mono font-medium`}>
                       #{order.id.slice(-8)}
@@ -389,7 +388,7 @@ const OrdersContent = ({ theme }) => {
 
                         {/* Cancellation Reason Tooltip - only show for cancelled orders */}
                         {order.status === 'cancelled' && (order.cancellationReason || order.cancellationOtherReason) && (
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg">
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999] whitespace-nowrap shadow-lg border border-gray-700 min-w-max">
                             <div className="font-medium mb-1">Cancellation Reason:</div>
                             <div>{order.cancellationReason || 'Other'}</div>
                             {order.cancellationOtherReason && (
