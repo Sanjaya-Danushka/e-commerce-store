@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import dayjs from 'dayjs';
+import CancelOrderModal from './CancelOrderModal';
 
-const OrderTracking = ({ order }) => {
+const OrderTracking = ({ order, onOrderUpdate }) => {
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
   // Don't show tracking for pending orders
   if (order.status === 'pending') {
     return null;
   }
+
+  const canCancelOrder = ['preparing', 'processing'].includes(order.status);
+
+  const handleCancelSuccess = () => {
+    if (onOrderUpdate) {
+      onOrderUpdate();
+    }
+  };
 
   // Calculate progress percentage based on status
   const getProgressPercentage = () => {
@@ -41,7 +52,7 @@ const OrderTracking = ({ order }) => {
 
   // Get tracking stages based on status
   const getTrackingStages = () => {
-    const stages = [
+    const baseStages = [
       {
         id: 'received',
         title: 'Order Received',
@@ -54,7 +65,7 @@ const OrderTracking = ({ order }) => {
         title: 'Processing Order',
         description: 'Your order is being prepared for shipment',
         completed: ['processing', 'shipped', 'delivered'].includes(order.status),
-        date: order.status !== 'pending' ? dayjs(order.orderTimeMs).add(1, 'hour').format('MMM D, YYYY [at] h:mm A') : null
+        date: order.status !== 'pending' && order.status !== 'cancelled' ? dayjs(order.orderTimeMs).add(1, 'hour').format('MMM D, YYYY [at] h:mm A') : null
       },
       {
         id: 'shipped',
@@ -72,7 +83,21 @@ const OrderTracking = ({ order }) => {
       }
     ];
 
-    return stages;
+    // Add cancellation stage for cancelled orders
+    if (order.status === 'cancelled') {
+      return [
+        ...baseStages.slice(0, 1), // Only keep the received stage
+        {
+          id: 'cancelled',
+          title: 'Order Cancelled',
+          description: order.cancellationReason ? `Reason: ${order.cancellationReason}${order.cancellationOtherReason ? ` - ${order.cancellationOtherReason}` : ''}` : 'Order has been cancelled',
+          completed: true,
+          date: order.cancelledAt ? dayjs(order.cancelledAt).format('MMM D, YYYY [at] h:mm A') : dayjs(order.updatedAt).format('MMM D, YYYY [at] h:mm A')
+        }
+      ];
+    }
+
+    return baseStages;
   };
 
   const progressPercentage = getProgressPercentage();
@@ -80,6 +105,7 @@ const OrderTracking = ({ order }) => {
   const trackingStages = getTrackingStages();
 
   return (
+    <>
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 mt-6 border border-blue-200">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -87,8 +113,18 @@ const OrderTracking = ({ order }) => {
           <h3 className="text-xl font-bold text-gray-900 mb-1">📦 Order Tracking</h3>
           <p className="text-sm text-gray-600">Track your package in real-time</p>
         </div>
-        <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
-          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+        <div className="flex items-center space-x-3">
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
+            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+          </div>
+          {canCancelOrder && (
+            <button
+              onClick={() => setShowCancelModal(true)}
+              className="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+            >
+              Cancel Order
+            </button>
+          )}
         </div>
       </div>
 
@@ -154,7 +190,8 @@ const OrderTracking = ({ order }) => {
             className={`h-3 rounded-full transition-all duration-500 ${
               order.status === 'delivered' ? 'bg-green-500' :
               order.status === 'shipped' ? 'bg-purple-500' :
-              order.status === 'processing' ? 'bg-blue-500' : 'bg-gray-300'
+              order.status === 'processing' ? 'bg-blue-500' :
+              order.status === 'cancelled' ? 'bg-red-500' : 'bg-gray-300'
             }`}
             style={{ width: `${progressPercentage}%` }}
           ></div>
@@ -193,6 +230,15 @@ const OrderTracking = ({ order }) => {
         ))}
       </div>
     </div>
+
+    {/* Cancel Order Modal */}
+    <CancelOrderModal
+      order={order}
+      isOpen={showCancelModal}
+      onClose={() => setShowCancelModal(false)}
+      onCancelSuccess={handleCancelSuccess}
+    />
+    </>
   );
 };
 

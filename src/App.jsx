@@ -1,5 +1,9 @@
 import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
+import { useAuth, AuthProvider } from "./contexts/AuthContext";
+import { Routes, Route } from "react-router-dom";
+import { useMemo } from "react";
+import { logger } from "./utils/logger";
 import HomePage from "./Pages/HomePage";
 import CategoriesPage from "./Pages/CategoriesPage";
 import BrandsPage from "./Pages/BrandsPage";
@@ -33,10 +37,7 @@ import LoginPage from "./Pages/LoginPage";
 import SignupPage from "./Pages/SignupPage";
 import ProfilePage from "./Pages/ProfilePage";
 import ProfileCompletionModal from "./components/ProfileCompletionModal";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { Routes, Route } from "react-router-dom";
-import { useMemo } from "react";
-import { logger } from "./utils/logger";
+import DebugConsole from "./components/DebugConsole";
 
 // AppContent handles the main app layout and data management
 const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlist, updateWishlist }) => {
@@ -123,6 +124,9 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
         onClose={() => setShowProfileModal(false)}
         onComplete={handleProfileComplete}
       />
+
+      {/* Debug Console - shows errors and logs */}
+      <DebugConsole />
     </>
   );
 };

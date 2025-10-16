@@ -32,6 +32,18 @@ export const Order = sequelize.define('Order', {
     defaultValue: 'pending',
     allowNull: false
   },
+  cancellationReason: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  cancellationOtherReason: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  cancelledAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },

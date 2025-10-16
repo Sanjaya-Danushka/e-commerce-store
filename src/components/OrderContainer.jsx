@@ -3,10 +3,10 @@ import OrderHeader from "./OrderHeader";
 import OrderProduct from "./OrderProduct";
 import OrderTracking from "./OrderTracking";
 
-const OrderContainer = ({ order, onAddToCart }) => {
+const OrderContainer = ({ order, onAddToCart, onOrderUpdate }) => {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6 hover:shadow-xl transition-shadow duration-300">
-      <OrderHeader order={order} />
+      <OrderHeader order={order} onOrderUpdate={onOrderUpdate} />
 
       <div className="grid grid-cols-1 gap-4 mt-6">
         {order.products &&
@@ -21,7 +21,7 @@ const OrderContainer = ({ order, onAddToCart }) => {
       </div>
 
       {/* Show order tracking for non-pending orders */}
-      <OrderTracking order={order} />
+      <OrderTracking order={order} onOrderUpdate={onOrderUpdate} />
     </div>
   );
 };

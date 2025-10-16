@@ -70,10 +70,31 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/auth/admin', adminAuthRoutes);
 app.use('/api/auth', authRoutes);
 
-// Error handling middleware
+// Global error handler middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error('🔥 Server Error:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+
+  // Send error response
+  res.status(err.status || 500).json({
+    error: 'Internal server error'
+  });
+});
+
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.url}`, {
+    body: req.body,
+    query: req.query,
+    timestamp: new Date().toISOString()
+  });
+  next();
 });
 
 // Sync database and load default data if none exist

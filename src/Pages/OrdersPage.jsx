@@ -332,6 +332,7 @@ const OrdersPage = ({ cart, refreshCart }) => {
                 key={order.id}
                 order={order}
                 onAddToCart={handleAddToCart}
+                onOrderUpdate={fetchOrders}
               />
             ))
           )}

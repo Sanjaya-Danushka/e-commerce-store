@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import express from 'express';
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
@@ -32,28 +33,38 @@ router.get('/', async (req, res) => {
     return res.json([]);
   }
 
-  let orders = await Order.unscoped().findAll({
-    where: { userId },
-    order: [['orderTimeMs', 'DESC']] // Sort by most recent
-  });
+  try {
+    let orders = await Order.unscoped().findAll({
+      where: { userId },
+      order: [['orderTimeMs', 'DESC']] // Sort by most recent
+    });
 
-  if (expand === 'products') {
-    orders = await Promise.all(orders.map(async (order) => {
-      const products = await Promise.all(order.products.map(async (product) => {
-        const productDetails = await Product.findByPk(product.productId);
-        return {
-          ...product,
-          product: productDetails
-        };
+    if (expand === 'products') {
+      orders = await Promise.all(orders.map(async (order) => {
+        try {
+          const products = await Promise.all(order.products.map(async (product) => {
+            const productDetails = await Product.findByPk(product.productId);
+            return {
+              ...product,
+              product: productDetails
+            };
+          }));
+          return {
+            ...order.toJSON(),
+            products
+          };
+        } catch (error) {
+          console.error('Error expanding products for order:', order.id, error);
+          return order.toJSON();
+        }
       }));
-      return {
-        ...order.toJSON(),
-        products
-      };
-    }));
-  }
+    }
 
-  res.json(orders);
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
+  }
 });
 
 router.post('/', async (req, res) => {
@@ -146,6 +157,49 @@ router.get('/:orderId', async (req, res) => {
   }
 
   res.json(order);
+});
+
+router.put('/:orderId/cancel', async (req, res) => {
+  const { orderId } = req.params;
+  const { reason, otherReason } = req.body;
+  const userId = getUserIdFromToken(req);
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.userId !== userId) {
+      return res.status(403).json({ error: 'You can only cancel your own orders' });
+    }
+
+    // Only allow cancellation for orders that are preparing or processing
+    if (!['preparing', 'processing'].includes(order.status)) {
+      return res.status(400).json({ error: 'Order cannot be cancelled in its current status' });
+    }
+
+    // Update order status and add cancellation details
+    await order.update({
+      status: 'cancelled',
+      cancellationReason: reason,
+      cancellationOtherReason: otherReason || null,
+      cancelledAt: new Date()
+    });
+
+    res.json({
+      message: 'Order cancelled successfully',
+      order: order.toJSON()
+    });
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    res.status(500).json({ error: 'Failed to cancel order', details: error.message });
+  }
 });
 
 export default router;
