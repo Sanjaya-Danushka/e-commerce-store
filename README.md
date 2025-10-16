@@ -1,6 +1,9 @@
 # 🛒 E-Commerce Store
 
 A modern, full-stack e-commerce application built with React, Node.js, Express, and SQLite. Features user authentication, product management, shopping cart, wishlist, AI chatbot, email notifications, and comprehensive admin panel.
+<img width="1913" height="929" alt="Screenshot_20251016_153948" src="https://github.com/user-attachments/assets/556b1dc9-9169-4a3f-a584-a17be1956746" />
+https://drive.google.com/file/d/1jR6Xc1nId8gCgbNZbhDixFzuBEsPPvvW/view?usp=sharing
+
 
 ## ✨ Key Features
 
