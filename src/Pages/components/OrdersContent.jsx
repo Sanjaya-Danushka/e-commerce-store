@@ -326,7 +326,7 @@ const OrdersContent = ({ theme }) => {
       </div>
 
       {/* Orders Table */}
-      <div className={`${theme.card} ${theme.border} rounded-3xl ${theme.shadow} overflow-hidden`}>
+      <div className={`${theme.card} ${theme.border} rounded-3xl ${theme.shadow} overflow-visible relative`}>
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
@@ -337,7 +337,7 @@ const OrdersContent = ({ theme }) => {
             <p className={`${theme.textSecondary} text-lg`}>No orders found</p>
           </div>
         ) : (
-          <div className="overflow-hidden">
+          <div className="overflow-auto relative">
             <table className="w-full">
               <thead className={`${theme.background} ${theme.border} border-b`}>
                 <tr>
@@ -389,7 +389,7 @@ const OrdersContent = ({ theme }) => {
 
                         {/* Cancellation Reason Tooltip - only show for cancelled orders */}
                         {order.status === 'cancelled' && (order.cancellationReason || order.cancellationOtherReason) && (
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap">
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg">
                             <div className="font-medium mb-1">Cancellation Reason:</div>
                             <div>{order.cancellationReason || 'Other'}</div>
                             {order.cancellationOtherReason && (
@@ -402,7 +402,7 @@ const OrdersContent = ({ theme }) => {
                                 Cancelled: {formatDate(order.cancelledAt)}
                               </div>
                             )}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
                           </div>
                         )}
                       </div>
