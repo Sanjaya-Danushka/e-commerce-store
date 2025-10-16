@@ -5,12 +5,12 @@ import CancelOrderModal from './CancelOrderModal';
 const OrderTracking = ({ order, onOrderUpdate }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // Don't show tracking for pending orders
-  if (order.status === 'pending') {
+  // Show tracking for all orders except cancelled ones
+  if (order.status === 'cancelled') {
     return null;
   }
 
-  const canCancelOrder = ['preparing', 'processing'].includes(order.status);
+  const canCancelOrder = ['pending', 'preparing', 'processing'].includes(order.status);
 
   const handleCancelSuccess = () => {
     if (onOrderUpdate) {
@@ -21,6 +21,8 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
   // Calculate progress percentage based on status
   const getProgressPercentage = () => {
     switch (order.status) {
+      case 'pending':
+        return 0;
       case 'processing':
         return 25;
       case 'shipped':
@@ -37,6 +39,8 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
   // Get status color
   const getStatusColor = () => {
     switch (order.status) {
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-100';
       case 'processing':
         return 'text-blue-600 bg-blue-100';
       case 'shipped':
@@ -59,29 +63,39 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
         description: 'Your order has been confirmed',
         completed: true,
         date: dayjs(order.orderTimeMs).format('MMM D, YYYY [at] h:mm A')
-      },
-      {
+      }
+    ];
+
+    // Add processing stage for non-pending orders
+    if (order.status !== 'pending') {
+      baseStages.push({
         id: 'processing',
         title: 'Processing Order',
         description: 'Your order is being prepared for shipment',
         completed: ['processing', 'shipped', 'delivered'].includes(order.status),
         date: order.status !== 'pending' && order.status !== 'cancelled' ? dayjs(order.orderTimeMs).add(1, 'hour').format('MMM D, YYYY [at] h:mm A') : null
-      },
-      {
-        id: 'shipped',
-        title: 'Shipped',
-        description: 'Your package is on its way to you',
-        completed: ['shipped', 'delivered'].includes(order.status),
-        date: order.status === 'shipped' || order.status === 'delivered' ? dayjs(order.orderTimeMs).add(1, 'day').format('MMM D, YYYY [at] h:mm A') : null
-      },
-      {
-        id: 'delivered',
-        title: 'Delivered',
-        description: 'Your package has been delivered',
-        completed: order.status === 'delivered',
-        date: order.status === 'delivered' ? dayjs(order.orderTimeMs).add(3, 'days').format('MMM D, YYYY [at] h:mm A') : null
-      }
-    ];
+      });
+    }
+
+    // Add shipping and delivery stages for shipped/delivered orders
+    if (['shipped', 'delivered'].includes(order.status)) {
+      baseStages.push(
+        {
+          id: 'shipped',
+          title: 'Shipped',
+          description: 'Your package is on its way to you',
+          completed: ['shipped', 'delivered'].includes(order.status),
+          date: order.status === 'shipped' || order.status === 'delivered' ? dayjs(order.orderTimeMs).add(1, 'day').format('MMM D, YYYY [at] h:mm A') : null
+        },
+        {
+          id: 'delivered',
+          title: 'Delivered',
+          description: 'Your package has been delivered',
+          completed: order.status === 'delivered',
+          date: order.status === 'delivered' ? dayjs(order.orderTimeMs).add(3, 'days').format('MMM D, YYYY [at] h:mm A') : null
+        }
+      );
+    }
 
     // Add cancellation stage for cancelled orders
     if (order.status === 'cancelled') {
@@ -191,6 +205,7 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
               order.status === 'delivered' ? 'bg-green-500' :
               order.status === 'shipped' ? 'bg-purple-500' :
               order.status === 'processing' ? 'bg-blue-500' :
+              order.status === 'pending' ? 'bg-yellow-500' :
               order.status === 'cancelled' ? 'bg-red-500' : 'bg-gray-300'
             }`}
             style={{ width: `${progressPercentage}%` }}
