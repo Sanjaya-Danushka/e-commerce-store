@@ -526,26 +526,30 @@ const CheckoutPage = () => {
       }
 
       if (paymentResult.success) {
-        // Payment successful, now create the order
-        const itemsToOrder = selectedCartItems.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          deliveryOptionId: item.deliveryOptionId
-        }));
-
-        const orderResponse = await axios.post("/api/orders", {
-          cartItems: itemsToOrder,
-          paymentMethod: selectedPaymentMethod,
-          paymentTransactionId: paymentResult.transactionId,
-          paymentStatus: "completed"
+        // Payment successful, now create separate orders for each item
+        const selectedCartItems = cartItems.filter(item => selectedItems[item.productId]);
+        const orderPromises = selectedCartItems.map(async (item) => {
+          const orderResponse = await axios.post("/api/orders", {
+            cartItems: [{
+              productId: item.productId,
+              quantity: item.quantity,
+              deliveryOptionId: item.deliveryOptionId
+            }],
+            paymentMethod: selectedPaymentMethod,
+            paymentTransactionId: paymentResult.transactionId,
+            paymentStatus: "completed"
+          });
+          return orderResponse.data.orderId;
         });
+
+        // Wait for all orders to be created
+        const orderIds = await Promise.all(orderPromises);
 
         // Re-fetch cart items to get updated cart state
         const fetchCartItems = async () => {
           try {
             const response = await axios.get("/api/cart-items?expand=product");
             setCartItems(response.data);
-            // Re-initialize selected items for remaining items
             const initialSelectedItems = {};
             response.data.forEach(item => {
               initialSelectedItems[item.productId] = true;
@@ -560,8 +564,8 @@ const CheckoutPage = () => {
 
         await fetchCartItems();
 
-        // Redirect to order success page with order ID
-        window.location.href = `/order-success?orderId=${orderResponse.data.orderId}`;
+        // Redirect to order success page with the first order ID (or handle multiple orders)
+        window.location.href = `/order-success?orderId=${orderIds[0]}`;
       }
     } catch (error) {
       console.error("Payment processing error:", error);
@@ -921,18 +925,22 @@ const CheckoutPage = () => {
                           if (result.success) {
                             // Payment successful, continue with order placement
                             const selectedCartItems = cartItems.filter(item => selectedItems[item.productId]);
-                            const itemsToOrder = selectedCartItems.map(item => ({
-                              productId: item.productId,
-                              quantity: item.quantity,
-                              deliveryOptionId: item.deliveryOptionId
-                            }));
-
-                            const orderResponse = await axios.post("/api/orders", {
-                              cartItems: itemsToOrder,
-                              paymentMethod: "apple_pay",
-                              paymentTransactionId: result.transactionId,
-                              paymentStatus: "completed"
+                            const orderPromises = selectedCartItems.map(async (item) => {
+                              const orderResponse = await axios.post("/api/orders", {
+                                cartItems: [{
+                                  productId: item.productId,
+                                  quantity: item.quantity,
+                                  deliveryOptionId: item.deliveryOptionId
+                                }],
+                                paymentMethod: "apple_pay",
+                                paymentTransactionId: result.transactionId,
+                                paymentStatus: "completed"
+                              });
+                              return orderResponse.data.orderId;
                             });
+
+                            // Wait for all orders to be created
+                            const orderIds = await Promise.all(orderPromises);
 
                             // Re-fetch cart items to get updated cart state
                             const fetchCartItems = async () => {
@@ -954,7 +962,7 @@ const CheckoutPage = () => {
                             await fetchCartItems();
 
                             // Redirect to order success page
-                            window.location.href = `/order-success?orderId=${orderResponse.data.orderId}`;
+                            window.location.href = `/order-success?orderId=${orderIds[0]}`;
                           }
                         } catch (error) {
                           console.error("Apple Pay error:", error);
@@ -1035,18 +1043,22 @@ const CheckoutPage = () => {
                           if (result.success) {
                             // Payment successful, continue with order placement
                             const selectedCartItems = cartItems.filter(item => selectedItems[item.productId]);
-                            const itemsToOrder = selectedCartItems.map(item => ({
-                              productId: item.productId,
-                              quantity: item.quantity,
-                              deliveryOptionId: item.deliveryOptionId
-                            }));
-
-                            const orderResponse = await axios.post("/api/orders", {
-                              cartItems: itemsToOrder,
-                              paymentMethod: "google_pay",
-                              paymentTransactionId: result.transactionId,
-                              paymentStatus: "completed"
+                            const orderPromises = selectedCartItems.map(async (item) => {
+                              const orderResponse = await axios.post("/api/orders", {
+                                cartItems: [{
+                                  productId: item.productId,
+                                  quantity: item.quantity,
+                                  deliveryOptionId: item.deliveryOptionId
+                                }],
+                                paymentMethod: "google_pay",
+                                paymentTransactionId: result.transactionId,
+                                paymentStatus: "completed"
+                              });
+                              return orderResponse.data.orderId;
                             });
+
+                            // Wait for all orders to be created
+                            const orderIds = await Promise.all(orderPromises);
 
                             // Re-fetch cart items to get updated cart state
                             const fetchCartItems = async () => {
@@ -1068,7 +1080,7 @@ const CheckoutPage = () => {
                             await fetchCartItems();
 
                             // Redirect to order success page
-                            window.location.href = `/order-success?orderId=${orderResponse.data.orderId}`;
+                            window.location.href = `/order-success?orderId=${orderIds[0]}`;
                           }
                         } catch (error) {
                           console.error("Google Pay error:", error);
