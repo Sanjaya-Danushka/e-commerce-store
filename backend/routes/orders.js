@@ -179,8 +179,8 @@ router.put('/:orderId/cancel', async (req, res) => {
       return res.status(403).json({ error: 'You can only cancel your own orders' });
     }
 
-    // Only allow cancellation for orders that are preparing or processing
-    if (!['preparing', 'processing'].includes(order.status)) {
+    // Only allow cancellation for orders that are pending, preparing or processing
+    if (!['pending', 'preparing', 'processing'].includes(order.status)) {
       return res.status(400).json({ error: 'Order cannot be cancelled in its current status' });
     }
 
@@ -199,6 +199,49 @@ router.put('/:orderId/cancel', async (req, res) => {
   } catch (error) {
     console.error('Error cancelling order:', error);
     res.status(500).json({ error: 'Failed to cancel order', details: error.message });
+  }
+});
+
+router.put('/:orderId/return', async (req, res) => {
+  const { orderId } = req.params;
+  const { reason, otherReason } = req.body;
+  const userId = getUserIdFromToken(req);
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.userId !== userId) {
+      return res.status(403).json({ error: 'You can only return your own orders' });
+    }
+
+    // Only allow return for orders that are delivered
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ error: 'Only delivered orders can be returned' });
+    }
+
+    // Update order status and add return details
+    await order.update({
+      status: 'returned',
+      returnReason: reason,
+      returnOtherReason: otherReason || null,
+      returnedAt: new Date()
+    });
+
+    res.json({
+      message: 'Return request submitted successfully',
+      order: order.toJSON()
+    });
+  } catch (error) {
+    console.error('Error processing return request:', error);
+    res.status(500).json({ error: 'Failed to process return request', details: error.message });
   }
 });
 

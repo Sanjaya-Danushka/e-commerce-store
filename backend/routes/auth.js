@@ -615,6 +615,49 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
+// GET /api/auth/profile - Get current user profile
+router.get('/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        phoneNumber: user.phoneNumber,
+        addressLine1: user.addressLine1,
+        addressLine2: user.addressLine2,
+        city: user.city,
+        state: user.state,
+        postalCode: user.postalCode,
+        country: user.country,
+        profileCompleted: user.profileCompleted,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // PUT /api/auth/profile - Update user profile
 router.put('/profile', async (req, res) => {
   try {
@@ -684,6 +727,11 @@ router.put('/profile', async (req, res) => {
     }
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// POST /api/auth/logout - User logout
+router.post('/logout', (req, res) => {
+  res.json({ message: 'Logged out successfully' });
 });
 
 export default router;

@@ -189,7 +189,8 @@ const OrdersContent = ({ theme }) => {
       'processing': 'bg-blue-100 text-blue-800',
       'shipped': 'bg-purple-100 text-purple-800',
       'delivered': 'bg-green-100 text-green-800',
-      'cancelled': 'bg-red-100 text-red-800'
+      'cancelled': 'bg-red-100 text-red-800',
+      'returned': 'bg-orange-100 text-orange-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -291,6 +292,7 @@ const OrdersContent = ({ theme }) => {
               <option value="shipped">Shipped</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
+              <option value="returned">Returned</option>
             </select>
           </div>
           <div className="flex items-end">
@@ -384,22 +386,42 @@ const OrdersContent = ({ theme }) => {
                           <option value="shipped">Shipped</option>
                           <option value="delivered">Delivered</option>
                           <option value="cancelled">Cancelled</option>
+                          <option value="returned">Returned</option>
                         </select>
 
-                        {/* Cancellation Reason Tooltip - only show for cancelled orders */}
-                        {order.status === 'cancelled' && (order.cancellationReason || order.cancellationOtherReason) && (
+                        {/* Cancellation/Return Reason Tooltip - show for cancelled and returned orders */}
+                        {(order.status === 'cancelled' || order.status === 'returned') && (order.cancellationReason || order.cancellationOtherReason || order.returnReason || order.returnOtherReason) && (
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999] whitespace-nowrap shadow-lg border border-gray-700 min-w-max">
-                            <div className="font-medium mb-1">Cancellation Reason:</div>
-                            <div>{order.cancellationReason || 'Other'}</div>
-                            {order.cancellationOtherReason && (
-                              <div className="mt-1 text-gray-300">
-                                Details: {order.cancellationOtherReason}
-                              </div>
-                            )}
-                            {order.cancelledAt && (
-                              <div className="mt-1 text-gray-400 text-xs">
-                                Cancelled: {formatDate(order.cancelledAt)}
-                              </div>
+                            {order.status === 'cancelled' ? (
+                              <>
+                                <div className="font-medium mb-1">Cancellation Reason:</div>
+                                <div>{order.cancellationReason || 'Other'}</div>
+                                {order.cancellationOtherReason && (
+                                  <div className="mt-1 text-gray-300">
+                                    Details: {order.cancellationOtherReason}
+                                  </div>
+                                )}
+                                {order.cancelledAt && (
+                                  <div className="mt-1 text-gray-400 text-xs">
+                                    Cancelled: {formatDate(order.cancelledAt)}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <div className="font-medium mb-1">Return Reason:</div>
+                                <div>{order.returnReason || 'Other'}</div>
+                                {order.returnOtherReason && (
+                                  <div className="mt-1 text-gray-300">
+                                    Details: {order.returnOtherReason}
+                                  </div>
+                                )}
+                                {order.returnedAt && (
+                                  <div className="mt-1 text-gray-400 text-xs">
+                                    Returned: {formatDate(order.returnedAt)}
+                                  </div>
+                                )}
+                              </>
                             )}
                             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
                           </div>
@@ -513,6 +535,7 @@ const OrdersContent = ({ theme }) => {
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>
+                        <option value="returned">Returned</option>
                       </select>
                     </div>
                     <div className="flex justify-between items-center">

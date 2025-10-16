@@ -738,6 +738,67 @@ router.get('/orders/stats', async (req, res) => {
   }
 });
 
+// GET /api/admin/orders - Get all orders with pagination and filtering (admin only)
+router.get('/orders', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', search, status } = req.query;
+
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    // Build where clause
+    const whereClause = {};
+
+    if (search) {
+      whereClause[Op.or] = [
+        { id: { [Op.like]: `%${search}%` } },
+        { '$user.firstName$': { [Op.like]: `%${search}%` } },
+        { '$user.lastName$': { [Op.like]: `%${search}%` } },
+        { '$user.email$': { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    // Build order clause
+    const orderClause = [[sortBy, sortOrder.toUpperCase()]];
+
+    // Fetch orders with pagination
+    const { count, rows: orders } = await Order.findAndCountAll({
+      where: whereClause,
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode', 'country']
+      }],
+      order: orderClause,
+      limit: limitNum,
+      offset: offset
+    });
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(count / limitNum);
+
+    const pagination = {
+      total: count,
+      page: parseInt(page),
+      limit: limitNum,
+      pages: totalPages
+    };
+
+    console.log('Admin orders fetched:', orders.length, 'orders');
+    res.json({
+      orders,
+      pagination
+    });
+  } catch (error) {
+    console.error('Error fetching admin orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 // GET /api/admin/orders/:id - Get single order with details
 router.get('/orders/:id', async (req, res) => {
   try {
@@ -779,7 +840,7 @@ router.put('/orders/:id', async (req, res) => {
       return res.status(400).json({ error: 'Status is required' });
     }
 
-    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }

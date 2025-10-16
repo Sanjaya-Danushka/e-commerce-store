@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import CancelOrderModal from './CancelOrderModal';
+import ReturnOrderModal from './ReturnOrderModal';
 
 const OrderTracking = ({ order, onOrderUpdate }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
 
   // Show tracking for all orders except cancelled ones
   if (order.status === 'cancelled') {
@@ -11,8 +13,15 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
   }
 
   const canCancelOrder = ['pending', 'preparing', 'processing'].includes(order.status);
+  const canReturnOrder = order.status === 'delivered';
 
   const handleCancelSuccess = () => {
+    if (onOrderUpdate) {
+      onOrderUpdate();
+    }
+  };
+
+  const handleReturnSuccess = () => {
     if (onOrderUpdate) {
       onOrderUpdate();
     }
@@ -139,6 +148,14 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
               Cancel Order
             </button>
           )}
+          {canReturnOrder && (
+            <button
+              onClick={() => setShowReturnModal(true)}
+              className="px-3 py-1 bg-orange-600 text-white text-sm font-medium rounded hover:bg-orange-700 transition-colors"
+            >
+              Return Order
+            </button>
+          )}
         </div>
       </div>
 
@@ -252,6 +269,14 @@ const OrderTracking = ({ order, onOrderUpdate }) => {
       isOpen={showCancelModal}
       onClose={() => setShowCancelModal(false)}
       onCancelSuccess={handleCancelSuccess}
+    />
+
+    {/* Return Order Modal */}
+    <ReturnOrderModal
+      order={order}
+      isOpen={showReturnModal}
+      onClose={() => setShowReturnModal(false)}
+      onReturnSuccess={handleReturnSuccess}
     />
     </>
   );

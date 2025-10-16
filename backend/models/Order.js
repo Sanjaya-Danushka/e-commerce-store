@@ -44,6 +44,18 @@ export const Order = sequelize.define('Order', {
     type: DataTypes.DATE,
     allowNull: true
   },
+  returnReason: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  returnOtherReason: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  returnedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   createdAt: {
     type: DataTypes.DATE(3)
   },
