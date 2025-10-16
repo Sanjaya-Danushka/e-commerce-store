@@ -16,13 +16,20 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
     // Fetch all products to match with wishlist items
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
-        if (response.ok) {
-          const allProducts = await response.json();
-          setProducts(allProducts);
+        const response = await axios.get("/api/products");
+        if (response.status === 200) {
+          const data = response.data;
+          // Extract products array from API response
+          const allProducts = data.products || data || [];
+          // Ensure we always set an array, even if API returns something else
+          setProducts(Array.isArray(allProducts) ? allProducts : []);
+        } else {
+          console.error("Failed to fetch products:", response.status);
+          setProducts([]);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]);
       }
     };
     fetchProducts();
@@ -73,9 +80,9 @@ const WishlistPage = ({ cart, wishlist, refreshCart, refreshWishlist, updateWish
   }, [wishlist]);
 
   // Get wishlist products by matching product IDs
-  const wishlistProducts = products.filter(product =>
+  const wishlistProducts = (products && Array.isArray(products)) ? products.filter(product =>
     wishlist.some(wishlistItem => wishlistItem.productId === product.id)
-  );
+  ) : [];
 
   // Debug logging
   console.log('WishlistPage render:', {

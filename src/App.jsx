@@ -37,7 +37,7 @@ import LoginPage from "./Pages/LoginPage";
 import SignupPage from "./Pages/SignupPage";
 import ProfilePage from "./Pages/ProfilePage";
 import ProfileCompletionModal from "./components/ProfileCompletionModal";
-import DebugConsole from "./components/DebugConsole";
+// import DebugConsole from "./components/DebugConsole";
 
 // AppContent handles the main app layout and data management
 const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlist, updateWishlist }) => {
@@ -126,7 +126,7 @@ const AppContent = ({ cart, wishlist, guestWishlist, refreshCart, refreshWishlis
       />
 
       {/* Debug Console - shows errors and logs */}
-      <DebugConsole />
+      {/* <DebugConsole /> */}
     </>
   );
 };
